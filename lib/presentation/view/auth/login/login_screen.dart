@@ -174,16 +174,11 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 20),
 
-                // Forgot Password Link
                 Align(
                   alignment: Alignment.centerRight,
                   child: GestureDetector(
                     onTap: () {
-                      // TODO: Implement forgot password navigation
-                      // Navigator.pushNamed(
-                      //   context,
-                      //   RouteName.forgetPassword,
-                      // );
+                      Navigator.pushNamed(context, RouteName.forgetPassword);
                     },
                     child: const Text(
                       "Forgot Password?",

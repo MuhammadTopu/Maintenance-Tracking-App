@@ -10,10 +10,10 @@ class RouteName {
   static const login = "/login";
   static const signup = "/signup";
   static const signupInfo = "/signup-info";
-  static const otp = "/otp";
+  static const verifyEmailOtp = "/verify-email-otp";
   static const forgetPassword = "/forget-password";
   static const resetPasswordOtp = "/reset-password-otp";
-  static const setPassword = "/set-password";
+  static const resetPassword = "/reset-password";
   static const loginInfo = "/login-info";
 
   // =====================

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:maintenance_genie/presentation/view_models/sign_up_provider.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../app/routes/route_names.dart';
@@ -10,46 +9,25 @@ import '../../../../core/utils/input_validator.dart';
 import '../../../../shared/app_toast.dart';
 import '../../../../shared/common_widgets.dart';
 import '../../../../shared/custom_text_field.dart';
+import '../../../view_models/forget_pass_provider.dart';
 
-class SignUpScreen extends StatefulWidget {
-  const SignUpScreen({super.key});
+class ForgetPasswordScreen extends StatefulWidget {
+  const ForgetPasswordScreen({super.key});
 
   @override
-  State<SignUpScreen> createState() => _SignUpScreenState();
+  State<ForgetPasswordScreen> createState() => _ForgetPasswordScreenState();
 }
 
-class _SignUpScreenState extends State<SignUpScreen> {
+class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
+
   final TextEditingController emailController = TextEditingController();
-  final FocusNode _focusNode = FocusNode();
+  final FocusNode focusNode = FocusNode();
 
   @override
   void dispose() {
-    super.dispose();
     emailController.dispose();
-    _focusNode.dispose();
-  }
-
-  Future<void> handleSignUp(SignUpProvider provider) async {
-    final email = emailController.text.trim();
-    if (email.isEmpty) {
-      AppToast.showToast('Please enter your email', gravity: ToastGravity.TOP);
-      return;
-    }
-
-    if (InputValidators.emailValidator(email) == false) {
-      AppToast.showToast(
-        'Please enter a valid email',
-        gravity: ToastGravity.TOP,
-      );
-      return;
-    }
-    final result = await provider.register1(email: email);
-
-    if (!mounted) return;
-
-    if (result) {
-      Navigator.pushReplacementNamed(context, RouteName.verifyEmailOtp);
-    }
+    focusNode.dispose();
+    super.dispose();
   }
 
   @override
@@ -84,7 +62,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               ),
               SizedBox(height: 18),
               Text(
-                "Create Your Account",
+                "Enter your email address to reset your password.",
                 style: TextStyle(
                   color: Color(0xff1D1F2C),
                   fontSize: 20,
@@ -114,49 +92,48 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   }
                   return null;
                 },
-                focusNode: _focusNode,
+                focusNode: focusNode,
               ),
-              SizedBox(height: 20),
+              SizedBox(height: 40),
               SizedBox(
                 width: MediaQuery.of(context).size.width * 0.9,
-                child: Consumer<SignUpProvider>(
-                  builder: (_, provider, _) {
+                child: Consumer<ForgetPassProvider>(
+                  builder: (context, provider, child) {
                     return Visibility(
                       visible: !provider.isLoading,
-                      replacement: Center(child: CircularProgressIndicator()),
+                      replacement: const Center(
+                        child: CircularProgressIndicator(),
+                      ),
                       child: PrimaryButton(
                         text: "Verify",
-                        onPressed: () => handleSignUp(provider),
+                        onPressed: () async {
+                          final email = emailController.text.trim();
+                          if (email.isEmpty) {
+                            AppToast.showToast('Please enter your email', gravity: ToastGravity.TOP);
+                            return;
+                          }
+
+                          if (InputValidators.emailValidator(email) == false) {
+                            AppToast.showToast(
+                              'Please enter a valid email',
+                              gravity: ToastGravity.TOP,
+                            );
+                            return;
+                          }
+                          final result = await provider.forgetPass(email: email);
+
+                          if (!mounted) return;
+
+                          if (result) {
+                            Navigator.pushReplacementNamed(context, RouteName.resetPasswordOtp);
+                          }
+                        },
                       ),
                     );
-                  }
+                  },
                 ),
               ),
               SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Consumer<SignUpProvider>(
-                    builder: (_, pro, _) {
-                      return Checkbox(
-                        value: pro.isChecked,
-                        onChanged: (value) => pro.toggleCheck(value!),
-                      );
-                    },
-                  ),
-                  Expanded(
-                    child: Text(
-                      "By proceeding, you accept Maintenance\nGenie Terms of Service and acknowledge reading its Privacy Policy.",
-                      style: TextStyle(
-                        color: Color(0xff1D1F2C),
-                        fontWeight: FontWeight.w400,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
             ],
           ),
         ),

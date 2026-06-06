@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:maintenance_genie/presentation/view/auth/forget_pass/forget_password_screen.dart';
+import 'package:maintenance_genie/presentation/view/auth/forget_pass/reset_pass_otp_screen.dart';
+import 'package:maintenance_genie/presentation/view/auth/forget_pass/reset_password_screen.dart';
 import 'package:maintenance_genie/presentation/view/auth/login/login_screen.dart';
+import 'package:maintenance_genie/presentation/view/auth/sign_up/sign_up_info_screen.dart';
+import 'package:maintenance_genie/presentation/view/auth/sign_up/sign_up_screen.dart';
+import 'package:maintenance_genie/presentation/view/auth/sign_up/verify_email_otp_screen.dart';
 
 import '../../presentation/view/splash/splash_screen.dart';
 import 'route_names.dart';
@@ -14,6 +20,22 @@ class AppRoutes {
 
       case RouteName.login:
         return _buildRoute(const LoginScreen());
+
+      case RouteName.signup:
+        return _buildRoute(const SignUpScreen());
+
+      case RouteName.verifyEmailOtp:
+        return _buildRoute(const VerifyEmailOtpScreen());
+
+      case RouteName.signupInfo:
+        return _buildRoute(const SignUpInfoScreen());
+
+      case RouteName.forgetPassword:
+        return _buildRoute(const ForgetPasswordScreen());
+      case RouteName.resetPasswordOtp:
+        return _buildRoute(const ResetPassOtpScreen());
+      case RouteName.resetPassword:
+        return _buildRoute(const SetPasswordScreen());
 
       default:
         return _buildRoute(const UnknownRouteScreen());
@@ -71,7 +93,7 @@ class UnknownRouteScreen extends StatelessWidget {
                 onPressed: () {
                   Navigator.of(context).pushNamedAndRemoveUntil(
                     RouteName.splash, // or RouteName.login
-                        (route) => false,
+                    (route) => false,
                   );
                 },
                 child: const Text('Go to Home'),

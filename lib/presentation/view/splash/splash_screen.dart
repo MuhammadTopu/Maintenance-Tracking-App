@@ -126,7 +126,9 @@ class _SplashScreenState extends State<SplashScreen>
                       PrimaryButton(
                         variant: ButtonVariant.outlined,
                         text: "Sign Up",
-                        onPressed: () {},
+                        onPressed: () {
+                          Navigator.pushNamed(context, RouteName.signup);
+                        },
                       ),
                     ],
                   ),

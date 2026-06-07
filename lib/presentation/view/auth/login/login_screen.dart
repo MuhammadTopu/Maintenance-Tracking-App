@@ -74,7 +74,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!mounted) return;
 
     if (result) {
-      Navigator.pushReplacementNamed(context, RouteName.dashboard);
+      Navigator.pushReplacementNamed(context, RouteName.parent);
     }
   }
 

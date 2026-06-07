@@ -6,6 +6,8 @@ import 'package:maintenance_genie/presentation/view/auth/login/login_screen.dart
 import 'package:maintenance_genie/presentation/view/auth/sign_up/sign_up_info_screen.dart';
 import 'package:maintenance_genie/presentation/view/auth/sign_up/sign_up_screen.dart';
 import 'package:maintenance_genie/presentation/view/auth/sign_up/verify_email_otp_screen.dart';
+import 'package:maintenance_genie/presentation/view/items/add_item_screen.dart';
+import 'package:maintenance_genie/presentation/view/parent/screen/parent_screen.dart';
 
 import '../../presentation/view/splash/splash_screen.dart';
 import 'route_names.dart';
@@ -32,10 +34,18 @@ class AppRoutes {
 
       case RouteName.forgetPassword:
         return _buildRoute(const ForgetPasswordScreen());
+
       case RouteName.resetPasswordOtp:
         return _buildRoute(const ResetPassOtpScreen());
+
       case RouteName.resetPassword:
         return _buildRoute(const SetPasswordScreen());
+
+      case RouteName.parent:
+        return _buildRoute(const ParentScreen());
+
+      case RouteName.addItem:
+        return _buildRoute(AddItemScreen());
 
       default:
         return _buildRoute(const UnknownRouteScreen());

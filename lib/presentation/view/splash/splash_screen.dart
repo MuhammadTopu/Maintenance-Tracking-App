@@ -54,7 +54,7 @@ class _SplashScreenState extends State<SplashScreen>
       },
       onNavigateToHome: () {
         if (!mounted) return;
-        Navigator.pushReplacementNamed(context, RouteName.login);
+        Navigator.pushReplacementNamed(context, RouteName.parent);
       },
       onStayOnSplash: () {},
     );

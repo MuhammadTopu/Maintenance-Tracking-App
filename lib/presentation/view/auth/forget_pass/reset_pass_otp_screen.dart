@@ -100,7 +100,7 @@ class _ResetPassOtpScreenState extends State<ResetPassOtpScreen> {
                           final result = await provider.verifyResetPassOtp(
                             otp: otp,
                           );
-                          if (result == false) {
+                          if (result) {
                             Navigator.pushNamed(context, RouteName.resetPassword);
                           }
                         },

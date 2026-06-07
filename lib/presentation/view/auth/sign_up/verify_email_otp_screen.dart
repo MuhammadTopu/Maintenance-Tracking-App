@@ -100,7 +100,7 @@ class _VerifyEmailOtpScreenState extends State<VerifyEmailOtpScreen> {
                           final result = await signUpProvider.register2(
                             otp: otp,
                           );
-                          if (result == false) {
+                          if (result) {
                             Navigator.pushNamed(context, RouteName.signupInfo);
                           }
                         },

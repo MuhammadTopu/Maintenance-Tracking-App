@@ -30,7 +30,7 @@ class AuthRepositoriesImpl implements AuthRepository {
       return false;
     } on DioException catch (e) {
       final serverMessage =
-          e.response?.data['message']['message'] ??
+          e.response?.data['message'] ??
           "Unauthorized: Please check your credentials.";
       AppToast.showToast(serverMessage, backgroundColor: Colors.red);
       return false;

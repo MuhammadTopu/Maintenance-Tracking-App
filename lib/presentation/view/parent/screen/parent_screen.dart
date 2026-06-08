@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../view_models/all_item_list_provider.dart';
+import '../../../view_models/item_task_list_provider.dart';
 import '../../../view_models/parent_screen_provider.dart';
+import '../../../view_models/user_provider.dart';
 import '../widget/parent_screen_widget.dart';
 
 class ParentScreen extends StatefulWidget {
@@ -14,9 +17,9 @@ class _ParentScreenState extends State<ParentScreen> {
   @override
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      // context.read<GetMeProvider>().getMeDetails();
-      // context.read<ItemListProvider>().getAllItem();
-      // context.read<ItemTaskListProvider>().getAllTaskList();
+      context.read<UserProvider>().getUserDetails();
+      context.read<AllItemListProvider>().getAllItem();
+      context.read<ItemTaskListProvider>().getItemTasks();
     });
     super.initState();
   }

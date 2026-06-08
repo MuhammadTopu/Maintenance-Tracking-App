@@ -30,4 +30,33 @@ class ItemTaskListProvider extends ChangeNotifier {
 
     setLoading(false);
   }
+
+  TaskListResponse? _filteredTaskListResponse;
+  TaskListResponse? get filteredTaskListResponse => _filteredTaskListResponse;
+
+  void filterTasks(String filterValue) {
+    if (_taskListResponse == null) return;
+
+    switch (filterValue) {
+      case 'Most Recent':
+        _filteredTaskListResponse = _taskListResponse;
+        break;
+      case 'Pending':
+        _filteredTaskListResponse = TaskListResponse(
+            tasks: _taskListResponse!.tasks.where((task) => task.status == 'Due').toList(), success: true, message: ''
+        );
+        break;
+      case 'Completed':
+        _filteredTaskListResponse = TaskListResponse(
+            tasks: _taskListResponse!.tasks.where((task) => task.status == 'Completed').toList(), success: true, message: ''
+        );
+        break;
+      case 'Cancelled':
+        _filteredTaskListResponse = TaskListResponse(
+          tasks: _taskListResponse!.tasks.where((task) => task.status == 'Cancelled').toList(), success: true, message: '',
+        );
+        break;
+    }
+    notifyListeners();
+  }
 }

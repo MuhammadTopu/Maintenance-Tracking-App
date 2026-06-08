@@ -11,18 +11,25 @@ class AllItemListProvider extends ChangeNotifier {
   AllItemListProvider(this._repository);
 
   bool _loading = false;
-  String _error = '';
+  String? _error1 = '';
+  String? _error2 = '';
 
   bool get loading => _loading;
-  String get error => _error;
+  String? get errorFetchingAllItems => _error1;
+  String? get errorFetchingOneItem => _error2;
 
   void setLoading(bool loading) {
     _loading = loading;
     notifyListeners();
   }
 
-  void setError(String error) {
-    _error = error;
+  void setError1(String error) {
+    _error1 = error;
+    notifyListeners();
+  }
+
+  void setError2(String error) {
+    _error2 = error;
     notifyListeners();
   }
 
@@ -40,7 +47,8 @@ class AllItemListProvider extends ChangeNotifier {
       _allItemListModel = response;
       notifyListeners();
     } else {
-      setError('Failed to fetch items');
+      Log.error('-------------Failed to fetch items-------------');
+      setError1('Failed to fetch items');
     }
 
     setLoading(false);
@@ -59,6 +67,8 @@ class AllItemListProvider extends ChangeNotifier {
     if (response != null) {
       _oneItemModel = response;
       notifyListeners();
+    } else {
+      setError2('Failed to fetch item');
     }
 
     setLoading(false);

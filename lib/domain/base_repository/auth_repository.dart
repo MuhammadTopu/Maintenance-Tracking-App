@@ -1,3 +1,7 @@
+import 'dart:io';
+
+import '../../data/models/user_response_model.dart';
+
 abstract class AuthRepository {
 
   Future<bool> login({required String email, required String password});
@@ -7,4 +11,10 @@ abstract class AuthRepository {
   Future<bool> forgetPassword({required String email});
   Future<bool> verifyResetPassOtp({required String email, required String otp});
   Future<bool> resetPass({required String password});
+  Future<UserResponse?> getUserDetails();
+  Future<bool> updateProfileImage(File image);
+  Future<bool> updateProfileDetails({
+    required String name,
+    required String address,
+  });
 }

@@ -1,7 +1,14 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import 'package:maintenance_genie/core/helper/logger.dart';
 import 'package:maintenance_genie/core/services/storage/token_storage_service.dart';
+import 'package:maintenance_genie/data/models/user_response_model.dart';
+import 'package:mime/mime.dart';
+import 'package:path/path.dart' as path;
 import '../../core/constants/api_end_points.dart';
 import '../../core/services/api/api_service.dart';
 import '../../domain/base_repository/auth_repository.dart';
@@ -11,6 +18,27 @@ class AuthRepositoriesImpl implements AuthRepository {
   final ApiService _apiService;
 
   AuthRepositoriesImpl(this._apiService);
+
+
+  String _extractServerMessage(
+      DioException e, {
+        String fallback = "Unauthorized: Please Login Again.",
+      }) {
+    final data = e.response?.data;
+    if (data is Map<String, dynamic>) {
+      final message = data['message'];
+      if (message is String && message.trim().isNotEmpty) {
+        return message;
+      }
+      if (message is Map<String, dynamic>) {
+        final nested = message['message'];
+        if (nested is String && nested.trim().isNotEmpty) {
+          return nested;
+        }
+      }
+    }
+    return fallback;
+  }
 
   @override
   Future<bool> login({required String email, required String password}) async {
@@ -197,4 +225,79 @@ class AuthRepositoriesImpl implements AuthRepository {
     }
   }
 
+  @override
+  Future<UserResponse?> getUserDetails() async {
+    try {
+      final response = await _apiService.get(ApiEndPoints.getMe);
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        if (response.data['success'] == true) {
+          return UserResponse.fromJson(response.data);
+        }
+      }
+      return null;
+    } on DioException catch (e) {
+      String serverMessage = '';
+      if (e.type == DioExceptionType.connectionError) {
+        serverMessage = "Something went wrong!!! Check internet connection";
+      } else {
+        serverMessage = _extractServerMessage(e);
+      }
+      AppToast.showToast(serverMessage, backgroundColor: Colors.red);
+      return null;
+    } catch (e) {
+      Log.error("Error in fetching user data : $e");
+      throw Exception(e);
+    }
+  }
+
+  @override
+  Future<bool> updateProfileImage(File image) async {
+    final token = await TokenStorageService.instance.getToken();
+    if (token == null) return false;
+
+    final request = http.MultipartRequest(
+      'PUT',
+      Uri.parse(ApiEndPoints.updateUserImage),
+    );
+
+    request.headers['Authorization'] = 'Bearer $token';
+
+    final mimeType = lookupMimeType(image.path);
+    final fileName = path.basename(image.path);
+
+    request.files.add(
+      await http.MultipartFile.fromPath(
+        'profilePicture',
+        image.path,
+        filename: fileName,
+        contentType: mimeType != null ? MediaType.parse(mimeType) : null,
+      ),
+    );
+
+    final response = await request.send();
+    return response.statusCode >= 200 && response.statusCode < 300;
+  }
+
+  @override
+  Future<bool> updateProfileDetails({
+    required String name,
+    required String address,
+  }) async {
+    final token = await TokenStorageService.instance.getToken();
+    if (token == null) return false;
+
+    final response = await http.put(
+      Uri.parse(ApiEndPoints.updateUserDetails),
+      headers: {
+        'Authorization': 'Bearer $token',
+      },
+      body: {
+        "name": name,
+        "address": address,
+      },
+    );
+
+    return response.statusCode == 200;
+  }
 }

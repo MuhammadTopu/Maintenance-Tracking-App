@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:maintenance_genie/core/services/storage/token_storage_service.dart';
 import '../../domain/base_repository/auth_repository.dart';
 
 class LoginProvider extends ChangeNotifier {
@@ -29,5 +30,9 @@ class LoginProvider extends ChangeNotifier {
     final result = await _repository.login(email: email, password: password);
     setLoading(false);
     return result;
+  }
+
+  Future<void> logOut() async {
+    await TokenStorageService.instance.clearToken();
   }
 }

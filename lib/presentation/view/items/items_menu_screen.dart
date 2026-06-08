@@ -73,13 +73,13 @@ class _ItemsMenuScreenState extends State<ItemsMenuScreen> {
                       return const Center(child: CircularProgressIndicator());
                     }
 
-                    if (provider.error != '') {
+                    if (provider.errorFetchingAllItems != '') {
                       return Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             SizedBox(height: 30.h),
-                            Text(provider.error, style: TextStyle(fontSize: 16.sp)),
+                            Text(provider.errorFetchingAllItems!, style: TextStyle(fontSize: 16.sp)),
                             SizedBox(height: 16.h),
                             SizedBox(
                               width: MediaQuery.of(context).size.width * 0.3,

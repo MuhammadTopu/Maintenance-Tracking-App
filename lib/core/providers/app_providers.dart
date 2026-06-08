@@ -1,13 +1,18 @@
 import 'package:maintenance_genie/presentation/view_models/add_item_provider.dart';
+import 'package:maintenance_genie/presentation/view_models/add_receipt_provider.dart';
 import 'package:maintenance_genie/presentation/view_models/all_item_list_provider.dart';
 import 'package:maintenance_genie/presentation/view_models/forget_pass_provider.dart';
 import 'package:maintenance_genie/presentation/view_models/login_provider.dart';
 import 'package:maintenance_genie/presentation/view_models/parent_screen_provider.dart';
+import 'package:maintenance_genie/presentation/view_models/question_provider.dart';
 import 'package:maintenance_genie/presentation/view_models/sign_up_provider.dart';
+import 'package:maintenance_genie/presentation/view_models/support_mail_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 
+import '../../presentation/view_models/item_task_list_by_item_id_provider.dart';
 import '../../presentation/view_models/item_task_list_provider.dart';
+import '../../presentation/view_models/user_provider.dart';
 import '../di/di_configs.dart';
 
 class AppViewModels {
@@ -18,6 +23,11 @@ class AppViewModels {
     ChangeNotifierProvider<ParentScreensProvider>(create: (_) => getIt<ParentScreensProvider>(),),
     ChangeNotifierProvider<AllItemListProvider>(create: (_) => getIt<AllItemListProvider>(),),
     ChangeNotifierProvider<ItemTaskListProvider>(create: (_) => getIt<ItemTaskListProvider>(),),
+    ChangeNotifierProvider<ItemTaskListByItemIdProvider>(create: (_) => getIt<ItemTaskListByItemIdProvider>(),),
     ChangeNotifierProvider<AddItemProvider>(create: (_) => getIt<AddItemProvider>(),),
+    ChangeNotifierProvider<UserProvider>(create: (_) => getIt<UserProvider>(),),
+    ChangeNotifierProvider<SupportMailProvider>(create: (_) => getIt<SupportMailProvider>(),),
+    ChangeNotifierProvider<QuestionProvider>(create: (_) => getIt<QuestionProvider>(),),
+    ChangeNotifierProvider<AddReceiptProvider>(create: (_) => getIt<AddReceiptProvider>(),),
   ];
 }

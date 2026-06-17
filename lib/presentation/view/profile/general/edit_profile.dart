@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:maintenance_genie/shared/app_toast.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../core/constants/api_end_points.dart';
@@ -224,13 +225,25 @@ class _EditProfileState extends State<EditProfile> {
                               : PrimaryButton(
                             text: "Save",
                             onPressed: () async {
+                              final value = addressController.text;
+
+                              if (value.trim().isEmpty) {
+                                AppToast.showToast('Address is required');
+                                return;
+                              }
+
+                              if (value.trim().length < 10) {
+                                AppToast.showToast('Address must be at least 10 characters');
+                                return;
+                              }
+
                               final result =
                               await provider.updateProfileDetails(
                                 nameController.text,
                                 addressController.text,
                               );
 
-                              _showSnack(
+                              AppToast.showToast(
                                 result
                                     ? "Profile updated successfully"
                                     : "Profile update failed",

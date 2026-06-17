@@ -12,26 +12,62 @@ import '../../view_models/add_item_provider.dart';
 import 'widgets/custom_date_picker_field.dart';
 import 'widgets/custom_drop_down_field.dart';
 
-class AddItemScreen extends StatelessWidget {
-  AddItemScreen({super.key});
+class AddItemScreen extends StatefulWidget {
+  const AddItemScreen({super.key});
 
+  @override
+  State<AddItemScreen> createState() => _AddItemScreenState();
+}
+
+class _AddItemScreenState extends State<AddItemScreen> {
   final List<String> categoryList = ['Select', 'Vehicle', 'Home', 'Custom'];
 
   final List<String> brandList = [
-    "Acura", "Alfa Romeo", "Aston Martin", "Audi", "BMW", "Bentley",
-    "Bugatti", "Buick", "Cadillac", "Chevrolet", "Chrysler", "Dodge",
-    "Ferrari", "Fiat", "Ford", "Genesis", "Honda", "Hyundai", "Infiniti",
-    "Jaguar", "Jeep", "Kia", "Lamborghini", "Land Rover", "Lexus",
-    "Lincoln", "Mazda", "McLaren", "Mercedes Benz", "Mini", "Mitsubishi",
-    "Nissan", "Opel", "Peugeot", "Porsche", "Ram", "Renault", "Rolls Royce",
-    "Saab", "Subaru", "Tesla", "Toyota", "Volkswagen", "Volvo",
+    "Acura",
+    "Alfa Romeo",
+    "Aston Martin",
+    "Audi",
+    "BMW",
+    "Bentley",
+    "Bugatti",
+    "Buick",
+    "Cadillac",
+    "Chevrolet",
+    "Chrysler",
+    "Dodge",
+    "Ferrari",
+    "Fiat",
+    "Ford",
+    "Genesis",
+    "Honda",
+    "Hyundai",
+    "Infiniti",
+    "Jaguar",
+    "Jeep",
+    "Kia",
+    "Lamborghini",
+    "Land Rover",
+    "Lexus",
+    "Lincoln",
+    "Mazda",
+    "McLaren",
+    "Mercedes Benz",
+    "Mini",
+    "Mitsubishi",
+    "Nissan",
+    "Opel",
+    "Peugeot",
+    "Porsche",
+    "Ram",
+    "Renault",
+    "Rolls Royce",
+    "Saab",
+    "Subaru",
+    "Tesla",
+    "Toyota",
+    "Volkswagen",
+    "Volvo",
   ];
-
-  void _showSnack(BuildContext context, String msg) {
-    ScaffoldMessenger.of(context)
-      ..clearSnackBars()
-      ..showSnackBar(SnackBar(content: Text(msg)));
-  }
 
   Future<bool> _requestCameraPermission(BuildContext context) async {
     final status = await Permission.camera.status;
@@ -48,11 +84,39 @@ class AddItemScreen extends StatelessWidget {
 
     ScaffoldMessenger.of(context)
       ..clearSnackBars()
-      ..showSnackBar(
-        const SnackBar(content: Text("Camera permission denied")),
-      );
+      ..showSnackBar(const SnackBar(content: Text("Camera permission denied")));
 
     return false;
+  }
+
+  void _showSnack(BuildContext context, String msg) {
+    ScaffoldMessenger.of(context)
+      ..clearSnackBars()
+      ..showSnackBar(SnackBar(content: Text(msg)));
+  }
+
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController brandController = TextEditingController();
+  final TextEditingController modelController = TextEditingController();
+  final TextEditingController yearController = TextEditingController();
+  final TextEditingController mileageController = TextEditingController();
+
+  @override
+  void dispose() {
+    nameController.dispose();
+    brandController.dispose();
+    modelController.dispose();
+    yearController.dispose();
+    mileageController.dispose();
+    super.dispose();
+  }
+
+  void clear() {
+    nameController.clear();
+    brandController.clear();
+    modelController.clear();
+    yearController.clear();
+    mileageController.clear();
   }
 
   @override
@@ -81,7 +145,9 @@ class AddItemScreen extends StatelessWidget {
                       child: CustomPopupDropdown(
                         title: 'Category',
                         hint: 'Select',
-                        value: context.watch<AddItemProvider>().selectedCategory,
+                        value: context
+                            .watch<AddItemProvider>()
+                            .selectedCategory,
                         items: categoryList,
                         onChanged: provider.setCategory,
                       ),
@@ -91,6 +157,7 @@ class AddItemScreen extends StatelessWidget {
                       child: _buildTextField(
                         title: 'Item Name',
                         hint: 'Name',
+                        controller: nameController,
                         onChanged: provider.setName,
                       ),
                     ),
@@ -107,42 +174,46 @@ class AddItemScreen extends StatelessWidget {
                         Expanded(
                           child: pr.selectedCategory == 'Vehicle'
                               ? CustomPopupDropdown(
-                            title: 'Brand',
-                            hint: 'Select',
-                            value: pr.selectedBrand,
-                            items: brandList,
-                            onChanged: (value) async {
-                              provider.setBrand(value);
-                              await provider.getModels(value);
-                            },
-                          )
+                                  title: 'Brand',
+                                  hint: 'Select',
+                                  value: pr.selectedBrand,
+                                  items: brandList,
+                                  onChanged: (value) async {
+                                    provider.setBrand(value);
+                                    await provider.getModels(value);
+                                  },
+                                )
                               : _buildTextField(
-                            title: 'Brand',
-                            hint: 'Brand',
-                            onChanged: provider.setBrand,
-                          ),
+                                  title: 'Brand',
+                                  hint: 'Brand',
+                                  controller: brandController,
+                                  onChanged: provider.setBrand,
+                                ),
                         ),
                         SizedBox(width: 10.w),
                         Expanded(
                           child: pr.selectedCategory == 'Vehicle'
                               ? IgnorePointer(
-                            ignoring: pr.isModelLoading,
-                            child: Opacity(
-                              opacity: pr.isModelLoading ? 0.5 : 1.0,
-                              child: CustomPopupDropdown(
-                                title: 'Model',
-                                hint: pr.isModelLoading ? 'Loading...' : 'Select',
-                                value: pr.selectedModel,
-                                items: pr.modelList,
-                                onChanged: pr.setModel,
-                              ),
-                            ),
-                          )
+                                  ignoring: pr.isModelLoading,
+                                  child: Opacity(
+                                    opacity: pr.isModelLoading ? 0.5 : 1.0,
+                                    child: CustomPopupDropdown(
+                                      title: 'Model',
+                                      hint: pr.isModelLoading
+                                          ? 'Loading...'
+                                          : 'Select',
+                                      value: pr.selectedModel,
+                                      items: pr.modelList,
+                                      onChanged: pr.setModel,
+                                    ),
+                                  ),
+                                )
                               : _buildTextField(
-                            title: 'Model',
-                            hint: 'Model',
-                            onChanged: provider.setModel,
-                          ),
+                                  title: 'Model',
+                                  hint: 'Model',
+                                  controller: modelController,
+                                  onChanged: provider.setModel,
+                                ),
                         ),
                       ],
                     );
@@ -155,6 +226,7 @@ class AddItemScreen extends StatelessWidget {
                 _buildTextField(
                   title: 'Year of the model',
                   hint: 'Year',
+                  controller: yearController,
                   onChanged: provider.setYearOfModel,
                 ),
 
@@ -168,7 +240,9 @@ class AddItemScreen extends StatelessWidget {
                         context: context,
                         title: 'Purchase Date',
                         hint: 'Select',
-                        selectedDate: context.watch<AddItemProvider>().selectedDate,
+                        selectedDate: context
+                            .watch<AddItemProvider>()
+                            .selectedDate,
                         onDatePicked: provider.setDate,
                       ),
                     ),
@@ -177,6 +251,7 @@ class AddItemScreen extends StatelessWidget {
                       child: _buildTextField(
                         title: 'Total Mileage',
                         hint: 'Number',
+                        controller: mileageController,
                         onChanged: provider.setTotalMileage,
                       ),
                     ),
@@ -201,18 +276,25 @@ class AddItemScreen extends StatelessWidget {
                             children: [
                               pr.imageFile != null
                                   ? Expanded(
-                                child: Image.file(
-                                  pr.imageFile!,
-                                  fit: BoxFit.contain,
-                                ),
-                              )
-                                  : const Icon(Icons.image, size: 50, color: Colors.grey),
+                                      child: Image.file(
+                                        pr.imageFile!,
+                                        fit: BoxFit.contain,
+                                      ),
+                                    )
+                                  : const Icon(
+                                      Icons.image,
+                                      size: 50,
+                                      color: Colors.grey,
+                                    ),
 
                               SizedBox(height: 10.h),
 
                               const Text(
                                 '(File Supported .png .jpg .webp)',
-                                style: TextStyle(fontSize: 12, color: Colors.grey),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey,
+                                ),
                               ),
 
                               SizedBox(height: 20.h),
@@ -224,7 +306,9 @@ class AddItemScreen extends StatelessWidget {
                                     context,
                                     label: "Take Picture",
                                     onTap: () async {
-                                      final ok = await _requestCameraPermission(context);
+                                      final ok = await _requestCameraPermission(
+                                        context,
+                                      );
                                       if (!ok) return;
 
                                       await pr.pickImage(ImageSource.camera);
@@ -276,6 +360,7 @@ class AddItemScreen extends StatelessWidget {
                       }
 
                       Navigator.pushNamed(context, RouteName.itemAddQuestion);
+                      clear();
                     },
                   ),
                 ),
@@ -292,6 +377,7 @@ class AddItemScreen extends StatelessWidget {
   Widget _buildTextField({
     required String title,
     required String hint,
+    required TextEditingController controller,
     required Function(String) onChanged,
   }) {
     return Column(
@@ -299,6 +385,7 @@ class AddItemScreen extends StatelessWidget {
       children: [
         Text(title),
         TextField(
+          controller: controller,
           onChanged: onChanged,
           decoration: InputDecoration(
             hintText: hint,
@@ -314,10 +401,7 @@ class AddItemScreen extends StatelessWidget {
               borderSide: const BorderSide(color: Color(0xff9e9e9e)),
               borderRadius: BorderRadius.circular(10.r),
             ),
-            errorStyle: const TextStyle(
-              fontSize: 12,
-              color: Colors.red,
-            ),
+            errorStyle: const TextStyle(fontSize: 12, color: Colors.red),
           ),
         ),
       ],
@@ -325,10 +409,10 @@ class AddItemScreen extends StatelessWidget {
   }
 
   Widget _imageButton(
-      BuildContext context, {
-        required String label,
-        required VoidCallback onTap,
-      }) {
+    BuildContext context, {
+    required String label,
+    required VoidCallback onTap,
+  }) {
     return InkWell(
       onTap: onTap,
       child: Container(

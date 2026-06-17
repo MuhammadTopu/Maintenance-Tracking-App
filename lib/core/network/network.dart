@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
 import 'package:maintenance_genie/core/services/storage/token_storage_service.dart';
 
 import '../constants/api_end_points.dart';
@@ -34,24 +35,42 @@ class Network {
           }
 
           Log.info('REQUEST');
-          Log.debug('${options.method} ${options.uri}\n\nHeaders: ${options.headers}\n\nData: ${options.data}');
+          Log.debug(
+            '${options.method} ${options.uri}\n\nHeaders: ${options.headers}\n\nData: ${options.data}',
+          );
 
           handler.next(options);
         },
 
         onResponse: (response, handler) {
           Log.info('RESPONSE');
-          Log.debug('${response.requestOptions.method} ${response.requestOptions.uri}\n\nStatus: ${response.statusCode}\n\nData: ${response.data}',);
+          Log.debug(
+            '${response.requestOptions.method} ${response.requestOptions.uri}\n\nStatus: ${response.statusCode}\n\nData: ${response.data}',
+          );
 
           handler.next(response);
         },
 
         onError: (error, handler) {
-          Log.error(
-            'API ERROR',
-            error: error,
-            stackTrace: error.stackTrace,
-          );
+          Log.error('''
+══════════ API ERROR ══════════
+URL         : ${error.requestOptions.uri}
+METHOD      : ${error.requestOptions.method}
+STATUS CODE : ${error.response?.statusCode}
+
+HEADERS:
+${error.requestOptions.headers}
+
+REQUEST:
+${error.requestOptions.data}
+
+RESPONSE:
+${error.response?.data}
+
+MESSAGE:
+${error.message}
+═══════════════════════════════
+''');
 
           handler.next(error);
         },

@@ -80,16 +80,17 @@ class _TrackingScreenState extends State<TrackingScreen> {
           child: Column(
             children: [
               const CustomAppBar(),
-              SizedBox(height: 40.h),
+              SizedBox(height:20.h),
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: 10.w),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       "Task List",
                       style: TextStyle(
-                        fontSize: 18,
+                        fontSize: 18.sp,
                         fontWeight: FontWeight.bold,
                       ),
                     ),

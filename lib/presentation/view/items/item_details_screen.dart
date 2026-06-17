@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:gpt_markdown/gpt_markdown.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/api_end_points.dart';
@@ -36,10 +37,10 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
       body: SafeArea(
         child: Consumer<AllItemListProvider>(
           builder: (context, provider, child) {
-            if (provider.loading) {
+            if (provider.itemDetailsLoading) {
               return const Center(child: CircularProgressIndicator());
             }
-            if (provider.errorFetchingOneItem != null || provider.errorFetchingOneItem!.isNotEmpty || provider.errorFetchingOneItem != '') {
+            if (provider.errorFetchingOneItem != '') {
               return Center(child: Text(provider.errorFetchingOneItem!));
             }
             final item = provider.oneItemModel?.item;
@@ -100,13 +101,14 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                       borderRadius: BorderRadius.circular(12.r),
                       child: Container(
                         height: 250.h,
+                        width: double.infinity,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(12.r),
                           border: Border.all(color: Colors.grey.shade400),
                         ),
                         child:
                             Image.network(
-                                  ApiEndPoints.imagePath(item.imageUrl.replaceFirst("http://localhost:8070/uploads/", "")),
+                                  ApiEndPoints.imagePath(item.imageUrl.replaceFirst("undefined/uploads/", "")),
                                   width: double.infinity,
                                   fit: BoxFit.cover,
                               loadingBuilder: (context, child, loadingProgress) {
@@ -186,7 +188,7 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
             children: List.generate(item.serviceIntervals.length, (index) {
               return _buildInfoRow(
                 title: "",
-                value: item.serviceIntervals[index].replaceAll('**', ' '),
+                value: item.serviceIntervals[index],
               );
             }),
           )
@@ -209,14 +211,13 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
           ),
         ),
         Expanded(
-          child: Text(
+          child: GptMarkdown(
             value.isNotEmpty ? value : '',
             style: TextStyle(
               fontWeight: FontWeight.w400,
               fontSize: 14.sp,
               color: Colors.grey.shade700,
             ),
-            softWrap: true,
           ),
         ),
       ],

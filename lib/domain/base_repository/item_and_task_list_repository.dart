@@ -8,4 +8,5 @@ abstract class ItemAndTaskListRepository {
   Future<TaskListResponse?> getAllTasksList();
   Future<TaskListResponse?> getTaskListByItemId({required String itemId});
   Future<bool> toggleTaskStatus({required String taskId});
+
 }

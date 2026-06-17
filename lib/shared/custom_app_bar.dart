@@ -30,22 +30,22 @@ class CustomAppBar extends StatelessWidget {
               ),
           ],
         ),
-        SizedBox(height: 20.h),
-        Container(
-          height: 40.h,
-          decoration: BoxDecoration(
-            color: Color(0xffF6F8FA),
-            borderRadius: BorderRadius.circular(8.r),
-          ),
-          child: TextField(
-            decoration: InputDecoration(
-              hintText: 'Search',
-              prefixIcon: const Icon(Icons.search),
-              border: InputBorder.none,
-              contentPadding: EdgeInsets.symmetric(vertical: 10.h),
-            ),
-          ),
-        ),
+        // SizedBox(height: 20.h),
+        // Container(
+        //   height: 40.h,
+        //   decoration: BoxDecoration(
+        //     color: Color(0xffF6F8FA),
+        //     borderRadius: BorderRadius.circular(8.r),
+        //   ),
+        //   child: TextField(
+        //     decoration: InputDecoration(
+        //       hintText: 'Search',
+        //       prefixIcon: const Icon(Icons.search),
+        //       border: InputBorder.none,
+        //       contentPadding: EdgeInsets.symmetric(vertical: 10.h),
+        //     ),
+        //   ),
+        // ),
       ],
     );
   }

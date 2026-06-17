@@ -28,6 +28,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final pr = context.watch<AllItemListProvider>();
     final allItems = context.select<AllItemListProvider, dynamic>(
           (provider) => provider.allItemListModel?.items,
     );
@@ -57,7 +58,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const CustomAppBar(),
-              SizedBox(height: 12.h),
+              SizedBox(height: 20.h),
               Expanded(
                 child: SingleChildScrollView(
                   child: Column(
@@ -74,6 +75,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               "";
                           return Container(
                             padding: EdgeInsets.all(16.w),
+                            margin: EdgeInsets.only(bottom: 4.h),
                             decoration: BoxDecoration(
                               color: Color(0xffF0FAF9),
                               borderRadius: BorderRadius.circular(16.r),
@@ -129,18 +131,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           );
                         },
                       ),
-                      SizedBox(height: 4.h),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Items',
-                            style: TextStyle(
-                              fontSize: 18.sp,
-                              fontWeight: FontWeight.bold,
-                            ),
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 10.w),
+                        child: Text(
+                          "Items",
+                          style: TextStyle(
+                            fontSize: 18.sp,
+                            fontWeight: FontWeight.bold,
                           ),
-                        ],
+                        ),
                       ),
                       SizedBox(height: 10.h),
                       Row(
@@ -151,38 +150,33 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             vehicleCount,
                             "assets/images/car.png",
                             color: const Color(0xffF4F8EC),
-                            isLoading: allItems == null,
+                            isLoading: pr.loading,
                           ),
                           _buildItemCard(
                             'Home',
                             applianceCount,
                             "assets/images/home.png",
                             color: const Color(0xffEEF5F9),
-                            isLoading: allItems == null,
+                            isLoading: pr.loading,
                           ),
                           _buildItemCard(
                             'Custom',
                             customCount,
                             "assets/images/ber.png",
                             color: const Color(0xffF0FAF9),
-                            isLoading: allItems == null,
+                            isLoading: pr.loading,
                           ),
                         ],
                       ),
                       SizedBox(height: 8.h),
                       Padding(
-                        padding: const EdgeInsets.all(4.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text(
-                              "Task List",
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
+                        padding: EdgeInsets.symmetric(horizontal: 10.w),
+                        child: Text(
+                          "Task List",
+                          style: TextStyle(
+                            fontSize: 18.sp,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
 

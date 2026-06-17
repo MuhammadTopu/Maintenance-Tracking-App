@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import '../../core/helper/logger.dart';
 import '../../domain/base_repository/add_items_repository.dart';
 
 class AddItemProvider extends ChangeNotifier {
@@ -134,6 +135,8 @@ class AddItemProvider extends ChangeNotifier {
     isLoading = true;
     notifyListeners();
 
+    Log.debug('Adding item: ${name}');
+
     final result = await _repository.addItem(
       name: name,
       brand: selectedBrand,
@@ -145,7 +148,10 @@ class AddItemProvider extends ChangeNotifier {
       imageFile: imageFile,
     );
 
+    Log.debug('Item added: $result');
+
     isLoading = false;
+    clearFields();
     notifyListeners();
 
     return result;

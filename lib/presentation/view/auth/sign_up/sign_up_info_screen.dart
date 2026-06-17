@@ -161,50 +161,54 @@ class _SignUpInfoScreenState extends State<SignUpInfoScreen> {
                   width: MediaQuery.of(context).size.width * 0.9,
                   child: Consumer<SignUpProvider>(
                     builder: (BuildContext context, provider, Widget? child) {
-                      return PrimaryButton(
-                        text: "Register",
-                        onPressed: provider.isPasswordValid
-                            ? () async {
-                                final name = nameController.text.trim();
-                                final password = passwordController.text.trim();
-                                final confirmPassword =
-                                    confirmPasswordController.text.trim();
+                      return Visibility(
+                        visible: provider.isPasswordValid,
+                        replacement: const SizedBox.shrink(),
+                        child: provider.isLoading ? Center(child: CircularProgressIndicator()) : PrimaryButton(
+                          text: "Register",
+                          onPressed: provider.isPasswordValid
+                              ? () async {
+                                  final name = nameController.text.trim();
+                                  final password = passwordController.text.trim();
+                                  final confirmPassword =
+                                      confirmPasswordController.text.trim();
 
-                                if (name.isEmpty ||
-                                    password.isEmpty ||
-                                    confirmPassword.isEmpty) {
-                                  AppToast.showToast(
-                                    "All fields are required",
-                                    backgroundColor: Colors.red,
+                                  if (name.isEmpty ||
+                                      password.isEmpty ||
+                                      confirmPassword.isEmpty) {
+                                    AppToast.showToast(
+                                      "All fields are required",
+                                      backgroundColor: Colors.red,
+                                    );
+                                    return;
+                                  }
+
+                                  if (password != confirmPassword) {
+                                    AppToast.showToast(
+                                      "Passwords do not match",
+                                      backgroundColor: Colors.red,
+                                    );
+                                    return;
+                                  }
+
+                                  if (!provider.isPasswordValid) {
+                                    AppToast.showToast(
+                                      "Password does not meet requirements",
+                                      backgroundColor: Colors.red,
+                                    );
+                                    return;
+                                  }
+
+                                  final result = await provider.register3(
+                                    name: name,
+                                    password: password,
                                   );
-                                  return;
+                                  if (result) {
+                                    Navigator.pushNamed(context, RouteName.login);
+                                  }
                                 }
-
-                                if (password != confirmPassword) {
-                                  AppToast.showToast(
-                                    "Passwords do not match",
-                                    backgroundColor: Colors.red,
-                                  );
-                                  return;
-                                }
-
-                                if (!provider.isPasswordValid) {
-                                  AppToast.showToast(
-                                    "Password does not meet requirements",
-                                    backgroundColor: Colors.red,
-                                  );
-                                  return;
-                                }
-
-                                final result = await provider.register3(
-                                  name: name,
-                                  password: password,
-                                );
-                                if (result) {
-                                  Navigator.pushNamed(context, RouteName.login);
-                                }
-                              }
-                            : null,
+                              : null,
+                        ),
                       );
                     },
                   ),

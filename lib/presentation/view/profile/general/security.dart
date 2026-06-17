@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:maintenance_genie/presentation/view_models/user_provider.dart';
+import 'package:maintenance_genie/shared/app_toast.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../shared/common_widgets.dart';
@@ -15,10 +16,11 @@ class Security extends StatefulWidget {
 }
 
 class _SecurityState extends State<Security> {
-
-  final TextEditingController currentPasswordController = TextEditingController();
+  final TextEditingController currentPasswordController =
+      TextEditingController();
   final TextEditingController newPasswordController = TextEditingController();
-  final TextEditingController confirmPasswordController = TextEditingController();
+  final TextEditingController confirmPasswordController =
+      TextEditingController();
 
   @override
   void dispose() {
@@ -27,7 +29,6 @@ class _SecurityState extends State<Security> {
     confirmPasswordController.dispose();
     super.dispose();
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -66,9 +67,7 @@ class _SecurityState extends State<Security> {
                 suffixIcon: IconButton(
                   onPressed: () => provider.toggle('current'),
                   icon: Icon(
-                    state.current
-                        ? Icons.visibility
-                        : Icons.visibility_off,
+                    state.current ? Icons.visibility : Icons.visibility_off,
                   ),
                 ),
               ),
@@ -92,9 +91,7 @@ class _SecurityState extends State<Security> {
                 suffixIcon: IconButton(
                   onPressed: () => provider.toggle('new'),
                   icon: Icon(
-                    state.newPassword
-                        ? Icons.visibility
-                        : Icons.visibility_off,
+                    state.newPassword ? Icons.visibility : Icons.visibility_off,
                   ),
                 ),
               ),
@@ -115,18 +112,46 @@ class _SecurityState extends State<Security> {
                 suffixIcon: IconButton(
                   onPressed: () => provider.toggle('confirm'),
                   icon: Icon(
-                    state.confirm
-                        ? Icons.visibility
-                        : Icons.visibility_off,
+                    state.confirm ? Icons.visibility : Icons.visibility_off,
                   ),
                 ),
               ),
               const Spacer(),
               SizedBox(
                 width: MediaQuery.of(context).size.width * 0.9,
-                child: PrimaryButton(text: "Save", onPressed: () {}),
+                child: Consumer<UserProvider>(
+                  builder: (_, provider, _) {
+                    return Visibility(
+                      visible: !provider.isLoading,
+                      replacement: Center(child: CircularProgressIndicator()),
+                      child: PrimaryButton(text: "Save", onPressed: () async {
+                        final oldPassword = currentPasswordController.text;
+                        final newPassword = newPasswordController.text;
+                        final confirmPassword = confirmPasswordController.text;
+
+                        if (oldPassword.isEmpty || newPassword.isEmpty || confirmPassword.isEmpty) {
+                          AppToast.showToast('All Fields are Required!');
+                          return;
+                        }
+
+                        if (newPassword != confirmPassword) {
+                          AppToast.showToast('Passwords do not match!');
+                          return;
+                        }
+
+                        final res = await provider.updatePassword(currentPassword: oldPassword, newPassword: newPassword);
+                        if (res) {
+                          AppToast.showToast('Password updated successfully!');
+                          Navigator.of(context).pop();
+                        } else {
+                          AppToast.showToast('Failed to update password!');
+                        }
+                      }),
+                    );
+                  },
+                ),
               ),
-              SizedBox(height: 20.h,)
+              SizedBox(height: 20.h),
             ],
           ),
         ),

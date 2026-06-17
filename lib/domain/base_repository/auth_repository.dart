@@ -17,4 +17,5 @@ abstract class AuthRepository {
     required String name,
     required String address,
   });
+  Future<bool> updatePassword({required String oldPassword, required String newPassword});
 }

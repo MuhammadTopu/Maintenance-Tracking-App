@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:maintenance_genie/core/helper/logger.dart';
 import 'package:maintenance_genie/core/services/storage/token_storage_service.dart';
 import 'package:mime/mime.dart';
 import 'package:http_parser/http_parser.dart';
@@ -8,6 +10,7 @@ import 'package:path/path.dart' as path;
 
 import '../../core/constants/api_end_points.dart';
 import '../../domain/base_repository/add_items_repository.dart';
+import '../../shared/app_toast.dart';
 
 class AddItemRepositoryImpl implements AddItemRepository {
 
@@ -78,6 +81,21 @@ class AddItemRepositoryImpl implements AddItemRepository {
     }
 
     final response = await request.send();
-    return response.statusCode >= 200 && response.statusCode < 300;
+
+    final responseBody = await response.stream.bytesToString();
+
+    Log.debug('STATUS CODE: ${response.statusCode}');
+    Log.debug('RESPONSE BODY: $responseBody');
+    Log.debug('REASON PHRASE: ${response.reasonPhrase}');
+
+    final res = response.statusCode >= 200 && response.statusCode < 300;
+    if (res == false) {
+      final decoded = jsonDecode(responseBody);
+      AppToast.showToast(decoded['message'], backgroundColor: Colors.red);
+      return false;
+    } else {
+      AppToast.showToast('Item added successfully');
+      return true;
+    }
   }
 }

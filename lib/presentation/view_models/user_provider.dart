@@ -93,7 +93,6 @@ class UserProvider extends ChangeNotifier {
     );
 
     setLoading(false);
-    message = result ? "Profile updated successfully" : "Update failed";
     notifyListeners();
 
     return result;
@@ -105,11 +104,9 @@ class UserProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-
   /// -------------------------------------------------------------------------
   /// Security
   /// -------------------------------------------------------------------------
-
 
   bool _current = false;
   bool _new = false;
@@ -145,24 +142,34 @@ class UserProvider extends ChangeNotifier {
   bool get hasSymbol => _hasSymbol;
 
   bool get isPasswordValid =>
-      _hasMinLength &&
-          _hasUpperAndLower &&
-          _hasNumber &&
-          _hasSymbol;
-
+      _hasMinLength && _hasUpperAndLower && _hasNumber && _hasSymbol;
 
   void validatePassword(String password) {
     _hasMinLength = password.length >= 8;
 
-    _hasUpperAndLower =
-        RegExp(r'(?=.*[a-z])(?=.*[A-Z])').hasMatch(password);
+    _hasUpperAndLower = RegExp(r'(?=.*[a-z])(?=.*[A-Z])').hasMatch(password);
 
-    _hasNumber =
-        RegExp(r'(?=.*[0-9])').hasMatch(password);
+    _hasNumber = RegExp(r'(?=.*[0-9])').hasMatch(password);
 
-    _hasSymbol =
-        RegExp(r'(?=.*[!@#$%^&*(),.?":{}|<>])').hasMatch(password);
+    _hasSymbol = RegExp(r'(?=.*[!@#$%^&*(),.?":{}|<>])').hasMatch(password);
 
     notifyListeners();
+  }
+
+  Future<bool> updatePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    setLoading(true);
+
+    final result = await _repository.updatePassword(
+      oldPassword: currentPassword,
+      newPassword: newPassword,
+    );
+
+    setLoading(false);
+    notifyListeners();
+
+    return result;
   }
 }

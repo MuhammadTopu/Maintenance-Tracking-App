@@ -11,15 +11,22 @@ class AllItemListProvider extends ChangeNotifier {
   AllItemListProvider(this._repository);
 
   bool _loading = false;
+  bool _itemDetailsLoading = false;
   String? _error1 = '';
   String? _error2 = '';
 
   bool get loading => _loading;
+  bool get itemDetailsLoading => _itemDetailsLoading;
   String? get errorFetchingAllItems => _error1;
   String? get errorFetchingOneItem => _error2;
 
   void setLoading(bool loading) {
     _loading = loading;
+    notifyListeners();
+  }
+
+  void setItemDetailsLoading(bool loading) {
+    _itemDetailsLoading = loading;
     notifyListeners();
   }
 
@@ -45,6 +52,7 @@ class AllItemListProvider extends ChangeNotifier {
 
     if (response != null) {
       _allItemListModel = response;
+      _error1 = '';
       notifyListeners();
     } else {
       Log.error('-------------Failed to fetch items-------------');
@@ -60,18 +68,19 @@ class AllItemListProvider extends ChangeNotifier {
   }
 
   Future<void> getOneItem(String itemId) async {
-    setLoading(true);
+    setItemDetailsLoading(true);
 
     final response = await _repository.getOneItem(itemId: itemId);
 
     if (response != null) {
       _oneItemModel = response;
+      _error2 = '';
       notifyListeners();
     } else {
       setError2('Failed to fetch item');
     }
 
-    setLoading(false);
+    setItemDetailsLoading(false);
   }
 
   void removeItems() {

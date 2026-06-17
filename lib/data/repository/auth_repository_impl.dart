@@ -284,20 +284,47 @@ class AuthRepositoriesImpl implements AuthRepository {
     required String name,
     required String address,
   }) async {
-    final token = await TokenStorageService.instance.getToken();
-    if (token == null) return false;
+    final body = {
+      "name": name,
+      "address": address,
+    };
 
-    final response = await http.put(
-      Uri.parse(ApiEndPoints.updateUserDetails),
-      headers: {
-        'Authorization': 'Bearer $token',
-      },
-      body: {
-        "name": name,
-        "address": address,
-      },
+    final response = await _apiService.put(
+      ApiEndPoints.updateUserDetails,
+      data: body,
     );
 
     return response.statusCode == 200;
   }
+
+  @override
+  Future<bool> updatePassword({required String oldPassword, required String newPassword}) async {
+    try {
+      final body = {
+        "currentPassword": oldPassword,
+        "newPassword": newPassword,
+      };
+
+      final response = await _apiService.patch(
+        ApiEndPoints.updatePassword,
+        data: body,
+      );
+
+      return response.statusCode == 200;
+    } on DioException catch (e) {
+      String serverMessage = '';
+      if (e.type == DioExceptionType.connectionError) {
+        serverMessage = "Something went wrong!!! Check internet connection";
+      } else {
+        serverMessage = _extractServerMessage(e);
+      }
+      AppToast.showToast(serverMessage, backgroundColor: Colors.red);
+      return false;
+    } catch (e) {
+      Log.error("Error in update password : $e");
+      throw Exception(e);
+    }
+  }
+
+
 }

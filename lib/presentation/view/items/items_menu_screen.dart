@@ -42,29 +42,32 @@ class _ItemsMenuScreenState extends State<ItemsMenuScreen> {
               children: [
                 const CustomAppBar(),
                 SizedBox(height: 20.h),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Item List',
-                      style: TextStyle(
-                        fontSize: 20.sp,
-                        fontWeight: FontWeight.bold,
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 10.w),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Task List",
+                        style: TextStyle(
+                          fontSize: 18.sp,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    SizedBox(
-                      width: 120.w,
-                      height: 50.h,
-                      child: PrimaryButton(
-                        text: 'Add Items',
-                        onPressed:
-                            () => Navigator.pushNamed(
-                              context,
-                              RouteName.addItem,
-                            ),
+                      SizedBox(
+                        width: 120.w,
+                        child: PrimaryButton(
+                          text: 'Add Items',
+                          onPressed:
+                              () => Navigator.pushNamed(
+                                context,
+                                RouteName.addItem,
+                              ),
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
                 SizedBox(height: 20.h),
                 Consumer<AllItemListProvider>(
@@ -79,7 +82,7 @@ class _ItemsMenuScreenState extends State<ItemsMenuScreen> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             SizedBox(height: 30.h),
-                            Text(provider.errorFetchingAllItems!, style: TextStyle(fontSize: 16.sp)),
+                            Text(provider.errorFetchingAllItems ?? 'Something went wrong', style: TextStyle(fontSize: 16.sp)),
                             SizedBox(height: 16.h),
                             SizedBox(
                               width: MediaQuery.of(context).size.width * 0.3,

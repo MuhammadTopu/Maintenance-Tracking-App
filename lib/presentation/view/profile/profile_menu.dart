@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:maintenance_genie/presentation/view_models/parent_screen_provider.dart';
 import 'package:maintenance_genie/presentation/view_models/user_provider.dart';
 import 'package:provider/provider.dart';
 
@@ -362,6 +363,7 @@ class _ProfileMenuState extends State<ProfileMenu> {
                                                         AllItemListProvider
                                                       >()
                                                       .removeItems();
+                                                  context.read<ParentScreensProvider>().onSelectedIndex(0);
                                                   Navigator.pushNamedAndRemoveUntil(
                                                     context,
                                                     RouteName.login,

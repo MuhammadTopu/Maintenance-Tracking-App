@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import '../../../app/routes/route_names.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../shared/app_toast.dart';
 import '../../../shared/common_widgets.dart';
 import '../../../shared/custom_item_app_bar.dart';
 import '../../view_models/add_item_provider.dart';
@@ -23,20 +24,36 @@ class _ItemAddQuestionScreenState extends State<ItemAddQuestionScreen> {
 
   @override
   void initState() {
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      context.read<QuestionProvider>().setIsGenerateLoading(true);
-
-      await context.read<AddItemProvider>().addItem();
-      await context.read<AllItemListProvider>().getAllItem();
-      await context.read<QuestionProvider>().setQId(
-        context.read<AllItemListProvider>().allItemListModel?.items?.first.id ??
-            '',
-      );
-
-      context.read<QuestionProvider>().setIsGenerateLoading(false);
-      context.read<AddItemProvider>().clearFields();
-    });
     super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final addItemProvider = context.read<AddItemProvider>();
+      final allItemProvider = context.read<AllItemListProvider>();
+      final questionProvider = context.read<QuestionProvider>();
+
+      questionProvider.setIsGenerateLoading(true);
+
+      final success = await addItemProvider.addItem();
+
+
+      if (!success) {
+        questionProvider.setIsGenerateLoading(false);
+        addItemProvider.clearFields();
+        if (mounted) {
+          Navigator.pop(context);
+        }
+
+        return;
+      }
+
+      await allItemProvider.getAllItem();
+
+      questionProvider.setQId(
+        allItemProvider.allItemListModel?.items?.first.id ?? '',
+      );
+      addItemProvider.clearFields();
+      questionProvider.setIsGenerateLoading(false);
+    });
   }
 
   @override
@@ -50,6 +67,7 @@ class _ItemAddQuestionScreenState extends State<ItemAddQuestionScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  // todo: change loader
                   CircularProgressIndicator(),
                   SizedBox(height: 16.h),
                   Text(

@@ -35,6 +35,7 @@ class ApiEndPoints {
   static const String updateUserImage = '$baseUrl/api/users/update-image';
   static const String updateUserDetails = '$baseUrl/api/users/update-user-details';
   static const String sendMailToAdmin = '$baseUrl/api/users/sende-mail';
+  static const String updatePassword = '$baseUrl/api/users/updatePass';
 
   // tracking
   static const String getAllTaskList = '$baseUrl/api/items/all-tasks';

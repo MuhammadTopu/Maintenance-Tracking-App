@@ -4,6 +4,7 @@ import 'package:maintenance_genie/presentation/view_models/user_provider.dart';
 import 'package:maintenance_genie/shared/app_toast.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../core/constants/app_colors.dart';
 import '../../../../shared/common_widgets.dart';
 import '../../../../shared/custom_item_app_bar.dart';
 import '../../../../shared/custom_text_field.dart';
@@ -123,7 +124,7 @@ class _SecurityState extends State<Security> {
                   builder: (_, provider, _) {
                     return Visibility(
                       visible: !provider.isLoading,
-                      replacement: Center(child: CircularProgressIndicator()),
+                      replacement: Center(child: CircularProgressIndicator(color: AppColors.primaryColor,)),
                       child: PrimaryButton(text: "Save", onPressed: () async {
                         final oldPassword = currentPasswordController.text;
                         final newPassword = newPasswordController.text;

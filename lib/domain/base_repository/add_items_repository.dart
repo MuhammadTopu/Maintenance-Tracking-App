@@ -8,7 +8,7 @@ abstract class AddItemRepository {
     required String model,
     required String category,
     required String purchaseDate,
-    required String totalMileage,
+    required int? totalMileage,
     required String yearOfModel,
     File? imageFile,
   });

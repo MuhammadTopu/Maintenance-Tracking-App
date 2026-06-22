@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:maintenance_genie/core/constants/app_colors.dart';
 import 'package:provider/provider.dart';
 
 import '../../../app/routes/route_names.dart';
@@ -49,7 +50,7 @@ class _ItemsMenuScreenState extends State<ItemsMenuScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        "Task List",
+                        "Item List",
                         style: TextStyle(
                           fontSize: 18.sp,
                           fontWeight: FontWeight.bold,
@@ -70,76 +71,79 @@ class _ItemsMenuScreenState extends State<ItemsMenuScreen> {
                   ),
                 ),
                 SizedBox(height: 20.h),
-                Consumer<AllItemListProvider>(
-                  builder: (context, provider, child) {
-                    if (provider.loading) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
+                Expanded(
+                  child: Consumer<AllItemListProvider>(
+                    builder: (context, provider, child) {
+                      if (provider.loading) {
+                        return const Center(child: CircularProgressIndicator(color: AppColors.primaryColor,));
+                      }
 
-                    if (provider.errorFetchingAllItems != '') {
-                      return Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            SizedBox(height: 30.h),
-                            Text(provider.errorFetchingAllItems ?? 'Something went wrong', style: TextStyle(fontSize: 16.sp)),
-                            SizedBox(height: 16.h),
-                            SizedBox(
-                              width: MediaQuery.of(context).size.width * 0.3,
-                              child: PrimaryButton(
-                                text: 'Retry',
-                                onPressed: () => provider.getAllItem(),
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    }
-
-                    final items = provider.allItemListModel?.items ?? [];
-                    if (items.isEmpty) {
-                      return const Center(child: Text('No items available'));
-                    }
-
-                    return DefaultTabController(
-                      length: 4,
-                      child: Expanded(
-                        child: SingleChildScrollView(
+                      if (provider.errorFetchingAllItems != '') {
+                        return Center(
                           child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const TabBar(
-                                tabAlignment: TabAlignment.center,
-                                labelColor: Colors.teal,
-                                unselectedLabelColor: Colors.black,
-                                indicatorColor: Colors.teal,
-                                indicatorSize: TabBarIndicatorSize.tab,
-                                indicatorWeight: 1,
-                                tabs: [
-                                  Tab(text: 'All'),
-                                  Tab(text: 'Vehicle'),
-                                  Tab(text: 'Home'),
-                                  Tab(text: 'Custom'),
-                                ],
-                              ),
+                              Text(provider.errorFetchingAllItems ?? 'Something went wrong', style: TextStyle(fontSize: 16.sp)),
                               SizedBox(height: 16.h),
                               SizedBox(
-                                height: 380.h,
-                                child: TabBarView(
-                                  children: [
-                                    buildTable(context, items, provider),
-                                    buildTable(context, items.where((item) => item.category == 'Vehicle',).toList(), provider,),
-                                    buildTable(context, items.where((item) => item.category == 'Appliance',).toList(), provider,),
-                                    buildTable(context, items.where((item) => item.category != 'Vehicle' && item.category != 'Appliance',).toList(), provider,),
-                                  ],
+                                width: MediaQuery.of(context).size.width * 0.3,
+                                height: 40.h,
+                                child: PrimaryButton(
+                                  text: 'Retry',
+                                  onPressed: () => provider.getAllItem(),
                                 ),
                               ),
                             ],
                           ),
+                        );
+                      }
+
+                      final items = provider.allItemListModel?.items ?? [];
+                      if (items.isEmpty) {
+                        return const Center(child: Text('No items available'));
+                      }
+
+                      return DefaultTabController(
+                        length: 4,
+                        child: Expanded(
+                          child: SingleChildScrollView(
+                            child: Column(
+                              children: [
+                                const TabBar(
+                                  tabAlignment: TabAlignment.center,
+                                  labelColor: Colors.teal,
+                                  unselectedLabelColor: Colors.black,
+                                  indicatorColor: Colors.teal,
+                                  indicatorSize: TabBarIndicatorSize.tab,
+                                  indicatorWeight: 1,
+                                  tabs: [
+                                    Tab(text: 'All'),
+                                    Tab(text: 'Vehicle'),
+                                    Tab(text: 'Home'),
+                                    Tab(text: 'Custom'),
+                                  ],
+                                ),
+                                SizedBox(height: 16.h),
+                                SizedBox(
+                                  height: 380.h,
+                                  child: TabBarView(
+                                    children: [
+                                      buildTable(context, items, provider),
+                                      buildTable(context, items.where((item) => item.category == 'Vehicle',).toList(), provider,),
+                                      buildTable(context, items.where((item) => item.category == 'Appliance',).toList(), provider,),
+                                      buildTable(context, items.where((item) => item.category != 'Vehicle' && item.category != 'Appliance',).toList(), provider,),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
-                      ),
-                    );
-                  },
+                      );
+                    },
+                  ),
                 ),
+                SizedBox(height: 80.h),
               ],
             ),
           ),

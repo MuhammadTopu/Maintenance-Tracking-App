@@ -17,9 +17,11 @@ class _ParentScreenState extends State<ParentScreen> {
   @override
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      context.read<UserProvider>().getUserDetails();
-      context.read<AllItemListProvider>().getAllItem();
-      context.read<ItemTaskListProvider>().getItemTasks();
+      Future.wait([
+        context.read<UserProvider>().getUserDetails(),
+        context.read<AllItemListProvider>().getAllItem(),
+        context.read<ItemTaskListProvider>().getItemTasks(),
+      ]);
     });
     super.initState();
   }

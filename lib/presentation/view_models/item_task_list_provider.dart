@@ -25,6 +25,7 @@ class ItemTaskListProvider extends ChangeNotifier {
 
     if (response != null) {
       _taskListResponse = response;
+      _filteredTaskListResponse = response;
       notifyListeners();
     }
 

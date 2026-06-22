@@ -354,13 +354,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                     onPressed: () {
                       final pr = context.read<AddItemProvider>();
 
-                      if (pr.name.isEmpty || pr.selectedCategory == null) {
-                        _showSnack(context, "Please fill required fields");
-                        return;
-                      }
-
                       Navigator.pushNamed(context, RouteName.itemAddQuestion);
-                      clear();
                     },
                   ),
                 ),

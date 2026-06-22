@@ -8,11 +8,13 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/constants/api_end_points.dart';
+import '../../../core/constants/app_colors.dart';
 import '../../../data/models/task_list_response_model.dart';
 import '../../../shared/custom_item_app_bar.dart';
 import '../../view_models/add_receipt_provider.dart';
 import '../../view_models/item_task_list_by_item_id_provider.dart';
 import 'widget/drop_down_widget.dart';
+import 'widget/full_screen_image_view.dart';
 
 class TrackingDetailScreen extends StatefulWidget {
   const TrackingDetailScreen({super.key});
@@ -48,7 +50,7 @@ class _TrackingDetailScreenState extends State<TrackingDetailScreen> {
               children: [
                 SizedBox(height: 20.h),
                 CustomItemAppBar(
-                  title: 'Item Details',
+                  title: 'Task Details',
                   onTap: () {
                     Navigator.pop(context);
                   },
@@ -102,7 +104,7 @@ class _TrackingDetailScreenState extends State<TrackingDetailScreen> {
                       ),
                     ),
                     const Spacer(),
-                    DropDownWidget(status: task?.toList().first.status ?? '',)
+                    DropDownWidget(status: task?.toList().first.status ?? ''),
                   ],
                 ),
                 SizedBox(height: 21.h),
@@ -190,27 +192,31 @@ class _TrackingDetailScreenState extends State<TrackingDetailScreen> {
                             builder: (_, pr, __) {
                               return Visibility(
                                 visible: !pr.isLoading,
-                                replacement: Center(child: CircularProgressIndicator(),),
+                                replacement: Center(
+                                  child: CircularProgressIndicator(color: AppColors.primaryColor,),
+                                ),
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     InkWell(
                                       onTap: () async {
-                                        final hasPermission =
-                                            await Permission.camera
-                                                .request()
-                                                .isGranted;
+                                        final hasPermission = await Permission
+                                            .camera
+                                            .request()
+                                            .isGranted;
                                         if (hasPermission) {
-                                          final bool isImageSelected = await pr.pickImage(
-                                            ImageSource.camera,
-                                            task?.toList().first.taskId ?? '',
-                                          );
+                                          final bool isImageSelected = await pr
+                                              .pickImage(
+                                                ImageSource.camera,
+                                                task?.toList().first.taskId ??
+                                                    '',
+                                              );
                                           if (isImageSelected) {
-                                            ScaffoldMessenger.of(context).showSnackBar(
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
                                               SnackBar(
-                                                content: Text(
-                                                  pr.message,
-                                                ),
+                                                content: Text(pr.message),
                                               ),
                                             );
                                           } else {
@@ -218,12 +224,16 @@ class _TrackingDetailScreenState extends State<TrackingDetailScreen> {
                                               context,
                                             ).showSnackBar(
                                               const SnackBar(
-                                                content: Text('No image selected'),
+                                                content: Text(
+                                                  'No image selected',
+                                                ),
                                               ),
                                             );
                                           }
                                         } else {
-                                          ScaffoldMessenger.of(context).showSnackBar(
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
                                             const SnackBar(
                                               content: Text(
                                                 'Camera permission denied',
@@ -239,7 +249,9 @@ class _TrackingDetailScreenState extends State<TrackingDetailScreen> {
                                           vertical: 7.h,
                                         ),
                                         decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(99.r),
+                                          borderRadius: BorderRadius.circular(
+                                            99.r,
+                                          ),
                                           border: Border.all(
                                             color: const Color(0xffE9E9EA),
                                           ),
@@ -262,26 +274,31 @@ class _TrackingDetailScreenState extends State<TrackingDetailScreen> {
                                         //   debugPrint('Gallery permission denied.');
                                         //   return;
                                         // }
-                                        final bool isImageSelected = await pr.pickImage(
-                                          ImageSource.gallery,
-                                          task?.toList().first.taskId ?? '',
-                                        );
+                                        final bool isImageSelected = await pr
+                                            .pickImage(
+                                              ImageSource.gallery,
+                                              task?.toList().first.taskId ?? '',
+                                            );
                                         if (isImageSelected) {
                                           debugPrint(
                                             'Image displayed in UI: ${pr.getImageFile!.path}',
                                           );
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                pr.message,
-                                              ),
-                                            ),
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            SnackBar(content: Text(pr.message)),
                                           );
                                         } else {
-                                          debugPrint('No image selected in UI.');
-                                          ScaffoldMessenger.of(context).showSnackBar(
+                                          debugPrint(
+                                            'No image selected in UI.',
+                                          );
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
                                             const SnackBar(
-                                              content: Text('No image selected'),
+                                              content: Text(
+                                                'No image selected',
+                                              ),
                                             ),
                                           );
                                         }
@@ -293,7 +310,9 @@ class _TrackingDetailScreenState extends State<TrackingDetailScreen> {
                                           vertical: 7.h,
                                         ),
                                         decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(99.r),
+                                          borderRadius: BorderRadius.circular(
+                                            99.r,
+                                          ),
                                           border: Border.all(
                                             color: const Color(0xffE9E9EA),
                                           ),
@@ -304,7 +323,7 @@ class _TrackingDetailScreenState extends State<TrackingDetailScreen> {
                                   ],
                                 ),
                               );
-                            }
+                            },
                           ),
                         ],
                       ),
@@ -312,53 +331,79 @@ class _TrackingDetailScreenState extends State<TrackingDetailScreen> {
                   ),
                 ),
                 SizedBox(height: 12.h),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12.r),
-                  child: Container(
-                    height: 250.h,
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12.r),
-                      border: Border.all(color: Colors.grey.shade400),
-                    ),
-                    child:
-                    task?.toList().first.receiptUrl != null
-                        ? Image.network(
-                      ApiEndPoints.imagePath(task?.toList().first.receiptUrl ?? ''),
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                      loadingBuilder: (context, child, loadingProgress) {
-                        if (loadingProgress == null) return child;
-                        return Center(
-                          child: CircularProgressIndicator(
-                            value: loadingProgress.expectedTotalBytes != null
-                                ? loadingProgress.cumulativeBytesLoaded /
-                                loadingProgress.expectedTotalBytes!
-                                : null,
-                            color: const Color(0xFF6359FF),
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => FullScreenImageView(
+                          imageUrl: ApiEndPoints.imagePath(
+                            task?.toList().first.receiptUrl ?? '',
                           ),
-                        );
-                      },
-                      errorBuilder:
-                          (context, error, stackTrace) => Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Icon(Icons.image_outlined, size: 30.h,),
-                              SizedBox(height: 12.h,),
-                              Text('No Receipt Available!')
-                            ],
-                          ),
-                    )
-                        : Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Icon(Icons.image_outlined, size: 30.h,),
-                            SizedBox(height: 12.h,),
-                            Text('No Receipt Available!')
-                          ],
                         ),
+                      ),
+                    );
+                  },
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12.r),
+                    child: Container(
+                      height: 250.h,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12.r),
+                        border: Border.all(color: Colors.grey.shade400),
+                      ),
+                      child: task?.toList().first.receiptUrl != null
+                          ? Hero(
+                              tag: task?.toList().first.receiptUrl ?? '',
+                              child: Image.network(
+                                ApiEndPoints.imagePath(
+                                  task?.toList().first.receiptUrl ?? '',
+                                ),
+                                width: double.infinity,
+                                fit: BoxFit.cover,
+                                loadingBuilder:
+                                    (context, child, loadingProgress) {
+                                      if (loadingProgress == null) return child;
+                                      return Center(
+                                        child: CircularProgressIndicator(
+                                          value:
+                                              loadingProgress
+                                                      .expectedTotalBytes !=
+                                                  null
+                                              ? loadingProgress
+                                                        .cumulativeBytesLoaded /
+                                                    loadingProgress
+                                                        .expectedTotalBytes!
+                                              : null,
+                                          color: const Color(0xFF6359FF),
+                                        ),
+                                      );
+                                    },
+                                errorBuilder: (context, error, stackTrace) =>
+                                    Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      children: [
+                                        Icon(Icons.image_outlined, size: 30.h),
+                                        SizedBox(height: 12.h),
+                                        Text('No Receipt Available!'),
+                                      ],
+                                    ),
+                              ),
+                            )
+                          : Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Icon(Icons.image_outlined, size: 30.h),
+                                SizedBox(height: 12.h),
+                                Text('No Receipt Available!'),
+                              ],
+                            ),
+                    ),
                   ),
                 ),
                 SizedBox(height: 12.h),
@@ -389,11 +434,10 @@ class _TrackingDetailScreenState extends State<TrackingDetailScreen> {
                           children: List.generate(
                             task?.toList().first.maintenanceHistory.length ?? 0,
                             (index) {
-                              final historyItem =
-                                  task
-                                      ?.toList()
-                                      .first
-                                      .maintenanceHistory[index];
+                              final historyItem = task
+                                  ?.toList()
+                                  .first
+                                  .maintenanceHistory[index];
                               return Padding(
                                 padding: EdgeInsets.symmetric(vertical: 8.h),
                                 child: Text(
@@ -457,7 +501,7 @@ class _TrackingDetailScreenState extends State<TrackingDetailScreen> {
                     ],
                   ),
                 ),
-                SizedBox(height: 20.h,)
+                SizedBox(height: 20.h),
               ],
             ),
           ),

@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
+import 'package:maintenance_genie/core/constants/app_colors.dart';
 import 'package:provider/provider.dart';
 import 'package:redacted/redacted.dart';
+
+import '../presentation/view_models/item_task_list_by_item_id_provider.dart';
 
 class CustomTaskCard extends StatelessWidget {
   const CustomTaskCard({
@@ -133,30 +136,31 @@ class CustomTaskCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                  // child:
-                      // context.watch<ItemTaskListByItemIdProvider>().loader &&
-                      //         taskId ==
-                      //             context
-                      //                 .watch<ItemTaskListByItemIdProvider>()
-                      //                 .loaderTaskId
-                      //     ? Center(
-                      //       child: CircularProgressIndicator(
-                      //         constraints: BoxConstraints(
-                      //           maxHeight: 20,
-                      //           maxWidth: 20,
-                      //           minHeight: 20,
-                      //           minWidth: 20,
-                      //         ),
-                      //       ),
-                      //     )
-                      //     : Row(
-                      //       mainAxisAlignment: MainAxisAlignment.center,
-                      //       children: [
-                      //         Text("Detail"),
-                      //         SizedBox(width: 8),
-                      //         Image.asset("assets/icons/arrow.png"),
-                      //       ],
-                      //     ),
+                  child:
+                      context.watch<ItemTaskListByItemIdProvider>().loader &&
+                              taskId ==
+                                  context
+                                      .watch<ItemTaskListByItemIdProvider>()
+                                      .loaderTaskId
+                          ? Center(
+                            child: CircularProgressIndicator(
+                              color: AppColors.primaryColor,
+                              constraints: BoxConstraints(
+                                maxHeight: 20,
+                                maxWidth: 20,
+                                minHeight: 20,
+                                minWidth: 20,
+                              ),
+                            ),
+                          )
+                          : Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text("Detail"),
+                              SizedBox(width: 8),
+                              Image.asset("assets/icons/arrow.png"),
+                            ],
+                          ),
                 ),
               ),
             ),

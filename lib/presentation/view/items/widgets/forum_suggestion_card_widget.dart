@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:gpt_markdown/gpt_markdown.dart';
 import 'package:maintenance_genie/data/models/one_item_model.dart';
 
 class ForumSuggestionsCard extends StatelessWidget {
@@ -24,8 +25,8 @@ class ForumSuggestionsCard extends StatelessWidget {
               physics: const NeverScrollableScrollPhysics(),
               itemCount: response.item.forumSuggestions.length,
               itemBuilder: (context, index) {
-                return Text(
-                  response.item.forumSuggestions[index].replaceAll('**', ' '),
+                return GptMarkdown(
+                  response.item.forumSuggestions[index],
                   style: TextStyle(
                     fontSize: 15.sp,
                     color: Colors.grey.shade700,

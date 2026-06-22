@@ -8,6 +8,7 @@ import '../../../shared/common_widgets.dart';
 import '../../../shared/custom_item_app_bar.dart';
 import '../../view_models/add_item_provider.dart';
 import '../../view_models/all_item_list_provider.dart';
+import '../../view_models/item_task_list_provider.dart';
 import '../../view_models/question_provider.dart';
 import '../../view_models/user_provider.dart';
 import 'widgets/show_item_added_dialog.dart';
@@ -37,7 +38,6 @@ class _ItemAddQuestionScreenState extends State<ItemAddQuestionScreen> {
 
 
       if (!success) {
-        questionProvider.setIsGenerateLoading(false);
         addItemProvider.clearFields();
         if (mounted) {
           Navigator.pop(context);
@@ -48,7 +48,7 @@ class _ItemAddQuestionScreenState extends State<ItemAddQuestionScreen> {
 
       await allItemProvider.getAllItem();
 
-      questionProvider.setQId(
+      await questionProvider.setQId(
         allItemProvider.allItemListModel?.items?.first.id ?? '',
       );
       addItemProvider.clearFields();
@@ -59,7 +59,7 @@ class _ItemAddQuestionScreenState extends State<ItemAddQuestionScreen> {
   @override
   Widget build(BuildContext context) {
     return Consumer<QuestionProvider>(
-      builder: (_, provider, __) {
+      builder: (_, provider, _) {
         if (provider.isGenerateLoading) {
           return Scaffold(
             backgroundColor: Colors.white,
@@ -68,7 +68,7 @@ class _ItemAddQuestionScreenState extends State<ItemAddQuestionScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   // todo: change loader
-                  CircularProgressIndicator(),
+                  WaveLoading(),
                   SizedBox(height: 16.h),
                   Text(
                     "Generating task. Please wait...",
@@ -157,6 +157,7 @@ class _ItemAddQuestionScreenState extends State<ItemAddQuestionScreen> {
                                 ),
                               );
                             }
+                            context.read<ItemTaskListProvider>().getItemTasks();
                           },
                         ),
                       ),

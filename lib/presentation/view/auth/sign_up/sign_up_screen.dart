@@ -6,6 +6,7 @@ import 'package:maintenance_genie/presentation/view_models/sign_up_provider.dart
 import 'package:provider/provider.dart';
 
 import '../../../../app/routes/route_names.dart';
+import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/input_validator.dart';
 import '../../../../shared/app_toast.dart';
 import '../../../../shared/common_widgets.dart';
@@ -123,7 +124,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   builder: (_, provider, _) {
                     return Visibility(
                       visible: !provider.isLoading,
-                      replacement: Center(child: CircularProgressIndicator()),
+                      replacement: Center(child: CircularProgressIndicator(color: AppColors.primaryColor,)),
                       child: PrimaryButton(
                         text: "Verify",
                         onPressed: () => handleSignUp(provider),

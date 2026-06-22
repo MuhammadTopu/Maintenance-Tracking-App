@@ -90,7 +90,7 @@ class AddReceiptProvider extends ChangeNotifier {
       if (response.statusCode >= 200 && response.statusCode < 300) {
         debugPrint('Item added successfully. Status: ${response.statusCode}');
         debugPrint('Response Body: $responseBody');
-        _message = 'Receipt uploaded and maintenance history updated.';
+        _message = 'Receipt uploaded and maintenance history will be updated soon.';
         _isLoading = false;
         notifyListeners();
         return;

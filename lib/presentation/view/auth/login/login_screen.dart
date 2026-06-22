@@ -7,6 +7,7 @@ import 'package:maintenance_genie/shared/app_toast.dart';
 import 'package:maintenance_genie/shared/common_widgets.dart';
 import 'package:provider/provider.dart';
 import '../../../../app/routes/route_names.dart';
+import '../../../../core/constants/app_colors.dart';
 import '../../../../shared/custom_text_field.dart';
 import '../../../view_models/login_provider.dart';
 
@@ -197,7 +198,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     return SizedBox(
                       width: MediaQuery.of(context).size.width * 0.9,
                       child: provider.isLoading
-                          ? const Center(child: CircularProgressIndicator())
+                          ? const Center(child: CircularProgressIndicator(color: AppColors.primaryColor,))
                           : PrimaryButton(
                               text: "Log In",
                               onPressed: () => _handleLogin(provider),

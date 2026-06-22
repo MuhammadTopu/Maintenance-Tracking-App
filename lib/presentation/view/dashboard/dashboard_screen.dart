@@ -211,12 +211,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             return Center(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.center,
+                                mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  SizedBox(height: 48.h),
+                                  SizedBox(height: 160.h),
                                   Text(
                                     "No tasks available",
                                     style: TextStyle(
-                                      fontSize: 16,
+                                      fontSize: 16.sp,
                                       fontWeight: FontWeight.w400,
                                     ),
                                   ),
@@ -276,7 +277,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                 ),
               ),
-              SizedBox(height: 48.h),
+              SizedBox(height: 80.h),
             ],
           ),
         ),

@@ -4,6 +4,7 @@ import 'package:maintenance_genie/app/routes/route_names.dart';
 import 'package:maintenance_genie/presentation/view_models/sign_up_provider.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../core/constants/app_colors.dart';
 import '../../../../shared/app_toast.dart';
 import '../../../../shared/common_widgets.dart';
 import '../widgets/pin_code_text_field.dart';
@@ -84,7 +85,7 @@ class _VerifyEmailOtpScreenState extends State<VerifyEmailOtpScreen> {
                     return Visibility(
                       visible: !signUpProvider.isLoading,
                       replacement: const Center(
-                        child: CircularProgressIndicator(),
+                        child: CircularProgressIndicator(color: AppColors.primaryColor,),
                       ),
                       child: PrimaryButton(
                         text: "Verify",

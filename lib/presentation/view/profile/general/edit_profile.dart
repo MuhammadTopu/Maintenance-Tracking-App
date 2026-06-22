@@ -4,6 +4,7 @@ import 'package:maintenance_genie/shared/app_toast.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../core/constants/api_end_points.dart';
+import '../../../../core/constants/app_colors.dart';
 import '../../../../shared/common_widgets.dart';
 import '../../../../shared/custom_item_app_bar.dart';
 import '../../../view_models/user_provider.dart';
@@ -98,21 +99,24 @@ class _EditProfileState extends State<EditProfile> {
                   return SizedBox(
                     width: double.infinity,
                     child: p.isLoading
-                        ? const Center(child: CircularProgressIndicator())
+                        ? const Center(child: CircularProgressIndicator(color: AppColors.primaryColor,))
                         : PrimaryButton(
-                      text: 'Save Changes',
-                      onPressed: () async {
-                        final result = await p.updateUserImage();
+                            text: 'Save Changes',
+                            onPressed: () async {
+                              final result = await p.updateUserImage();
+                              p.image = null;
 
-                        _showSnack(
-                          result
-                              ? "Profile picture updated"
-                              : "Profile picture update failed",
-                        );
+                              context.read<UserProvider>().getUserDetails();
 
-                        Navigator.pop(context);
-                      },
-                    ),
+                              _showSnack(
+                                result
+                                    ? "Profile picture updated"
+                                    : "Profile picture update failed",
+                              );
+
+                              Navigator.pop(context);
+                            },
+                          ),
                   );
                 },
               ),
@@ -151,20 +155,44 @@ class _EditProfileState extends State<EditProfile> {
                 onTap: () => _showImagePicker(userProvider),
                 child: Stack(
                   children: [
-                    CircleAvatar(
-                      radius: 50,
-                      backgroundColor: const Color(0xffF6F8FA),
-                      backgroundImage: userProvider.image != null
-                          ? FileImage(userProvider.image!)
-                          : NetworkImage(
-                        ApiEndPoints.imagePath(user?.avatar ?? ''),
-                      ) as ImageProvider,
-                      onBackgroundImageError: (_, __) {},
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(90.r),
+                      child: Container(
+                        height: 100.h,
+                        width: 100.w,
+                        decoration: BoxDecoration(shape: BoxShape.circle),
+                        child: userProvider.image != null ? Image.file(userProvider.image!) :
+                            Image.network(
+                                ApiEndPoints.imagePath(
+                                  user?.avatar ?? '',
+                                ),
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Container(
+                                    height: 100.h,
+                                    width: 100.w,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: Color(0xffF6F8FA),
+                                      border: Border.all(
+                                        color: Color(0xffE9E9EA),
+                                      ),
+                                    ),
+                                    child: Image.asset(
+                                      'assets/icons/user.png',
+                                      height: 60.w,
+                                      width: 60.w,
+                                      color: Colors.grey.shade800,
+                                    ),
+                                  );
+                                },
+                              ),
+                      ),
                     ),
 
                     Positioned(
-                      bottom: -6,
-                      right: 16,
+                      bottom: -6.h,
+                      right: 10.w,
                       child: Container(
                         decoration: const BoxDecoration(
                           color: Colors.white,
@@ -180,11 +208,15 @@ class _EditProfileState extends State<EditProfile> {
 
               const SizedBox(height: 8),
 
-              Text(user?.name ?? '',
-                  style: const TextStyle(fontWeight: FontWeight.bold)),
+              Text(
+                user?.name ?? '',
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
 
-              Text(user?.email ?? '',
-                  style: TextStyle(color: Colors.grey.shade600)),
+              Text(
+                user?.email ?? '',
+                style: TextStyle(color: Colors.grey.shade600),
+              ),
 
               const SizedBox(height: 15),
 
@@ -221,42 +253,44 @@ class _EditProfileState extends State<EditProfile> {
                         return SizedBox(
                           width: double.infinity,
                           child: provider.isUpdating
-                              ? const Center(child: CircularProgressIndicator())
+                              ? const Center(child: CircularProgressIndicator(color: AppColors.primaryColor,))
                               : PrimaryButton(
-                            text: "Save",
-                            onPressed: () async {
-                              final value = addressController.text;
+                                  text: "Save",
+                                  onPressed: () async {
+                                    final value = addressController.text;
 
-                              if (value.trim().isEmpty) {
-                                AppToast.showToast('Address is required');
-                                return;
-                              }
+                                    if (value.trim().isEmpty) {
+                                      AppToast.showToast('Address is required');
+                                      return;
+                                    }
 
-                              if (value.trim().length < 10) {
-                                AppToast.showToast('Address must be at least 10 characters');
-                                return;
-                              }
+                                    if (value.trim().length < 10) {
+                                      AppToast.showToast(
+                                        'Address must be at least 10 characters',
+                                      );
+                                      return;
+                                    }
 
-                              final result =
-                              await provider.updateProfileDetails(
-                                nameController.text,
-                                addressController.text,
-                              );
+                                    final result = await provider
+                                        .updateProfileDetails(
+                                          nameController.text,
+                                          addressController.text,
+                                        );
 
-                              AppToast.showToast(
-                                result
-                                    ? "Profile updated successfully"
-                                    : "Profile update failed",
-                              );
+                                    AppToast.showToast(
+                                      result
+                                          ? "Profile updated successfully"
+                                          : "Profile update failed",
+                                    );
 
-                              if (result) {
-                                context
-                                    .read<UserProvider>()
-                                    .getUserDetails();
-                                Navigator.pop(context);
-                              }
-                            },
-                          ),
+                                    if (result) {
+                                      context
+                                          .read<UserProvider>()
+                                          .getUserDetails();
+                                      Navigator.pop(context);
+                                    }
+                                  },
+                                ),
                         );
                       },
                     ),

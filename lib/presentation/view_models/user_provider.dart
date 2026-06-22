@@ -18,6 +18,13 @@ class UserProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  bool _avatarLoadFailed = false;
+  bool get avatarLoadFailed => _avatarLoadFailed;
+  void setAvatarError() {
+    _avatarLoadFailed = true;
+    notifyListeners();
+  }
+
   UserResponse? _userResponse;
   UserResponse? get userResponse => _userResponse;
 

@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:maintenance_genie/app/routes/route_names.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../core/constants/app_colors.dart';
 import '../../../../shared/app_toast.dart';
 import '../../../../shared/common_widgets.dart';
 import '../../../../shared/custom_text_field.dart';
@@ -164,7 +165,7 @@ class _SignUpInfoScreenState extends State<SignUpInfoScreen> {
                       return Visibility(
                         visible: provider.isPasswordValid,
                         replacement: const SizedBox.shrink(),
-                        child: provider.isLoading ? Center(child: CircularProgressIndicator()) : PrimaryButton(
+                        child: provider.isLoading ? Center(child: CircularProgressIndicator(color: AppColors.primaryColor,)) : PrimaryButton(
                           text: "Register",
                           onPressed: provider.isPasswordValid
                               ? () async {

@@ -38,7 +38,7 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
         child: Consumer<AllItemListProvider>(
           builder: (context, provider, child) {
             if (provider.itemDetailsLoading) {
-              return const Center(child: CircularProgressIndicator());
+              return const Center(child: CircularProgressIndicator(color: AppColors.primaryColor,));
             }
             if (provider.errorFetchingOneItem != '') {
               return Center(child: Text(provider.errorFetchingOneItem!));

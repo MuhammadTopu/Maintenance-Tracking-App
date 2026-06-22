@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:maintenance_genie/core/helper/logger.dart';
 import 'package:maintenance_genie/presentation/view_models/parent_screen_provider.dart';
 import 'package:maintenance_genie/presentation/view_models/user_provider.dart';
 import 'package:provider/provider.dart';
 
 import '../../../app/routes/route_names.dart';
 import '../../../core/constants/api_end_points.dart';
+import '../../../core/constants/app_colors.dart';
 import '../../../shared/custom_app_bar.dart';
 import '../../view_models/all_item_list_provider.dart';
 import '../../view_models/login_provider.dart';
@@ -21,6 +23,11 @@ class _ProfileMenuState extends State<ProfileMenu> {
   @override
   Widget build(BuildContext context) {
     final getMeProvider = context.watch<UserProvider>();
+
+    Log.debug(ApiEndPoints.imagePath(
+      getMeProvider.userResponse?.data.avatar ?? '',
+    ),);
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -67,7 +74,7 @@ class _ProfileMenuState extends State<ProfileMenu> {
                   future: getMeProvider.getUserName(),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
-                      return CircularProgressIndicator();
+                      return CircularProgressIndicator(color: AppColors.primaryColor,);
                     } else if (snapshot.hasError) {
                       return Text(
                         'Error loading username',
@@ -92,7 +99,7 @@ class _ProfileMenuState extends State<ProfileMenu> {
                   future: getMeProvider.getUserEmail(),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
-                      return CircularProgressIndicator();
+                      return CircularProgressIndicator(color: AppColors.primaryColor,);
                     } else if (snapshot.hasError) {
                       return Text(
                         'Error loading email',

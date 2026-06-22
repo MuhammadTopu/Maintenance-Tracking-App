@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../app/routes/route_names.dart';
+import '../../../../core/constants/app_colors.dart';
 import '../../../../shared/app_toast.dart';
 import '../../../../shared/common_widgets.dart';
 import '../../../../shared/custom_text_field.dart';
@@ -144,7 +145,7 @@ class _SignUpInfoScreenState extends State<SetPasswordScreen> {
                   builder: (_, provider, _) {
                     return Visibility(
                       visible: !provider.isLoading,
-                      replacement: Center(child: CircularProgressIndicator()),
+                      replacement: Center(child: CircularProgressIndicator(color: AppColors.primaryColor,)),
                       child: PrimaryButton(
                         text: "Reset Password",
                         onPressed: provider.isPasswordValid

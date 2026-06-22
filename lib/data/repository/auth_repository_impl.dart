@@ -305,7 +305,7 @@ class AuthRepositoriesImpl implements AuthRepository {
         "newPassword": newPassword,
       };
 
-      final response = await _apiService.patch(
+      final response = await _apiService.post(
         ApiEndPoints.updatePassword,
         data: body,
       );

@@ -38,7 +38,11 @@ class SupportMailRepositoryImpl implements SupportMailRepository {
     required String message,
   }) async {
     try {
-      final response = await _apiService.get(ApiEndPoints.getAllItem);
+      final body = {
+        "subject": subject,
+        "message": message
+      };
+      final response = await _apiService.post(ApiEndPoints.sendMailToAdmin, data: body);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         if (response.data['success'] == true) {

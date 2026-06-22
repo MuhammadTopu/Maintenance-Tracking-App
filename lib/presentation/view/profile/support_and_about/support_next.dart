@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../core/constants/app_colors.dart';
 import '../../../../shared/common_widgets.dart';
 import '../../../../shared/custom_item_app_bar.dart';
 import '../../../view_models/support_mail_provider.dart';
@@ -171,7 +172,7 @@ class _SupportNextState extends State<SupportNext> {
                       return Visibility(
                         visible: !provider.isLoading,
                         replacement: const Center(
-                          child: CircularProgressIndicator(),
+                          child: CircularProgressIndicator(color: AppColors.primaryColor,),
                         ),
                         child: PrimaryButton(
                           text: "Save",

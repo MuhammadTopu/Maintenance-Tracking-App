@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../core/helper/logger.dart';
 import '../../domain/base_repository/add_items_repository.dart';
+import '../../shared/app_toast.dart';
 
 class AddItemProvider extends ChangeNotifier {
   final AddItemRepository _repository;
@@ -22,12 +23,11 @@ class AddItemProvider extends ChangeNotifier {
   DateTime? selectedDate;
   DateTime? lastServiceDate;
 
-  String name = '';
-  String price = '';
-  String issue = '';
-  String yearOfModel = '';
-  String totalMileage = '';
-  String lastServiceName = '';
+  String? name;
+  String? price;
+  String? issue;
+  String? yearOfModel;
+  int? totalMileage;
 
   File? imageFile;
 
@@ -117,34 +117,67 @@ class AddItemProvider extends ChangeNotifier {
 
   void setYearOfModel(String value) {
     yearOfModel = value;
+    debugPrint('Year of model: $value');
     notifyListeners();
   }
 
   void setTotalMileage(String value) {
-    totalMileage = value;
+    totalMileage = value.isEmpty ? null : int.tryParse(value);
     notifyListeners();
   }
-
-  void setLastServiceName(String value) {
-    lastServiceName = value;
-    notifyListeners();
-  }
-
   // ================= ADD ITEM =================
   Future<bool> addItem() async {
     isLoading = true;
     notifyListeners();
 
-    Log.debug('Adding item: ${name}');
+    Log.debug('Adding item: $name');
+
+    if (selectedBrand == 'Select') {
+      AppToast.showToast('Please select a brand', backgroundColor: Colors.red);
+      return false;
+    }
+
+    if (selectedCategory == null) {
+      AppToast.showToast(
+        'Please select a category',
+        backgroundColor: Colors.red,
+      );
+      return false;
+    }
+
+    if (selectedModel == null) {
+      AppToast.showToast('Please select a model', backgroundColor: Colors.red);
+      return false;
+    }
+
+    if (selectedDate == null) {
+      AppToast.showToast(
+        'Please select a purchase date',
+        backgroundColor: Colors.red,
+      );
+      return false;
+    }
+
+    if (yearOfModel == null) {
+      AppToast.showToast(
+        'Please enter year of model',
+        backgroundColor: Colors.red,
+      );
+      return false;
+    }
+
+    Log.debug(
+      'Adding item:\nname: $name\nbrand: $selectedBrand\nmodel: $selectedModel\ncategory: $selectedCategory\npurchaseDate: ${selectedDate?.toIso8601String()}\ntotalMileage: $totalMileage\nyearOfModel: $yearOfModel\nimageFile: $imageFile',
+    );
 
     final result = await _repository.addItem(
-      name: name,
+      name: name ?? '',
       brand: selectedBrand,
       model: selectedModel ?? '',
       category: selectedCategory ?? '',
       purchaseDate: selectedDate?.toIso8601String() ?? '',
       totalMileage: totalMileage,
-      yearOfModel: yearOfModel,
+      yearOfModel: yearOfModel ?? '',
       imageFile: imageFile,
     );
 
@@ -170,8 +203,7 @@ class AddItemProvider extends ChangeNotifier {
     price = '';
     issue = '';
     yearOfModel = '';
-    totalMileage = '';
-    lastServiceName = '';
+    totalMileage = 0;
 
     imageFile = null;
     modelList = [];

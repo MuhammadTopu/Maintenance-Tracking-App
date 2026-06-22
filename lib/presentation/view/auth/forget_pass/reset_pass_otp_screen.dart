@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../app/routes/route_names.dart';
+import '../../../../core/constants/app_colors.dart';
 import '../../../../shared/app_toast.dart';
 import '../../../../shared/common_widgets.dart';
 import '../../../view_models/forget_pass_provider.dart';
@@ -84,7 +85,7 @@ class _ResetPassOtpScreenState extends State<ResetPassOtpScreen> {
                     return Visibility(
                       visible: !provider.isLoading,
                       replacement: const Center(
-                        child: CircularProgressIndicator(),
+                        child: CircularProgressIndicator(color: AppColors.primaryColor,),
                       ),
                       child: PrimaryButton(
                         text: "Verify",

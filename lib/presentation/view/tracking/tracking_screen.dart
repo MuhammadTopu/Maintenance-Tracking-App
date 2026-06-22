@@ -4,6 +4,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 
 import '../../../app/routes/route_names.dart';
+import '../../../core/constants/app_colors.dart';
+import '../../../shared/common_widgets.dart';
 import '../../../shared/custom_app_bar.dart';
 import '../../../shared/custom_task_card.dart';
 import '../../view_models/item_task_list_by_item_id_provider.dart';
@@ -80,7 +82,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
           child: Column(
             children: [
               const CustomAppBar(),
-              SizedBox(height:20.h),
+              SizedBox(height: 20.h),
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: 10.w),
                 child: Row(
@@ -151,12 +153,11 @@ class _TrackingScreenState extends State<TrackingScreen> {
                   ],
                 ),
               ),
-              SizedBox(height: 10.h),
               Expanded(
                 child: Consumer<ItemTaskListProvider>(
                   builder: (_, taskListProvider, _) {
                     if (taskListProvider.loading) {
-                      return const Center(child: CircularProgressIndicator());
+                      return const Center(child: CircularProgressIndicator(color: AppColors.primaryColor,));
                     }
 
                     if (taskListProvider
@@ -164,13 +165,27 @@ class _TrackingScreenState extends State<TrackingScreen> {
                             ?.tasks
                             .isEmpty ??
                         true) {
-                      return const Center(
-                        child: Text(
-                          "No tasks available",
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w400,
-                          ),
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              "No tasks available",
+                              style: TextStyle(
+                                fontSize: 16.sp,
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
+                            SizedBox(height: 16.h),
+                            SizedBox(
+                              width: MediaQuery.of(context).size.width * 0.3,
+                              height: 40.h,
+                              child: PrimaryButton(
+                                text: 'Retry',
+                                onPressed: () => context.read<ItemTaskListProvider>().getItemTasks(),
+                              ),
+                            ),
+                          ],
                         ),
                       );
                     }
@@ -230,7 +245,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
                   },
                 ),
               ),
-              SizedBox(height: 60.h),
+              SizedBox(height: 80.h),
             ],
           ),
         ),

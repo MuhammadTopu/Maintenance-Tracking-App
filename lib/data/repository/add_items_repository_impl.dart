@@ -44,7 +44,7 @@ class AddItemRepositoryImpl implements AddItemRepository {
     required String model,
     required String category,
     required String purchaseDate,
-    required String totalMileage,
+    required int? totalMileage,
     required String yearOfModel,
     File? imageFile,
   }) async {
@@ -63,8 +63,12 @@ class AddItemRepositoryImpl implements AddItemRepository {
     request.fields['model'] = model;
     request.fields['category'] = category;
     request.fields['purchase_date'] = purchaseDate;
-    request.fields['total_mileage'] = totalMileage;
+
     request.fields['year_of_the_model'] = yearOfModel;
+
+    if (totalMileage != null) {
+      request.fields['total_mileage'] = totalMileage.toString();
+    }
 
     if (imageFile != null) {
       final mimeType = lookupMimeType(imageFile.path);

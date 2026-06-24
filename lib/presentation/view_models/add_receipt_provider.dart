@@ -31,12 +31,13 @@ class AddReceiptProvider extends ChangeNotifier {
         debugPrint('Image Path: ${pickedFile.path}');
         debugPrint('Image Name: ${path.basename(pickedFile.path)}');
         debugPrint('File exists: ${imageFile!.existsSync()}');
-        await addReceipt(taskId);
+        final result = await addReceipt(taskId);
         debugPrint('Message: $_message');
         notifyListeners();
-        return true;
+        return result;
       } else {
         debugPrint('No image selected in AddItemProvider.');
+        _message = 'No image selected.';
         imageFile = null;
         notifyListeners();
         return false;
@@ -49,7 +50,7 @@ class AddReceiptProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> addReceipt(String taskId) async {
+  Future<bool> addReceipt(String taskId) async {
     _isLoading = true;
     notifyListeners();
     final url = Uri.parse(ApiEndPoints.addReceiptByTaskId(taskId));
@@ -61,7 +62,7 @@ class AddReceiptProvider extends ChangeNotifier {
         _message = 'Access token not found. Cannot add item.';
         _isLoading = false;
         notifyListeners();
-        return;
+        return false;
       }
 
       final request = http.MultipartRequest('POST', url);
@@ -91,15 +92,17 @@ class AddReceiptProvider extends ChangeNotifier {
         debugPrint('Item added successfully. Status: ${response.statusCode}');
         debugPrint('Response Body: $responseBody');
         _message = 'Receipt uploaded and maintenance history will be updated soon.';
+        notifyListeners();
+        imageFile = null;
         _isLoading = false;
         notifyListeners();
-        return;
+        return true;
       }
       else if (response.statusCode == 400 || response.statusCode == 401) {
         _message = 'Could not extract readable data. Please try another receipt.';
         _isLoading = false;
         notifyListeners();
-        return;
+        return false;
       }
       else {
         debugPrint('Failed to add item. Status: ${response.statusCode}');
@@ -110,12 +113,16 @@ class AddReceiptProvider extends ChangeNotifier {
           'Response Body: $responseBody',
         );
         _isLoading = false;
+        _message = 'Failed to add receipt. Please try again.';
         notifyListeners();
-        return;
+        return false;
       }
     } catch (error) {
-      debugPrint('Error adding item: $error');
-      return;
+      debugPrint('Error adding receipt: $error');
+      _message = 'Failed to add receipt. Please try again.';
+      _isLoading = false;
+      notifyListeners();
+      return false;
     }
   }
 }

@@ -3,7 +3,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import '../../../app/routes/route_names.dart';
 import '../../../core/constants/app_colors.dart';
-import '../../../shared/app_toast.dart';
 import '../../../shared/common_widgets.dart';
 import '../../../shared/custom_item_app_bar.dart';
 import '../../view_models/add_item_provider.dart';

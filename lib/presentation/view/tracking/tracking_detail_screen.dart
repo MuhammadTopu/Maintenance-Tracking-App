@@ -10,6 +10,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../core/constants/api_end_points.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../data/models/task_list_response_model.dart';
+import '../../../shared/app_toast.dart';
 import '../../../shared/custom_item_app_bar.dart';
 import '../../view_models/add_receipt_provider.dart';
 import '../../view_models/item_task_list_by_item_id_provider.dart';
@@ -39,6 +40,9 @@ class _TrackingDetailScreenState extends State<TrackingDetailScreen> {
       (t) => t.taskId == taskProvider.taskId,
     );
     final addReceiptProvider = context.watch<AddReceiptProvider>();
+
+    final hasReceipt = (task?.toList().first.receiptUrl?.isNotEmpty ?? false);
+
     return Scaffold(
       backgroundColor: const Color(0xffFFFFFF),
       body: SafeArea(
@@ -145,191 +149,185 @@ class _TrackingDetailScreenState extends State<TrackingDetailScreen> {
                   ),
                 ),
                 SizedBox(height: 12.h),
-                SizedBox(
-                  height: 200.h,
-                  child: DottedBorder(
-                    color: Colors.grey,
-                    strokeWidth: 1,
-                    dashPattern: const [6, 5],
-                    child: Container(
-                      padding: EdgeInsets.all(20.w),
-                      width: MediaQuery.of(context).size.width * 0.9,
-                      height: 250.h,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          if (addReceiptProvider.getImageFile != null)
-                            Expanded(
-                              child: Image.file(
-                                addReceiptProvider.getImageFile!,
-                                width: 100.w,
-                                height: 100.h,
-                                fit: BoxFit.contain,
-                                errorBuilder: (context, error, stackTrace) {
-                                  debugPrint('Image.file error: $error');
-                                  return const Icon(
-                                    Icons.error,
-                                    color: Colors.red,
-                                    size: 50,
-                                  );
-                                },
-                              ),
-                            )
-                          else
-                            const Icon(
-                              Icons.image,
-                              color: Colors.grey,
-                              size: 50,
-                            ),
-                          SizedBox(height: 10.h),
-                          const Text(
-                            '(File Supported .png .jpg .webp)',
-                            style: TextStyle(fontSize: 12, color: Colors.grey),
-                          ),
-                          SizedBox(height: 20.h),
-                          Consumer<AddReceiptProvider>(
-                            builder: (_, pr, __) {
-                              return Visibility(
-                                visible: !pr.isLoading,
-                                replacement: Center(
-                                  child: CircularProgressIndicator(color: AppColors.primaryColor,),
-                                ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    InkWell(
-                                      onTap: () async {
-                                        final hasPermission = await Permission
-                                            .camera
-                                            .request()
-                                            .isGranted;
-                                        if (hasPermission) {
-                                          final bool isImageSelected = await pr
-                                              .pickImage(
-                                                ImageSource.camera,
-                                                task?.toList().first.taskId ??
-                                                    '',
-                                              );
-                                          if (isImageSelected) {
-                                            ScaffoldMessenger.of(
-                                              context,
-                                            ).showSnackBar(
-                                              SnackBar(
-                                                content: Text(pr.message),
-                                              ),
+                hasReceipt
+                    ? const SizedBox.shrink()
+                    : SizedBox(
+                        height: 200.h,
+                        child: DottedBorder(
+                          color: Colors.grey,
+                          strokeWidth: 1,
+                          dashPattern: const [6, 5],
+                          child: Container(
+                            padding: EdgeInsets.all(20.w),
+                            width: MediaQuery.of(context).size.width * 0.9,
+                            height: 250.h,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                if (addReceiptProvider.getImageFile != null)
+                                  Expanded(
+                                    child: Image.file(
+                                      addReceiptProvider.getImageFile!,
+                                      width: 100.w,
+                                      height: 100.h,
+                                      fit: BoxFit.contain,
+                                      errorBuilder:
+                                          (context, error, stackTrace) {
+                                            debugPrint(
+                                              'Image.file error: $error',
                                             );
-                                          } else {
-                                            ScaffoldMessenger.of(
-                                              context,
-                                            ).showSnackBar(
-                                              const SnackBar(
-                                                content: Text(
-                                                  'No image selected',
+                                            return const Icon(
+                                              Icons.error,
+                                              color: Colors.red,
+                                              size: 50,
+                                            );
+                                          },
+                                    ),
+                                  )
+                                else
+                                  const Icon(
+                                    Icons.image,
+                                    color: Colors.grey,
+                                    size: 50,
+                                  ),
+                                SizedBox(height: 10.h),
+                                const Text(
+                                  '(File Supported .png .jpg .webp)',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                                SizedBox(height: 20.h),
+                                Consumer<AddReceiptProvider>(
+                                  builder: (_, pr, __) {
+                                    return Visibility(
+                                      visible: !pr.isLoading,
+                                      replacement: Center(
+                                        child: CircularProgressIndicator(
+                                          color: AppColors.primaryColor,
+                                        ),
+                                      ),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          InkWell(
+                                            onTap: () async {
+                                              final hasPermission =
+                                                  await Permission.camera
+                                                      .request()
+                                                      .isGranted;
+                                              if (hasPermission) {
+                                                final bool isImageSelected =
+                                                    await pr.pickImage(
+                                                      ImageSource.camera,
+                                                      task
+                                                              ?.toList()
+                                                              .first
+                                                              .taskId ??
+                                                          '',
+                                                    );
+                                                if (isImageSelected) {
+                                                  AppToast.showToast(pr.message);
+                                                  await context.read<ItemTaskListByItemIdProvider>().setTaskId(
+                                                    taskProvider.taskId,
+                                                    taskProvider.itemId,
+                                                  );
+                                                } else {
+                                                  AppToast.showToast(pr.message);
+                                                }
+                                              } else {
+                                                AppToast.showToast('Camera permission denied');
+                                              }
+                                            },
+                                            borderRadius: BorderRadius.circular(
+                                              99.r,
+                                            ),
+                                            child: Container(
+                                              padding: EdgeInsets.symmetric(
+                                                horizontal: 15.w,
+                                                vertical: 7.h,
+                                              ),
+                                              decoration: BoxDecoration(
+                                                borderRadius:
+                                                    BorderRadius.circular(99.r),
+                                                border: Border.all(
+                                                  color: const Color(
+                                                    0xffE9E9EA,
+                                                  ),
                                                 ),
                                               ),
-                                            );
-                                          }
-                                        } else {
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            const SnackBar(
-                                              content: Text(
-                                                'Camera permission denied',
+                                              child: const Text('Take Picture'),
+                                            ),
+                                          ),
+                                          SizedBox(width: 9.w),
+                                          InkWell(
+                                            onTap: () async {
+                                              // final hasPermission = await _requestGalleryPermission();
+                                              // if (!hasPermission) {
+                                              //   ScaffoldMessenger.of(context).showSnackBar(
+                                              //     const SnackBar(
+                                              //       content: Text(
+                                              //         'Gallery access denied. Please allow permission in settings.',
+                                              //       ),
+                                              //     ),
+                                              //   );
+                                              //   debugPrint('Gallery permission denied.');
+                                              //   return;
+                                              // }
+                                              final bool isImageSelected =
+                                                  await pr.pickImage(
+                                                    ImageSource.gallery,
+                                                    task
+                                                            ?.toList()
+                                                            .first
+                                                            .taskId ??
+                                                        '',
+                                                  );
+                                              if (isImageSelected) {
+                                                AppToast.showToast(pr.message);
+                                                await context.read<ItemTaskListByItemIdProvider>().setTaskId(
+                                                  taskProvider.taskId,
+                                                  taskProvider.itemId,
+                                                );
+                                              } else {
+                                                AppToast.showToast(pr.message);
+                                              }
+                                            },
+                                            borderRadius: BorderRadius.circular(
+                                              99.r,
+                                            ),
+                                            child: Container(
+                                              padding: EdgeInsets.symmetric(
+                                                horizontal: 15.w,
+                                                vertical: 7.h,
+                                              ),
+                                              decoration: BoxDecoration(
+                                                borderRadius:
+                                                    BorderRadius.circular(99.r),
+                                                border: Border.all(
+                                                  color: const Color(
+                                                    0xffE9E9EA,
+                                                  ),
+                                                ),
+                                              ),
+                                              child: const Text(
+                                                'Upload Receipt',
                                               ),
                                             ),
-                                          );
-                                        }
-                                      },
-                                      borderRadius: BorderRadius.circular(99.r),
-                                      child: Container(
-                                        padding: EdgeInsets.symmetric(
-                                          horizontal: 15.w,
-                                          vertical: 7.h,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(
-                                            99.r,
                                           ),
-                                          border: Border.all(
-                                            color: const Color(0xffE9E9EA),
-                                          ),
-                                        ),
-                                        child: const Text('Take Picture'),
+                                        ],
                                       ),
-                                    ),
-                                    SizedBox(width: 9.w),
-                                    InkWell(
-                                      onTap: () async {
-                                        // final hasPermission = await _requestGalleryPermission();
-                                        // if (!hasPermission) {
-                                        //   ScaffoldMessenger.of(context).showSnackBar(
-                                        //     const SnackBar(
-                                        //       content: Text(
-                                        //         'Gallery access denied. Please allow permission in settings.',
-                                        //       ),
-                                        //     ),
-                                        //   );
-                                        //   debugPrint('Gallery permission denied.');
-                                        //   return;
-                                        // }
-                                        final bool isImageSelected = await pr
-                                            .pickImage(
-                                              ImageSource.gallery,
-                                              task?.toList().first.taskId ?? '',
-                                            );
-                                        if (isImageSelected) {
-                                          debugPrint(
-                                            'Image displayed in UI: ${pr.getImageFile!.path}',
-                                          );
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            SnackBar(content: Text(pr.message)),
-                                          );
-                                        } else {
-                                          debugPrint(
-                                            'No image selected in UI.',
-                                          );
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            const SnackBar(
-                                              content: Text(
-                                                'No image selected',
-                                              ),
-                                            ),
-                                          );
-                                        }
-                                      },
-                                      borderRadius: BorderRadius.circular(99.r),
-                                      child: Container(
-                                        padding: EdgeInsets.symmetric(
-                                          horizontal: 15.w,
-                                          vertical: 7.h,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(
-                                            99.r,
-                                          ),
-                                          border: Border.all(
-                                            color: const Color(0xffE9E9EA),
-                                          ),
-                                        ),
-                                        child: const Text('Upload Receipt'),
-                                      ),
-                                    ),
-                                  ],
+                                    );
+                                  },
                                 ),
-                              );
-                            },
+                              ],
+                            ),
                           ),
-                        ],
+                        ),
                       ),
-                    ),
-                  ),
-                ),
                 SizedBox(height: 12.h),
                 GestureDetector(
                   onTap: () {

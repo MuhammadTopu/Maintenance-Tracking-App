@@ -115,9 +115,9 @@ class UserProvider extends ChangeNotifier {
   /// Security
   /// -------------------------------------------------------------------------
 
-  bool _current = false;
-  bool _new = false;
-  bool _confirm = false;
+  bool _current = true;
+  bool _new = true;
+  bool _confirm = true;
 
   bool get current => _current;
   bool get newPassword => _new;

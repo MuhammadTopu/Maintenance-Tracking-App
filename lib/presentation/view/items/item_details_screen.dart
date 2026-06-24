@@ -59,7 +59,7 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                     ),
                     SizedBox(height: 20.h),
                     Text(
-                      item.name ?? 'Unnamed Item',
+                      item.name,
                       style: TextStyle(
                         fontSize: 20.sp,
                         fontWeight: FontWeight.bold,
@@ -71,23 +71,19 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                       children: [
                         _buildInfoRow(
                           title: 'Category : ',
-                          value: item.category ?? 'N/A',
+                          value: item.category,
                         ),
                         _buildInfoRow(
                           title: 'Brand : ',
-                          value: item.brand ?? 'N/A',
+                          value: item.brand,
                         ),
                         _buildInfoRow(
                           title: 'Model : ',
-                          value: item.model ?? 'N/A',
+                          value: item.model,
                         ),
-                        // _buildInfoRow(
-                        //   title: 'VIN : ',
-                        //   value: item.vin ?? 'N/A',
-                        // ),
                         _buildInfoRow(
                           title: 'Purchase Date : ',
-                          value: DateFormat("yyyy-MM-dd").format(DateTime.parse(item.purchaseDate)) ?? 'N/A',
+                          value: DateFormat("yyyy-MM-dd").format(DateTime.parse(item.purchaseDate)),
                         ),
                         _buildInfoRow(
                           title: 'Total Mileage : ',

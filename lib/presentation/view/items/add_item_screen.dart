@@ -1,6 +1,7 @@
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:maintenance_genie/shared/app_toast.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -312,8 +313,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                                       if (!ok) return;
 
                                       await pr.pickImage(ImageSource.camera);
-                                      _showSnack(
-                                        context,
+                                      AppToast.showToast(
                                         pr.imageFile != null
                                             ? "Image selected"
                                             : "No image selected",
@@ -326,8 +326,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                                     label: "Upload Picture",
                                     onTap: () async {
                                       await pr.pickImage(ImageSource.gallery);
-                                      _showSnack(
-                                        context,
+                                      AppToast.showToast(
                                         pr.imageFile != null
                                             ? "Image selected"
                                             : "No image selected",
@@ -352,8 +351,6 @@ class _AddItemScreenState extends State<AddItemScreen> {
                   child: PrimaryButton(
                     text: 'Add Item',
                     onPressed: () {
-                      final pr = context.read<AddItemProvider>();
-
                       Navigator.pushNamed(context, RouteName.itemAddQuestion);
                     },
                   ),

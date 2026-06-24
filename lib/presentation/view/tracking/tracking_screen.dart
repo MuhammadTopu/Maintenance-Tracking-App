@@ -177,14 +177,15 @@ class _TrackingScreenState extends State<TrackingScreen> {
                               ),
                             ),
                             SizedBox(height: 16.h),
-                            SizedBox(
-                              width: MediaQuery.of(context).size.width * 0.3,
-                              height: 40.h,
-                              child: PrimaryButton(
-                                text: 'Retry',
-                                onPressed: () => context.read<ItemTaskListProvider>().getItemTasks(),
+                            if (dropdownValue != 'Cancelled')
+                              SizedBox(
+                                width: MediaQuery.of(context).size.width * 0.3,
+                                height: 40.h,
+                                child: PrimaryButton(
+                                  text: 'Retry',
+                                  onPressed: () => context.read<ItemTaskListProvider>().getItemTasks(),
+                                ),
                               ),
-                            ),
                           ],
                         ),
                       );

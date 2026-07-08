@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../shared/common_widgets.dart';
 
@@ -12,30 +13,40 @@ class ItemAddedDialog extends StatelessWidget {
   });
   @override
   Widget build(BuildContext context) {
-    return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 24.0, horizontal: 16.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.check_circle, color: Colors.green, size: 48),
-            const SizedBox(height: 16),
-            Text(
-              isPremium
-                  ? "Item Added Successfully"
-                  : "Item Added Successfully. Cant Generate Task. Upgrade to Premium",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            const Divider(),
-            const SizedBox(height: 8),
-            SizedBox(
-              width: double.infinity,
-              child: PrimaryButton(text: 'Done', onPressed: onDone),
-            ),
-          ],
+    return PopScope(
+      canPop: false,
+      child: Dialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: 24.w, horizontal: 16.h),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.check_circle, color: Colors.green, size: 48.sp),
+              SizedBox(height: 16.h),
+              Text(
+                "Asset Added Successfully",
+                style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.w600),
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: 16.h),
+              Text(
+                isPremium
+                    ? "Your asset has been saved and maintenance tasks are generated successfully."
+                    : "Auto-generated maintenance tasks are a Premium feature. Upgrade anytime to unlock them for this item.",
+                style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w400, color: Colors.black54),
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: 8.h),
+              const Divider(),
+              SizedBox(height: 8.h),
+              SizedBox(
+                width: double.infinity,
+                child: PrimaryButton(text: 'Done', onPressed: onDone),
+              ),
+            ],
+          ),
         ),
       ),
     );

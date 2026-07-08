@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:maintenance_genie/core/constants/app_colors.dart';
 import 'package:maintenance_genie/presentation/view_models/all_item_list_provider.dart';
+import 'package:maintenance_genie/presentation/view_models/parent_screen_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:redacted/redacted.dart';
 
@@ -134,7 +136,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       Padding(
                         padding: EdgeInsets.symmetric(horizontal: 10.w),
                         child: Text(
-                          "Items",
+                          "Assets",
                           style: TextStyle(
                             fontSize: 18.sp,
                             fontWeight: FontWeight.bold,
@@ -171,12 +173,30 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       SizedBox(height: 8.h),
                       Padding(
                         padding: EdgeInsets.symmetric(horizontal: 10.w),
-                        child: Text(
-                          "Task List",
-                          style: TextStyle(
-                            fontSize: 18.sp,
-                            fontWeight: FontWeight.bold,
-                          ),
+                        child: Row(
+                          children: [
+                            Text(
+                              "Task List",
+                              style: TextStyle(
+                                fontSize: 18.sp,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const Spacer(),
+                            InkWell(
+                              onTap: () {
+                                context.read<ParentScreensProvider>().onSelectedIndex(2);
+                              },
+                              child: Text(
+                                "View All",
+                                style: TextStyle(
+                                  fontSize: 13.sp,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.primaryColor
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
 

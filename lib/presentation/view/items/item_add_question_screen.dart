@@ -37,11 +37,10 @@ class _ItemAddQuestionScreenState extends State<ItemAddQuestionScreen> {
 
 
       if (!success) {
-        addItemProvider.clearFields();
+        // addItemProvider.clearFields();
         if (mounted) {
           Navigator.pop(context);
         }
-
         return;
       }
 
@@ -126,33 +125,16 @@ class _ItemAddQuestionScreenState extends State<ItemAddQuestionScreen> {
                               listen: false,
                             );
                             await provider.answerQuestions(answers);
-                            if (provider.generateTaskResponse?.success ==
-                                    true &&
-                                userProvider.userResponse?.data.role ==
-                                    "premium") {
+                            if (provider.generateTaskResponse?.success == true) {
                               showDialog(
                                 context: context,
+                                barrierDismissible: false,
                                 builder: (_) => ItemAddedDialog(
                                   onDone: () => Navigator.popAndPushNamed(
                                     context,
                                     RouteName.parent,
                                   ),
-                                  isPremium:
-                                      userProvider.userResponse?.data.role ==
-                                      "premium",
-                                ),
-                              );
-                            } else {
-                              showDialog(
-                                context: context,
-                                builder: (_) => ItemAddedDialog(
-                                  onDone: () => Navigator.popAndPushNamed(
-                                    context,
-                                    RouteName.parent,
-                                  ),
-                                  isPremium:
-                                      userProvider.userResponse?.data.role ==
-                                      "premium",
+                                  isPremium: true
                                 ),
                               );
                             }

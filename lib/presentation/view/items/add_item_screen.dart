@@ -12,6 +12,7 @@ import '../../../shared/custom_item_app_bar.dart';
 import '../../view_models/add_item_provider.dart';
 import 'widgets/custom_date_picker_field.dart';
 import 'widgets/custom_drop_down_field.dart';
+import 'widgets/custom_year_dropdown_field.dart';
 
 class AddItemScreen extends StatefulWidget {
   const AddItemScreen({super.key});
@@ -224,11 +225,15 @@ class _AddItemScreenState extends State<AddItemScreen> {
                 SizedBox(height: 20.h),
 
                 /// YEAR
-                _buildTextField(
-                  title: 'Year of the model',
-                  hint: 'Year',
-                  controller: yearController,
-                  onChanged: provider.setYearOfModel,
+                Consumer<AddItemProvider>(
+                  builder: (_, pro, _) {
+                    return YearDropdownField(
+                      title: 'Year of the model',
+                      hint: 'Select',
+                      selectedYear: pro.yearOfModel,
+                      onChanged: provider.setYearOfModel,
+                    );
+                  },
                 ),
 
                 SizedBox(height: 20.h),

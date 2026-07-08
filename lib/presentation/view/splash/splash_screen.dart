@@ -17,7 +17,6 @@ class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
-  late Animation<Offset> _slideAnimation;
 
   bool _showContent = false;
 
@@ -27,20 +26,10 @@ class _SplashScreenState extends State<SplashScreen>
 
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 1),
+      duration: const Duration(milliseconds: 1500),
     );
 
-    _fadeAnimation = CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeIn,
-    );
-
-    _slideAnimation = Tween<Offset>(
-      begin: Offset.zero,
-      end: const Offset(0, -0.2),
-    ).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
+    _fadeAnimation = CurvedAnimation(parent: _controller, curve: Curves.easeIn);
 
     _startSplash();
   }
@@ -72,70 +61,125 @@ class _SplashScreenState extends State<SplashScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          Align(
-            alignment: Alignment.center,
-            child: SlideTransition(
-              position: _slideAnimation,
-              child: Image.asset(
-                'assets/icons/splash.png',
-                width: 156.w,
-                height: 170.h,
-              ),
-            ),
-          ),
+      body: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final screenWidth = constraints.maxWidth;
+            final screenHeight = constraints.maxHeight;
 
-          if (_showContent)
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: Padding(
-                padding: EdgeInsets.only(
-                  left: 40.w,
-                  right: 40.w,
-                  bottom: 60.h,
-                ),
-                child: FadeTransition(
-                  opacity: _fadeAnimation,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        "Welcome",
-                        style: TextStyle(
-                          fontSize: 24.sp,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      SizedBox(height: 10.h),
-                      Text(
-                        "Welcome to Maintenance Genie. Track all of your home. vehicle, or equipment maintenance in one place!",
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 14.sp,
-                          color: AppColors.secondaryTextColor,
-                        ),
-                      ),
-                      SizedBox(height: 20.h),
+            final isTablet = screenWidth >= 600;
+            final isLargeTablet = screenWidth >= 900;
 
-                      PrimaryButton(text: "Log In", onPressed: () {
-                        Navigator.pushNamed(context, RouteName.login);
-                      }),
-                      SizedBox(height: 10.h),
-                      PrimaryButton(
-                        variant: ButtonVariant.outlined,
-                        text: "Sign Up",
-                        onPressed: () {
-                          Navigator.pushNamed(context, RouteName.signup);
-                        },
-                      ),
-                    ],
+            // Cap content width on tablets so text/buttons don't stretch
+            final maxContentWidth = isLargeTablet
+                ? 480.0
+                : isTablet
+                ? 420.0
+                : screenWidth;
+
+            // Logo size
+            final imageHeight = (screenHeight * 0.28).clamp(160.0, 320.0);
+            final imageWidth = imageHeight * (156 / 170); // aspect ratio
+
+            final titleFontSize = (screenWidth * 0.06).clamp(20.0, 30.0);
+            final bodyFontSize = (screenWidth * 0.035).clamp(13.0, 17.0);
+
+            final horizontalPadding = isTablet ? 0.0 : 40.w;
+            final bottomPadding = isTablet ? 40.h : 60.h;
+
+            // Vertical center position for the logo (before content shows)
+            final centeredTop = (screenHeight - imageHeight) / 2;
+            // Final position once content is shown: 100.h padding from top
+            final topPositionAfter = 100.h;
+
+            debugPrint('------------> $screenHeight');
+
+            return Stack(
+              fit: StackFit.expand,
+              children: [
+                AnimatedBuilder(
+                  animation: _controller,
+                  builder: (context, child) {
+                    final curvedValue =
+                    Curves.easeInOut.transform(_controller.value);
+
+                    final currentTop = centeredTop +
+                        (topPositionAfter - centeredTop) * curvedValue;
+
+                    return Positioned(
+                      top: currentTop,
+                      left: 0,
+                      right: 0,
+                      child: Center(child: child),
+                    );
+                  },
+                  child: Image.asset(
+                    'assets/icons/splash.png',
+                    width: 225,
+                    height: 245,
                   ),
                 ),
-              ),
-            ),
-        ],
+
+                if (_showContent)
+                  Align(
+                    alignment: Alignment.bottomCenter,
+                    child: Padding(
+                      padding: EdgeInsets.only(
+                        left: horizontalPadding,
+                        right: horizontalPadding,
+                        bottom: bottomPadding,
+                      ),
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(maxWidth: maxContentWidth),
+                        child: FadeTransition(
+                          opacity: _fadeAnimation,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                "Welcome",
+                                style: TextStyle(
+                                  fontSize: titleFontSize,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              SizedBox(height: 10.h),
+                              Text(
+                                "Welcome to Maintenance Genie. Track all your home, vehicle, or equipment maintenance in one place!",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: bodyFontSize,
+                                  color: AppColors.secondaryTextColor,
+                                ),
+                              ),
+                              SizedBox(height: 20.h),
+                              PrimaryButton(
+                                text: "Log In",
+                                onPressed: () {
+                                  Navigator.pushNamed(context, RouteName.login);
+                                },
+                              ),
+                              SizedBox(height: 10.h),
+                              PrimaryButton(
+                                variant: ButtonVariant.outlined,
+                                text: "Sign Up",
+                                onPressed: () {
+                                  Navigator.pushNamed(
+                                    context,
+                                    RouteName.signup,
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          },
+        ),
       ),
     );
   }

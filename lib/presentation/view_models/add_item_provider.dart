@@ -132,11 +132,6 @@ class AddItemProvider extends ChangeNotifier {
 
     Log.debug('Adding item: $name');
 
-    if (selectedBrand == 'Select') {
-      AppToast.showToast('Please select a brand', backgroundColor: Colors.red);
-      return false;
-    }
-
     if (selectedCategory == null) {
       AppToast.showToast(
         'Please select a category',
@@ -145,8 +140,26 @@ class AddItemProvider extends ChangeNotifier {
       return false;
     }
 
+    if (name == null || name!.isEmpty) {
+      AppToast.showToast('Please enter an item name', backgroundColor: Colors.red);
+      return false;
+    }
+
+    if (selectedBrand == 'Select') {
+      AppToast.showToast('Please select a brand', backgroundColor: Colors.red);
+      return false;
+    }
+
     if (selectedModel == null) {
       AppToast.showToast('Please select a model', backgroundColor: Colors.red);
+      return false;
+    }
+
+    if (yearOfModel == null) {
+      AppToast.showToast(
+        'Please enter year of model',
+        backgroundColor: Colors.red,
+      );
       return false;
     }
 
@@ -158,13 +171,7 @@ class AddItemProvider extends ChangeNotifier {
       return false;
     }
 
-    if (yearOfModel == null) {
-      AppToast.showToast(
-        'Please enter year of model',
-        backgroundColor: Colors.red,
-      );
-      return false;
-    }
+
 
     Log.debug(
       'Adding item:\nname: $name\nbrand: $selectedBrand\nmodel: $selectedModel\ncategory: $selectedCategory\npurchaseDate: ${selectedDate?.toIso8601String()}\ntotalMileage: $totalMileage\nyearOfModel: $yearOfModel\nimageFile: $imageFile',
@@ -184,7 +191,6 @@ class AddItemProvider extends ChangeNotifier {
     Log.debug('Item added: $result');
 
     isLoading = false;
-    clearFields();
     notifyListeners();
 
     return result;
@@ -202,7 +208,7 @@ class AddItemProvider extends ChangeNotifier {
     name = '';
     price = '';
     issue = '';
-    yearOfModel = '';
+    yearOfModel = null;
     totalMileage = 0;
 
     imageFile = null;

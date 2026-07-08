@@ -16,6 +16,7 @@ class PrimaryButton extends StatelessWidget {
   final Color? textColor;
   final Color? borderColor;
   final Widget? child;
+  final double? fontSize;
 
   const PrimaryButton({
     super.key,
@@ -25,7 +26,7 @@ class PrimaryButton extends StatelessWidget {
     this.backgroundColor,
     this.textColor,
     this.borderColor,
-    this.child,
+    this.child, this.fontSize,
   });
 
   @override
@@ -56,11 +57,12 @@ class PrimaryButton extends StatelessWidget {
         child: child ??
             Text(
               text,
+              textAlign: TextAlign.center,
               style: TextStyle(
                 color: isFilled
                     ? (textColor ?? Colors.white)
                     : (borderColor ?? AppColors.primaryColor),
-                fontSize: 16.sp,
+                fontSize: fontSize ?? 16.sp,
                 fontWeight: FontWeight.w500,
               ),
             ),

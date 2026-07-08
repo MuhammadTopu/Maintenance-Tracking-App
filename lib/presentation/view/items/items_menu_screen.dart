@@ -50,21 +50,36 @@ class _ItemsMenuScreenState extends State<ItemsMenuScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        "Item List",
+                        "Assets List",
                         style: TextStyle(
                           fontSize: 18.sp,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      SizedBox(
-                        width: 120.w,
-                        child: PrimaryButton(
-                          text: 'Add Items',
-                          onPressed:
-                              () => Navigator.pushNamed(
-                                context,
-                                RouteName.addItem,
+
+                      GestureDetector(
+                        onTap: () => Navigator.pushNamed(
+                          context,
+                          RouteName.addItem,
+                        ),
+                        child: Container(
+                          height: 48.h,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(90.r),
+                            color: AppColors.primaryColor,
+                          ),
+                          padding: EdgeInsets.symmetric(horizontal: 24.w),
+                          child: Center(
+                            child: Text(
+                              'Add Assets',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16.sp,
+                                fontWeight: FontWeight.w500,
                               ),
+                            ),
+                          ),
                         ),
                       ),
                     ],
@@ -105,39 +120,51 @@ class _ItemsMenuScreenState extends State<ItemsMenuScreen> {
 
                       return DefaultTabController(
                         length: 4,
-                        child: Expanded(
-                          child: SingleChildScrollView(
-                            child: Column(
-                              children: [
-                                const TabBar(
-                                  tabAlignment: TabAlignment.center,
-                                  labelColor: Colors.teal,
-                                  unselectedLabelColor: Colors.black,
-                                  indicatorColor: Colors.teal,
-                                  indicatorSize: TabBarIndicatorSize.tab,
-                                  indicatorWeight: 1,
-                                  tabs: [
-                                    Tab(text: 'All'),
-                                    Tab(text: 'Vehicle'),
-                                    Tab(text: 'Home'),
-                                    Tab(text: 'Custom'),
-                                  ],
-                                ),
-                                SizedBox(height: 16.h),
-                                SizedBox(
-                                  height: 380.h,
-                                  child: TabBarView(
-                                    children: [
-                                      buildTable(context, items, provider),
-                                      buildTable(context, items.where((item) => item.category == 'Vehicle',).toList(), provider,),
-                                      buildTable(context, items.where((item) => item.category == 'Appliance',).toList(), provider,),
-                                      buildTable(context, items.where((item) => item.category != 'Vehicle' && item.category != 'Appliance',).toList(), provider,),
-                                    ],
-                                  ),
-                                ),
+                        child: Column(
+                          children: [
+                            const TabBar(
+                              tabAlignment: TabAlignment.center,
+                              labelColor: Colors.teal,
+                              unselectedLabelColor: Colors.black,
+                              indicatorColor: Colors.teal,
+                              indicatorSize: TabBarIndicatorSize.tab,
+                              indicatorWeight: 1,
+                              tabs: [
+                                Tab(text: 'All'),
+                                Tab(text: 'Vehicle'),
+                                Tab(text: 'Home'),
+                                Tab(text: 'Custom'),
                               ],
                             ),
-                          ),
+                            SizedBox(height: 16.h),
+
+                            Expanded(
+                              child: TabBarView(
+                                children: [
+                                  buildTable(context, items, provider),
+                                  buildTable(
+                                    context,
+                                    items.where((item) => item.category == 'Vehicle').toList(),
+                                    provider,
+                                  ),
+                                  buildTable(
+                                    context,
+                                    items.where((item) => item.category == 'Appliance').toList(),
+                                    provider,
+                                  ),
+                                  buildTable(
+                                    context,
+                                    items
+                                        .where((item) =>
+                                    item.category != 'Vehicle' &&
+                                        item.category != 'Appliance')
+                                        .toList(),
+                                    provider,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
                       );
                     },
@@ -157,6 +184,8 @@ class _ItemsMenuScreenState extends State<ItemsMenuScreen> {
       return const Center(child: Text('No items in this category'));
     }
 
+    const int columnCount = 4;
+
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12.r),
@@ -164,64 +193,85 @@ class _ItemsMenuScreenState extends State<ItemsMenuScreen> {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12.r),
-        child: SingleChildScrollView(
-          child: DataTable(
-            showCheckboxColumn: false,
-            dataRowMinHeight: 56,
-            dataRowMaxHeight: 72,
-            headingRowColor: WidgetStateProperty.all(Colors.grey.shade50),
-            columns: [
-              DataColumn(
-                label: Text(
-                  'Category',
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final double columnSpacing = 0;
+            final double availableWidth = constraints.maxWidth;
+            final double columnWidth = availableWidth / columnCount;
+
+            Widget cellText(String text) {
+              return SizedBox(
+                width: columnWidth,
+                child: Text(
+                  text,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              );
+            }
+
+            Widget headerText(String text) {
+              return SizedBox(
+                width: columnWidth,
+                child: Text(
+                  text,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontWeight: FontWeight.w400,
                     fontSize: 12.sp,
                     color: Colors.grey.shade700,
                   ),
                 ),
-              ),
-              DataColumn(
-                label: Text(
-                  'Name',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w400,
-                    fontSize: 12.sp,
-                    color: Colors.grey.shade700,
+              );
+            }
+
+            return SingleChildScrollView(
+              child: SizedBox(
+                width: constraints.maxWidth,
+                child: DataTable(
+                  showCheckboxColumn: false,
+                  dataRowMinHeight: 56,
+                  dataRowMaxHeight: 72,
+                  columnSpacing: columnSpacing,
+                  headingRowColor: WidgetStateProperty.all(Colors.grey.shade50),
+                  dataRowColor: WidgetStateProperty.resolveWith<Color?>(
+                        (Set<WidgetState> states) => Colors.white,
                   ),
+                  columns: [
+                    DataColumn(label: headerText('Category')),
+                    DataColumn(label: headerText('Make')),
+                    DataColumn(label: headerText('Model')),
+                    DataColumn(label: headerText('Name')),
+                  ],
+                  rows: data.map((item) {
+                    return DataRow(
+                      selected: false,
+                      onSelectChanged: (selected) async {
+                        if (selected ?? false) {
+                          Navigator.pushNamed(
+                            context,
+                            RouteName.itemDetails,
+                            arguments: item.id,
+                          );
+                          provider.setId(item.id);
+                          context
+                              .read<ItemTaskListByItemIdProvider>()
+                              .setItemId(item.id ?? '');
+                        }
+                      },
+                      cells: [
+                        DataCell(cellText(item.category ?? 'N/A')),
+                        DataCell(cellText(item.name ?? 'N/A')),
+                        DataCell(cellText(item.model ?? 'N/A')),
+                        DataCell(cellText(item.name ?? 'N/A')),
+                      ],
+                    );
+                  }).toList(),
                 ),
               ),
-              DataColumn(
-                label: Text(
-                  'Model',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w400,
-                    fontSize: 12.sp,
-                    color: Colors.grey.shade700,
-                  ),
-                ),
-              ),
-            ],
-            rows:
-                data.map((item) {
-                  return DataRow(
-                    selected: false,
-                    onSelectChanged: (selected) async {
-                      if (selected ?? false) {
-                        Navigator.pushNamed(context, RouteName.itemDetails, arguments: item.id,);
-                        provider.setId(item.id);
-                        context.read<ItemTaskListByItemIdProvider>().setItemId(item.id ?? '');
-                      }
-                    },
-                    cells: [
-                      DataCell(Text(item.category ?? 'N/A')),
-                      DataCell(Text(item.name ?? 'N/A')),
-                      DataCell(Text(item.model ?? 'N/A', maxLines: 3, overflow: TextOverflow.ellipsis,),
-                      ),
-                    ],
-                  );
-                }).toList(),
-          ),
+            );
+          },
         ),
       ),
     );

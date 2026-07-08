@@ -34,7 +34,7 @@ class CustomTaskCard extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.only(bottom: 10),
       child: Container(
-        padding: EdgeInsets.all(12.0), // Inner padding
+        padding: EdgeInsets.all(12.0),
         decoration: BoxDecoration(
           color: Color(0xffF0FAF9),
           borderRadius: BorderRadius.circular(10),
@@ -46,73 +46,70 @@ class CustomTaskCard extends StatelessWidget {
               "$index. $upcomingTask",
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
             ),
-            SizedBox(height: 16),
+            SizedBox(height: 16.h),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 SizedBox(
                   width: 20.w,
-                  child: Image.asset("assets/images/item.png", height: 20),
+                  child: Image.asset("assets/images/item.png", height: 18.sp),
                 ),
                 SizedBox(width: 8.w),
-                SizedBox(width: 80.w, child: Text("Item :")),
+                Text("Item :"),
                 Spacer(),
-                SizedBox(
-                  width: 200,
+                Expanded(
                   child: Text(
                     itemName,
                     textAlign: TextAlign.right,
                     overflow: TextOverflow.ellipsis,
                     maxLines: 1,
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                    style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.w500),
                   ),
                 ),
               ],
             ),
-            SizedBox(height: 12),
+            SizedBox(height: 12.h),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 SizedBox(
                   width: 20.w,
-                  child: Icon(Icons.check_box_outlined, color: Colors.grey),
+                  child: Icon(Icons.check_box_outlined, color: Colors.grey, size: 20.sp),
                 ),
                 SizedBox(width: 8.w),
-                SizedBox(width: 80.w, child: Text("Status :")),
+                Text("Status :"),
                 Spacer(),
-                SizedBox(
-                  width: 200,
+                Expanded(
                   child: Text(
                     status,
                     textAlign: TextAlign.right,
                     overflow: TextOverflow.ellipsis,
                     maxLines: 1,
+                    style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w400),
                   ),
                 ),
               ],
             ),
-            SizedBox(height: 12),
+            SizedBox(height: 12.h),
 
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 SizedBox(
                   width: 20.w,
-                  child: Icon(Icons.calendar_month, color: Colors.grey),
+                  child: Icon(Icons.calendar_month, color: Colors.grey, size: 20.sp),
                 ),
                 SizedBox(width: 8.w),
 
-                SizedBox(width: 80.w, child: Text("Last date :")),
+                Text("Last date :"),
                 Spacer(),
-                SizedBox(
-                  width: 180.w,
+                Expanded(
                   child: Text(
-                    DateFormat(
-                      "dd/MM/yyyy, hh:mm a",
-                    ).format(DateTime.parse(lastDate)),
+                    DateFormat("MM/dd/yyyy").format(DateTime.parse(lastDate)),
                     overflow: TextOverflow.ellipsis,
                     maxLines: 1,
                     textAlign: TextAlign.end,
+                    style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.w400),
                   ),
                 ),
               ],
@@ -123,8 +120,8 @@ class CustomTaskCard extends StatelessWidget {
               child: GestureDetector(
                 onTap: onTap,
                 child: Container(
-                  width: 100,
-                  height: 40,
+                  width: 84.w,
+                  height: 36.h,
                   padding: EdgeInsets.all(10),
                   decoration: BoxDecoration(
                     color: Colors.white,

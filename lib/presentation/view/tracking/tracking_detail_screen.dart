@@ -562,7 +562,7 @@ class _TrackingDetailScreenState extends State<TrackingDetailScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text("See on Google map"),
+                Text("See on Google Maps"),
                 SizedBox(width: 7.w),
                 Icon(Icons.location_pin, size: 17, color: Color(0xff589DC4)),
               ],

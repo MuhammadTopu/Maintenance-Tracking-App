@@ -37,7 +37,6 @@ class _ItemAddQuestionScreenState extends State<ItemAddQuestionScreen> {
 
 
       if (!success) {
-        // addItemProvider.clearFields();
         if (mounted) {
           Navigator.pop(context);
         }

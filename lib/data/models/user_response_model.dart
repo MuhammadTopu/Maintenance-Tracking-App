@@ -39,6 +39,7 @@ class UserData {
   final String status;
   final String billingId;
   final String? imageUrl;
+  final bool isPremium;
 
   UserData({
     required this.id,
@@ -53,6 +54,7 @@ class UserData {
     required this.status,
     required this.billingId,
     this.imageUrl,
+    required this.isPremium,
   });
 
   factory UserData.fromJson(Map<String, dynamic> json) {
@@ -69,6 +71,7 @@ class UserData {
       status: json['status'] ?? '',
       billingId: json['billing_id'] ?? '',
       imageUrl: json['imageUrl'],
+      isPremium: json['isPremium'] ?? false,
     );
   }
 
@@ -86,6 +89,7 @@ class UserData {
       "status": status,
       "billing_id": billingId,
       "imageUrl": imageUrl,
+      "isPremium": isPremium,
     };
   }
 }

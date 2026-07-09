@@ -1,6 +1,8 @@
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:maintenance_genie/core/constants/app_colors.dart';
+import 'package:maintenance_genie/presentation/view_models/user_provider.dart';
 import 'package:maintenance_genie/shared/app_toast.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
@@ -10,9 +12,11 @@ import '../../../app/routes/route_names.dart';
 import '../../../shared/common_widgets.dart';
 import '../../../shared/custom_item_app_bar.dart';
 import '../../view_models/add_item_provider.dart';
+import '../../view_models/all_item_list_provider.dart';
 import 'widgets/custom_date_picker_field.dart';
 import 'widgets/custom_drop_down_field.dart';
 import 'widgets/custom_year_dropdown_field.dart';
+import 'widgets/show_item_added_dialog.dart';
 
 class AddItemScreen extends StatefulWidget {
   const AddItemScreen({super.key});
@@ -351,14 +355,44 @@ class _AddItemScreenState extends State<AddItemScreen> {
                 SizedBox(height: 20.h),
 
                 /// SUBMIT BUTTON
-                SizedBox(
-                  width: double.infinity,
-                  child: PrimaryButton(
-                    text: 'Add Item',
-                    onPressed: () {
-                      Navigator.pushNamed(context, RouteName.itemAddQuestion);
-                    },
-                  ),
+                Consumer<AddItemProvider>(
+                  builder: (ctx, provider, _) {
+                    return Visibility(
+                      visible: !provider.isLoading,
+                      replacement: Center(
+                        child: CircularProgressIndicator(
+                          color: AppColors.primaryColor,
+                        ),
+                      ),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: PrimaryButton(
+                          text: 'Add Item',
+                          onPressed: () async {
+                            if (ctx.read<UserProvider>().userResponse?.data.isPremium == true) {
+                              Navigator.pushNamed(context, RouteName.itemAddQuestion);
+                            } else {
+                              final res = await provider.addItem();
+                              if (res) {
+                                ctx.read<AllItemListProvider>().getAllItem();
+                                showDialog(
+                                  context: context,
+                                  barrierDismissible: false,
+                                  builder: (_) => ItemAddedDialog(
+                                    onDone: () => Navigator.popAndPushNamed(context, RouteName.parent),
+                                    isPremium: false,
+                                  ),
+                                );
+                                provider.clearFields();
+                              } else {
+                                AppToast.showToast('Something went wrong');
+                              }
+                            }
+                          },
+                        ),
+                      ),
+                    );
+                  }
                 ),
 
                 SizedBox(height: 40.h),

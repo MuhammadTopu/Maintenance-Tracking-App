@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import '../../data/models/question_response_model.dart';
-import '../../data/models/task_list_response_model.dart';
 
 abstract class AddItemRepository {
   Future<List<String>> getModelsByBrand(String brandName);
@@ -25,8 +24,10 @@ abstract class AddItemRepository {
 
   Future<QuestionsResponse?> getQuestion(String id);
 
-  Future<GenerateTaskResponse?> answerQuestions({
+  Future<QuestionsResponse?> answerQuestions({
     required String itemId,
     required List<String> answers,
   });
+
+  Future<bool> generateTasks({required String itemId});
 }

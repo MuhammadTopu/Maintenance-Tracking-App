@@ -37,7 +37,7 @@ class _TrackingDetailScreenState extends State<TrackingDetailScreen> {
   Widget build(BuildContext context) {
     final taskProvider = context.watch<ItemTaskListByItemIdProvider>();
     final task = taskProvider.taskListResponse?.tasks.where(
-      (t) => t.taskId == taskProvider.taskId,
+      (t) => t.id == taskProvider.taskId,
     );
     final addReceiptProvider = context.watch<AddReceiptProvider>();
 
@@ -119,9 +119,7 @@ class _TrackingDetailScreenState extends State<TrackingDetailScreen> {
                     const Text("Last date :"),
                     const Spacer(),
                     Text(
-                      DateFormat('dd/MM/yyyy, hh:mm a').format(
-                        DateTime.parse(task?.toList().first.lastDate ?? ''),
-                      ),
+                      task?.toList().first.nextDueDate ?? '',
                     ),
                   ],
                 ),
@@ -226,7 +224,7 @@ class _TrackingDetailScreenState extends State<TrackingDetailScreen> {
                                                       task
                                                               ?.toList()
                                                               .first
-                                                              .taskId ??
+                                                              .id ??
                                                           '',
                                                     );
                                                 if (isImageSelected) {
@@ -283,7 +281,7 @@ class _TrackingDetailScreenState extends State<TrackingDetailScreen> {
                                                     task
                                                             ?.toList()
                                                             .first
-                                                            .taskId ??
+                                                            .id ??
                                                         '',
                                                   );
                                               if (isImageSelected) {

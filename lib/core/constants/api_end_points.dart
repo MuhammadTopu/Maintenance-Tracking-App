@@ -26,7 +26,8 @@ class ApiEndPoints {
   static const String getAllPlane = '$baseUrl/api/admin/get-all-services';
   static String getOneItem(String itemId) => '$baseUrl/api/items/get-item/$itemId';
   static String getQuestion(String itemId) => '$baseUrl/api/items/$itemId/questions';
-  static String answerQuestion(String itemId) => '$baseUrl/api/items/$itemId/generate-tasks';
+  static String generateTasks(String itemId) => '$baseUrl/api/items/$itemId/generate-tasks';
+  static String answerQuestion(String itemId) => '$baseUrl/api/items/$itemId/submit-answers';
 
   // payment
   static const String payment = '$baseUrl/api/payments/pay';

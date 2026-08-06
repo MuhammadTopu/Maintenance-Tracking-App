@@ -259,13 +259,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 upcomingTask: task.upcomingTask,
                                 itemName: task.itemName,
                                 status: task.status,
-                                lastDate: task.lastDate ?? "",
-                                taskId: task.taskId,
+                                lastDate: task.nextDueDate ?? "",
+                                taskId: task.id,
                                 isLoading: false,
                                 onTap: () async {
                                   final provider = context.read<ItemTaskListByItemIdProvider>();
 
-                                  final taskId = task.taskId;
+                                  final taskId = task.id;
                                   final itemId = task.itemId;
 
                                   try {

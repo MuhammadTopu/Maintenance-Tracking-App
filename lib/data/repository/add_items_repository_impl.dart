@@ -14,7 +14,6 @@ import '../../core/services/api/api_service.dart';
 import '../../domain/base_repository/add_items_repository.dart';
 import '../../shared/app_toast.dart';
 import '../models/question_response_model.dart';
-import '../models/task_list_response_model.dart';
 
 class AddItemRepositoryImpl implements AddItemRepository {
   final ApiService _apiService;
@@ -193,7 +192,7 @@ class AddItemRepositoryImpl implements AddItemRepository {
   }
 
   @override
-  Future<GenerateTaskResponse?> answerQuestions({
+  Future<QuestionsResponse?> answerQuestions({
     required String itemId,
     required List<String> answers,
   }) async {
@@ -206,10 +205,10 @@ class AddItemRepositoryImpl implements AddItemRepository {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        if (response.data['tasks'] != null) {
-          return GenerateTaskResponse.fromJson(response.data);
+        if (response.data['questions'] != null) {
+          return QuestionsResponse.fromJson(response.data);
         }
-        AppToast.showToast('No tasks found.', backgroundColor: Colors.orange);
+        AppToast.showToast('No recommendations found.', backgroundColor: Colors.orange);
         return null;
       }
 
@@ -227,6 +226,38 @@ class AddItemRepositoryImpl implements AddItemRepository {
     } catch (e) {
       Log.error("Error answering questions: $e");
       return null;
+    }
+  }
+
+  @override
+  Future<bool> generateTasks({required String itemId}) async {
+    try {
+      final response = await _apiService.post(
+        ApiEndPoints.generateTasks(itemId),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        AppToast.showToast(
+          response.data['message'] ?? 'Tasks generated successfully',
+          backgroundColor: Colors.green,
+        );
+        return true;
+      }
+
+      AppToast.showToast(
+        response.data['message'] ?? 'Failed to generate tasks',
+        backgroundColor: Colors.red,
+      );
+      return false;
+    } on DioException catch (e) {
+      final serverMessage = e.type == DioExceptionType.connectionError
+          ? "Something went wrong!!! Check internet connection"
+          : _extractServerMessage(e);
+      AppToast.showToast(serverMessage, backgroundColor: Colors.red);
+      return false;
+    } catch (e) {
+      Log.error("Error generating tasks: $e");
+      return false;
     }
   }
 }

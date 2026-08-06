@@ -94,6 +94,7 @@ class AddItemProvider extends ChangeNotifier {
     selectedBrand = value;
     selectedModel = null;
     modelList = [];
+    Log.debug('Selected brand: $value');
     notifyListeners();
   }
 

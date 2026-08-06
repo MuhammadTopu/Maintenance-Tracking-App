@@ -143,7 +143,7 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                           children: List.generate(prov.taskListResponse?.tasks.length ?? 0, (index) {
                             return _buildUpcomingTask(
                               prov.taskListResponse!.tasks[index].upcomingTask,
-                              prov.taskListResponse!.tasks[index].lastDate!,
+                              prov.taskListResponse!.tasks[index].nextDueDate,
                               prov.taskListResponse!.tasks[index].status,
                             );
                           }),
@@ -221,8 +221,6 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
   }
 
   Widget _buildUpcomingTask(String task, String lastDate, status) {
-    DateTime lastServiceDate = DateTime.parse(lastDate);
-    String lastDateFormatted = DateFormat('hh:mm a, dd-MM-yy').format(lastServiceDate);
     return _buildContainer(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -237,7 +235,7 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
               Text(
                 '$status, ',
               ),
-              Text(lastDateFormatted)
+              Text(lastDate)
             ],
           ),
           const Divider(color: Colors.grey, thickness: 1.07),

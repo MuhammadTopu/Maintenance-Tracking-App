@@ -157,7 +157,11 @@ class _TrackingScreenState extends State<TrackingScreen> {
                 child: Consumer<ItemTaskListProvider>(
                   builder: (_, taskListProvider, _) {
                     if (taskListProvider.loading) {
-                      return const Center(child: CircularProgressIndicator(color: AppColors.primaryColor,));
+                      return const Center(
+                        child: CircularProgressIndicator(
+                          color: AppColors.primaryColor,
+                        ),
+                      );
                     }
 
                     if (taskListProvider
@@ -183,7 +187,9 @@ class _TrackingScreenState extends State<TrackingScreen> {
                                 height: 40.h,
                                 child: PrimaryButton(
                                   text: 'Retry',
-                                  onPressed: () => context.read<ItemTaskListProvider>().getItemTasks(),
+                                  onPressed: () => context
+                                      .read<ItemTaskListProvider>()
+                                      .getItemTasks(),
                                 ),
                               ),
                           ],
@@ -209,8 +215,8 @@ class _TrackingScreenState extends State<TrackingScreen> {
                           upcomingTask: task?.upcomingTask ?? "",
                           itemName: task?.itemName ?? "",
                           status: task?.status ?? "",
-                          lastDate: task?.lastDate ?? "",
-                          taskId: task?.taskId ?? '',
+                          lastDate: task?.nextDueDate ?? "",
+                          taskId: task?.id ?? '',
                           isLoading:
                               taskListProvider.filteredTaskListResponse ==
                                   null ||
@@ -222,23 +228,20 @@ class _TrackingScreenState extends State<TrackingScreen> {
                           onTap: () async {
                             context
                                 .read<ItemTaskListByItemIdProvider>()
-                                .setLoader(true, task?.taskId ?? '');
+                                .setLoader(true, task?.id ?? '');
                             context
                                 .read<ItemTaskListByItemIdProvider>()
                                 .setItemId(task?.itemId ?? '');
                             await context
                                 .read<ItemTaskListByItemIdProvider>()
-                                .setTaskId(
-                                  task?.taskId ?? '',
-                                  task?.itemId ?? '',
-                                );
+                                .setTaskId(task?.id ?? '', task?.itemId ?? '');
                             Navigator.pushNamed(
                               context,
                               RouteName.trackingDetail,
                             );
                             context
                                 .read<ItemTaskListByItemIdProvider>()
-                                .setLoader(false, task?.taskId ?? '');
+                                .setLoader(false, task?.id ?? '');
                           },
                         );
                       },

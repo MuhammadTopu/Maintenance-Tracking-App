@@ -51,6 +51,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
     if (result) {
       Navigator.pushReplacementNamed(context, RouteName.verifyEmailOtp);
     }
+
+   //  Navigator.pushReplacementNamed(context, RouteName.verifyEmailOtp);
   }
 
   @override

@@ -34,7 +34,7 @@ class ItemAddedDialog extends StatelessWidget {
               Text(
                 isPremium
                     ? "Your asset has been saved and maintenance tasks are generated successfully."
-                    : "Auto-generated maintenance tasks are a Premium feature. Upgrade anytime to unlock them for this item.",
+                    : "Auto-generated maintenance tasks are a Premium feature. Upgrade anytime to unlock them for assets.",
                 style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w400, color: Colors.black54),
                 textAlign: TextAlign.center,
               ),

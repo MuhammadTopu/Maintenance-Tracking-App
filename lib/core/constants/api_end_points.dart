@@ -1,7 +1,7 @@
 class ApiEndPoints {
   ApiEndPoints._();
 
-  static const String baseUrl = 'http://206.162.244.151:8787';
+  static const String baseUrl = 'http://2.24.127.84:8787';
 
   static String imagePath(String imageUrl) => '$baseUrl/uploads/$imageUrl';
 

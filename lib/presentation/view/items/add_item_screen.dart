@@ -106,6 +106,12 @@ class _AddItemScreenState extends State<AddItemScreen> {
   final TextEditingController modelController = TextEditingController();
   final TextEditingController yearController = TextEditingController();
   final TextEditingController mileageController = TextEditingController();
+  final TextEditingController engineController = TextEditingController();
+  final TextEditingController transmissionController = TextEditingController();
+  final TextEditingController drivetrainController = TextEditingController();
+  final TextEditingController currentMileageController = TextEditingController();
+  final TextEditingController averageMileagePerYearController = TextEditingController();
+  final TextEditingController userNotesController = TextEditingController();
 
   @override
   void dispose() {
@@ -114,6 +120,12 @@ class _AddItemScreenState extends State<AddItemScreen> {
     modelController.dispose();
     yearController.dispose();
     mileageController.dispose();
+    engineController.dispose();
+    transmissionController.dispose();
+    drivetrainController.dispose();
+    currentMileageController.dispose();
+    averageMileagePerYearController.dispose();
+    userNotesController.dispose();
     super.dispose();
   }
 
@@ -123,6 +135,12 @@ class _AddItemScreenState extends State<AddItemScreen> {
     modelController.clear();
     yearController.clear();
     mileageController.clear();
+    engineController.clear();
+    transmissionController.clear();
+    drivetrainController.clear();
+    currentMileageController.clear();
+    averageMileagePerYearController.clear();
+    userNotesController.clear();
   }
 
   @override
@@ -138,7 +156,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
             child: Column(
               children: [
                 CustomItemAppBar(
-                  title: 'Add Item',
+                  title: 'Add Asset',
                   onTap: () => Navigator.pop(context),
                 ),
 
@@ -161,7 +179,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                     SizedBox(width: 10.w),
                     Expanded(
                       child: _buildTextField(
-                        title: 'Item Name',
+                        title: 'Name',
                         hint: 'Name',
                         controller: nameController,
                         onChanged: provider.setName,
@@ -180,7 +198,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                         Expanded(
                           child: pr.selectedCategory == 'Vehicle'
                               ? CustomPopupDropdown(
-                                  title: 'Brand',
+                                  title: 'Make',
                                   hint: 'Select',
                                   value: pr.selectedBrand,
                                   items: brandList,
@@ -190,8 +208,8 @@ class _AddItemScreenState extends State<AddItemScreen> {
                                   },
                                 )
                               : _buildTextField(
-                                  title: 'Brand',
-                                  hint: 'Brand',
+                                  title: 'Make',
+                                  hint: 'Make',
                                   controller: brandController,
                                   onChanged: provider.setBrand,
                                 ),
@@ -263,6 +281,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                         hint: 'Number',
                         controller: mileageController,
                         onChanged: provider.setTotalMileage,
+                        keyboardType: TextInputType.number,
                       ),
                     ),
                   ],
@@ -353,6 +372,68 @@ class _AddItemScreenState extends State<AddItemScreen> {
                 ),
 
                 SizedBox(height: 20.h),
+                _buildTextField(
+                  title: 'Engine',
+                  hint: 'e.g. 2.5L 4-Cylinder',
+                  controller: engineController,
+                  onChanged: provider.setEngine,
+                ),
+                SizedBox(height: 20.h),
+
+                /// ENGINE + TRANSMISSION
+                _buildTextField(
+                  title: 'Transmission',
+                  hint: 'e.g. 8-Speed Automatic',
+                  controller: transmissionController,
+                  onChanged: provider.setTransmission,
+                ),
+
+                SizedBox(height: 20.h),
+                _buildTextField(
+                  title: 'Drivetrain',
+                  hint: 'e.g. FWD',
+                  controller: drivetrainController,
+                  onChanged: provider.setDrivetrain,
+                ),
+                SizedBox(height: 20.h),
+
+                /// DRIVETRAIN + CURRENT MILEAGE
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildTextField(
+                        title: 'Current Mileage',
+                        hint: 'Number',
+                        controller: currentMileageController,
+                        onChanged: provider.setCurrentMileage,
+                        keyboardType: TextInputType.number,
+                      ),
+                    ),
+                    SizedBox(width: 10.w),
+                    Expanded(
+                      child:  _buildTextField(
+                        title: 'Average Mileage Per Year',
+                        hint: 'Number',
+                        controller: averageMileagePerYearController,
+                        onChanged: provider.setAverageMileagePerYear,
+                        keyboardType: TextInputType.number,
+                      ),
+                    ),
+                  ],
+                ),
+
+                SizedBox(height: 20.h),
+
+                /// USER NOTES
+                _buildTextField(
+                  title: 'User Notes',
+                  hint: 'e.g. Regular maintenance, no major issues...',
+                  controller: userNotesController,
+                  onChanged: provider.setUserNotes,
+                  maxLines: 4,
+                ),
+
+                SizedBox(height: 20.h),
 
                 /// SUBMIT BUTTON
                 Consumer<AddItemProvider>(
@@ -367,13 +448,14 @@ class _AddItemScreenState extends State<AddItemScreen> {
                       child: SizedBox(
                         width: double.infinity,
                         child: PrimaryButton(
-                          text: 'Add Item',
+                          text: 'Add Asset',
                           onPressed: () async {
                             if (ctx.read<UserProvider>().userResponse?.data.isPremium == true) {
                               Navigator.pushNamed(context, RouteName.itemAddQuestion);
                             } else {
                               final res = await provider.addItem();
                               if (res) {
+                                final newItemId = provider.lastAddedItemId;
                                 ctx.read<AllItemListProvider>().getAllItem();
                                 showDialog(
                                   context: context,
@@ -409,6 +491,8 @@ class _AddItemScreenState extends State<AddItemScreen> {
     required String hint,
     required TextEditingController controller,
     required Function(String) onChanged,
+    TextInputType? keyboardType,
+    int? maxLines = 1,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -417,6 +501,8 @@ class _AddItemScreenState extends State<AddItemScreen> {
         TextField(
           controller: controller,
           onChanged: onChanged,
+          keyboardType: keyboardType,
+          maxLines: maxLines,
           decoration: InputDecoration(
             hintText: hint,
             border: OutlineInputBorder(

@@ -32,7 +32,7 @@ Future<void> diConfig() async {
   // ===== Repository =====
   getIt.registerLazySingleton<AuthRepository>(() => AuthRepositoriesImpl(getIt<ApiService>()),);
   getIt.registerLazySingleton<ItemAndTaskListRepository>(() => ItemAndTaskListRepositoryImpl(getIt<ApiService>()),);
-  getIt.registerLazySingleton<AddItemRepository>(() => AddItemRepositoryImpl());
+  getIt.registerLazySingleton<AddItemRepository>(() => AddItemRepositoryImpl(getIt<ApiService>()),);
   getIt.registerLazySingleton<SupportMailRepository>(() => SupportMailRepositoryImpl(getIt<ApiService>()),);
 
 
@@ -46,10 +46,10 @@ Future<void> diConfig() async {
   getIt.registerFactory<AddItemProvider>(() => AddItemProvider(getIt<AddItemRepository>()),);
   getIt.registerFactory<SupportMailProvider>(() => SupportMailProvider(getIt<SupportMailRepository>()),);
   getIt.registerFactory<UserProvider>(() => UserProvider(getIt<AuthRepository>()),);
-  getIt.registerFactory<QuestionProvider>(() => QuestionProvider());
-  getIt.registerFactory<AddReceiptProvider>(() => AddReceiptProvider());
+  getIt.registerFactory<QuestionProvider>(() => QuestionProvider(getIt<AddItemRepository>()),);
 
 
   // ===== Simple Providers =====
   getIt.registerLazySingleton<ParentScreensProvider>(() => ParentScreensProvider(),);
+  getIt.registerFactory<AddReceiptProvider>(() => AddReceiptProvider());
 }

@@ -4,8 +4,10 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 
 import 'app/routes/route_configs.dart';
+import 'app/session_expired_listener.dart'; // <-- add
 import 'core/di/di_configs.dart';
 import 'core/providers/app_providers.dart';
+import 'core/services/navigation_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,7 +23,7 @@ Future<void> _initializeApp() async {
     await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     await ScreenUtil.ensureScreenSize();
     await diConfig();
-   // await dotenv.load(fileName: '.env');
+    // await dotenv.load(fileName: '.env');
   } catch (e, stackTrace) {
     debugPrint('Initialization Error: $e');
     debugPrintStack(stackTrace: stackTrace);
@@ -30,8 +32,6 @@ Future<void> _initializeApp() async {
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
-
-  static final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
   @override
   Widget build(BuildContext context) {
@@ -49,6 +49,9 @@ class MyApp extends StatelessWidget {
           initialRoute: AppRoutes.initialRoute,
           onGenerateRoute: AppRoutes.onGenerateRoute,
           navigatorObservers: [HeroController()],
+          builder: (context, child) {
+            return SessionExpiredListener(child: child!);
+          },
         );
       },
     );

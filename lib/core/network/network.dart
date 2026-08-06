@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 
 import 'package:maintenance_genie/core/services/storage/token_storage_service.dart';
 
+import '../../app/controller/auth_event_controller.dart';
 import '../constants/api_end_points.dart';
 import '../helper/logger.dart';
 
@@ -16,8 +17,8 @@ class Network {
     dio = Dio(
       BaseOptions(
         baseUrl: ApiEndPoints.baseUrl,
-        connectTimeout: const Duration(seconds: 60),
-        receiveTimeout: const Duration(seconds: 60),
+        connectTimeout: const Duration(seconds: 30),
+        receiveTimeout: const Duration(seconds: 30),
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -71,6 +72,10 @@ MESSAGE:
 ${error.message}
 ═══════════════════════════════
 ''');
+
+          if (error.response?.statusCode == 401) {
+            AuthEventController.instance.fireSessionExpired();
+          }
 
           handler.next(error);
         },

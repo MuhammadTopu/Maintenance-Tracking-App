@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import '../../../../core/constants/app_colors.dart';
+
 class CustomDatePickerField extends StatelessWidget {
   const CustomDatePickerField({super.key, required this.context, required this.title, required this.hint, this.selectedDate, required this.onDatePicked});
 
@@ -22,11 +24,32 @@ class CustomDatePickerField extends StatelessWidget {
               initialDate: selectedDate ?? DateTime.now(),
               firstDate: DateTime(2000),
               lastDate: DateTime(2100),
+              builder: (context, child) {
+                return Theme(
+                  data: Theme.of(context).copyWith(
+                    dialogTheme: const DialogThemeData(
+                      backgroundColor: Colors.white,
+                    ),
+                    datePickerTheme: const DatePickerThemeData(
+                      backgroundColor: Colors.white,
+                    ),
+                    colorScheme: ColorScheme.light(
+                      primary: AppColors.primaryColor, // selected day, header, focus ring
+                      onPrimary: Colors.white,          // text/icon on top of selected day
+                      surface: Colors.white,             // dialog surface (calendar body)
+                      onSurface: Colors.black,           // default day text color
+                    ),
+                  ),
+                  child: child!,
+                );
+              },
             );
             if (picked != null) onDatePicked(picked);
           },
           child: InputDecorator(
             decoration: InputDecoration(
+              filled: true,
+              fillColor: Colors.white,
               hintText: hint,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10.r),

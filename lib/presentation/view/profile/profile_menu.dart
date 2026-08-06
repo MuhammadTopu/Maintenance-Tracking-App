@@ -24,10 +24,6 @@ class _ProfileMenuState extends State<ProfileMenu> {
   Widget build(BuildContext context) {
     final getMeProvider = context.watch<UserProvider>();
 
-    Log.debug(ApiEndPoints.imagePath(
-      getMeProvider.userResponse?.data.avatar ?? '',
-    ),);
-
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(

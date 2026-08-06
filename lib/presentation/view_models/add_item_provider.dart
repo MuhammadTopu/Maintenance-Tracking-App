@@ -29,6 +29,15 @@ class AddItemProvider extends ChangeNotifier {
   String? yearOfModel;
   int? totalMileage;
 
+  String? engine;
+  String? transmission;
+  String? drivetrain;
+  int? currentMileage;
+  int? averageMileagePerYear;
+  String? userNotes;
+
+  String? lastAddedItemId;
+
   File? imageFile;
 
   List<String> modelList = [];
@@ -83,10 +92,8 @@ class AddItemProvider extends ChangeNotifier {
 
   void setBrand(String value) {
     selectedBrand = value;
-
     selectedModel = null;
     modelList = [];
-
     notifyListeners();
   }
 
@@ -117,7 +124,6 @@ class AddItemProvider extends ChangeNotifier {
 
   void setYearOfModel(String value) {
     yearOfModel = value;
-    debugPrint('Year of model: $value');
     notifyListeners();
   }
 
@@ -125,6 +131,37 @@ class AddItemProvider extends ChangeNotifier {
     totalMileage = value.isEmpty ? null : int.tryParse(value);
     notifyListeners();
   }
+
+  void setEngine(String value) {
+    engine = value;
+    notifyListeners();
+  }
+
+  void setTransmission(String value) {
+    transmission = value;
+    notifyListeners();
+  }
+
+  void setDrivetrain(String value) {
+    drivetrain = value;
+    notifyListeners();
+  }
+
+  void setCurrentMileage(String value) {
+    currentMileage = value.isEmpty ? null : int.tryParse(value);
+    notifyListeners();
+  }
+
+  void setAverageMileagePerYear(String value) {
+    averageMileagePerYear = value.isEmpty ? null : int.tryParse(value);
+    notifyListeners();
+  }
+
+  void setUserNotes(String value) {
+    userNotes = value;
+    notifyListeners();
+  }
+
   // ================= ADD ITEM =================
   Future<bool> addItem() async {
     isLoading = true;
@@ -133,51 +170,48 @@ class AddItemProvider extends ChangeNotifier {
     Log.debug('Adding item: $name');
 
     if (selectedCategory == null) {
-      AppToast.showToast(
-        'Please select a category',
-        backgroundColor: Colors.red,
-      );
+      AppToast.showToast('Please select a category', backgroundColor: Colors.red);
+      isLoading = false;
+      notifyListeners();
       return false;
     }
 
     if (name == null || name!.isEmpty) {
       AppToast.showToast('Please enter an item name', backgroundColor: Colors.red);
+      isLoading = false;
+      notifyListeners();
       return false;
     }
 
     if (selectedBrand == 'Select') {
       AppToast.showToast('Please select a brand', backgroundColor: Colors.red);
+      isLoading = false;
+      notifyListeners();
       return false;
     }
 
     if (selectedModel == null) {
       AppToast.showToast('Please select a model', backgroundColor: Colors.red);
+      isLoading = false;
+      notifyListeners();
       return false;
     }
 
     if (yearOfModel == null) {
-      AppToast.showToast(
-        'Please enter year of model',
-        backgroundColor: Colors.red,
-      );
+      AppToast.showToast('Please enter year of model', backgroundColor: Colors.red);
+      isLoading = false;
+      notifyListeners();
       return false;
     }
 
     if (selectedDate == null) {
-      AppToast.showToast(
-        'Please select a purchase date',
-        backgroundColor: Colors.red,
-      );
+      AppToast.showToast('Please select a purchase date', backgroundColor: Colors.red);
+      isLoading = false;
+      notifyListeners();
       return false;
     }
 
-
-
-    Log.debug(
-      'Adding item:\nname: $name\nbrand: $selectedBrand\nmodel: $selectedModel\ncategory: $selectedCategory\npurchaseDate: ${selectedDate?.toIso8601String()}\ntotalMileage: $totalMileage\nyearOfModel: $yearOfModel\nimageFile: $imageFile',
-    );
-
-    final result = await _repository.addItem(
+    final itemId = await _repository.addItem(
       name: name ?? '',
       brand: selectedBrand,
       model: selectedModel ?? '',
@@ -186,14 +220,21 @@ class AddItemProvider extends ChangeNotifier {
       totalMileage: totalMileage,
       yearOfModel: yearOfModel ?? '',
       imageFile: imageFile,
+      engine: engine,
+      transmission: transmission,
+      drivetrain: drivetrain,
+      currentMileage: currentMileage,
+      averageMileagePerYear: averageMileagePerYear,
+      userNotes: userNotes,
     );
 
-    Log.debug('Item added: $result');
+    Log.debug('Item added with id: $itemId');
 
+    lastAddedItemId = itemId;
     isLoading = false;
     notifyListeners();
 
-    return result;
+    return itemId != null;
   }
 
   // ================= RESET =================
@@ -211,9 +252,20 @@ class AddItemProvider extends ChangeNotifier {
     yearOfModel = null;
     totalMileage = 0;
 
+    engine = null;
+    transmission = null;
+    drivetrain = null;
+    currentMileage = null;
+    averageMileagePerYear = null;
+    userNotes = null;
+
     imageFile = null;
     modelList = [];
+    notifyListeners();
+  }
 
+  void clearLastAddedItemId() {
+    lastAddedItemId = null;
     notifyListeners();
   }
 }

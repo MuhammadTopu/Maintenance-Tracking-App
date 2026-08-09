@@ -40,7 +40,7 @@ class AllItemListProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  AllItemListModel? _allItemListModel = AllItemListModel();
+  AllItemListModel? _allItemListModel;
   AllItemListModel? get allItemListModel => _allItemListModel;
   OneItemModel? _oneItemModel;
   OneItemModel? get oneItemModel => _oneItemModel;

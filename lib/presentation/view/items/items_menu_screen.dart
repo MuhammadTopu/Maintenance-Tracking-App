@@ -257,14 +257,14 @@ class _ItemsMenuScreenState extends State<ItemsMenuScreen> {
                           provider.setId(item.id);
                           context
                               .read<ItemTaskListByItemIdProvider>()
-                              .setItemId(item.id ?? '');
+                              .setItemId(item.id);
                         }
                       },
                       cells: [
-                        DataCell(cellText(item.category ?? 'N/A')),
-                        DataCell(cellText(item.name ?? 'N/A')),
-                        DataCell(cellText(item.model ?? 'N/A')),
-                        DataCell(cellText(item.name ?? 'N/A')),
+                        DataCell(cellText(item.category)),
+                        DataCell(cellText(item.brand)),
+                        DataCell(cellText(item.model)),
+                        DataCell(cellText(item.name)),
                       ],
                     );
                   }).toList(),

@@ -12,6 +12,7 @@ import 'package:maintenance_genie/presentation/view_models/item_task_list_by_ite
 import 'package:maintenance_genie/presentation/view_models/parent_screen_provider.dart';
 import 'package:maintenance_genie/presentation/view_models/question_provider.dart';
 import 'package:maintenance_genie/presentation/view_models/sign_up_provider.dart';
+import 'package:maintenance_genie/presentation/view_models/subscription_provider.dart';
 import 'package:maintenance_genie/presentation/view_models/support_mail_provider.dart';
 import '../../data/repository/add_items_repository_impl.dart';
 import '../../data/repository/auth_repository_impl.dart';
@@ -52,4 +53,5 @@ Future<void> diConfig() async {
   // ===== Simple Providers =====
   getIt.registerLazySingleton<ParentScreensProvider>(() => ParentScreensProvider(),);
   getIt.registerFactory<AddReceiptProvider>(() => AddReceiptProvider());
+  getIt.registerFactory<SubscriptionProvider>(() => SubscriptionProvider());
 }

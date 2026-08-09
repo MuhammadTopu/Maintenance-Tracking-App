@@ -3,6 +3,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:maintenance_genie/core/constants/app_colors.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 
+import '../app/routes/route_names.dart';
+
 enum ButtonVariant {
   filled,
   outlined,
@@ -83,6 +85,52 @@ class WaveLoading extends StatelessWidget {
         color: waveColor ?? AppColors.primaryColor,
         size: 40.w,
       ),
+    );
+  }
+}
+
+class PremiumLockedView extends StatelessWidget {
+  final String title;
+  final bool showButton;
+
+  const PremiumLockedView({
+    required this.title,
+    this.showButton = true,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Container(
+          width: 56.w,
+          height: 56.w,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: AppColors.primaryColor,
+          ),
+          padding: EdgeInsets.all(16.w),
+          child: Image.asset(
+            'assets/icons/crown.png',
+            color: Colors.white,
+          ),
+        ),
+        SizedBox(height: 14.h),
+        Text(
+          title,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontWeight: FontWeight.w700,
+            fontSize: 16.sp,
+            color: const Color(0xff1D1F2C),
+          ),
+        ),
+        SizedBox(height: 8.h),
+        Divider(color: Colors.grey.shade300, height: 1),
+        SizedBox(height: 8.h),
+        PrimaryButton(text: "Go Premium", onPressed: () {Navigator.pushNamed(context, RouteName.subscriptionScreen);})
+      ],
     );
   }
 }

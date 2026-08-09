@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "668126403636",
+    "project_id": "rrsc-92ef2",
+    "storage_bucket": "rrsc-92ef2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:668126403636:android:56b83c764da95899c57e61",
+        "android_client_info": {
+          "package_name": "com.raw.maintenance_genie"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyByf1E4yIuHDspDt46tUI8DEO8a6lx6cVE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

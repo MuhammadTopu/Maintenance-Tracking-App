@@ -56,4 +56,9 @@ class RouteName {
   // Item Questions
   // =====================
   static const itemAddQuestion = "/item-add-question";
+
+  // =====================
+  // Subscription
+  // =====================
+  static const subscriptionScreen = "/subscription";
 }

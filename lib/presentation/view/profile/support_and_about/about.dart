@@ -17,7 +17,7 @@ class _AboutState extends State<About> {
       backgroundColor: Colors.white,
       body: SafeArea(
         child: Container(
-          color: Colors.white, // Set the background color to white here
+          color: Colors.white,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: SingleChildScrollView(

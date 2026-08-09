@@ -184,7 +184,7 @@ class _ProfileMenuState extends State<ProfileMenu> {
                     scale: 1.9,
                   ),
                   onTap: () {
-                    Navigator.pushNamed(context, RouteName.subscription);
+                    Navigator.pushNamed(context, RouteName.subscriptionScreen);
                   },
                 ),
                 Container(

@@ -76,7 +76,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               pr.taskListResponse?.tasks.first.upcomingTask ??
                               "";
                           return Container(
-                            padding: EdgeInsets.all(16.w),
+                            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
                             margin: EdgeInsets.only(bottom: 4.h),
                             decoration: BoxDecoration(
                               color: Color(0xffF0FAF9),
@@ -94,9 +94,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                         fontSize: 18.sp,
                                       ),
                                     ),
-                                    SizedBox(height: 8.h),
+                                    SizedBox(height: 4.h),
                                     Divider(color: Color(0xffB2D2E4)),
-                                    SizedBox(height: 12.h),
+                                    SizedBox(height: 8.h),
                                     Row(
                                       children: [
                                         const Icon(

@@ -20,6 +20,7 @@ import 'package:maintenance_genie/presentation/view/profile/support_and_about/te
 import 'package:maintenance_genie/presentation/view/tracking/tracking_detail_screen.dart';
 
 import '../../presentation/view/items/item_add_question_screen.dart';
+import '../../presentation/view/profile/subscription/subscription_screen.dart';
 import '../../presentation/view/splash/splash_screen.dart';
 import 'route_names.dart';
 
@@ -90,6 +91,9 @@ class AppRoutes {
 
       case RouteName.itemAddQuestion:
         return _buildRoute(const ItemAddQuestionScreen());
+
+      case RouteName.subscriptionScreen:
+        return _buildRoute(const SubscriptionScreen());
 
       default:
         return _buildRoute(const UnknownRouteScreen());

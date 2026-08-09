@@ -12,6 +12,7 @@ import 'package:provider/single_child_widget.dart';
 
 import '../../presentation/view_models/item_task_list_by_item_id_provider.dart';
 import '../../presentation/view_models/item_task_list_provider.dart';
+import '../../presentation/view_models/subscription_provider.dart';
 import '../../presentation/view_models/user_provider.dart';
 import '../di/di_configs.dart';
 
@@ -29,5 +30,6 @@ class AppViewModels {
     ChangeNotifierProvider<SupportMailProvider>(create: (_) => getIt<SupportMailProvider>(),),
     ChangeNotifierProvider<QuestionProvider>(create: (_) => getIt<QuestionProvider>(),),
     ChangeNotifierProvider<AddReceiptProvider>(create: (_) => getIt<AddReceiptProvider>(),),
+    ChangeNotifierProvider<SubscriptionProvider>(create: (_) => getIt<SubscriptionProvider>(),),
   ];
 }

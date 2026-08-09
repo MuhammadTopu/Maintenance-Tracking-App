@@ -3,13 +3,16 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gpt_markdown/gpt_markdown.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import '../../../app/routes/route_names.dart';
 import '../../../core/constants/api_end_points.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../data/models/one_item_model.dart';
 import '../../../shared/custom_item_app_bar.dart';
 import '../../view_models/all_item_list_provider.dart';
 import '../../view_models/item_task_list_by_item_id_provider.dart';
+import '../../view_models/user_provider.dart';
 import 'widgets/forum_suggestion_card_widget.dart';
+import 'widgets/upcoming_task_card_widget.dart';
 
 class ItemDetailsScreen extends StatefulWidget {
   final String? itemId;
@@ -20,7 +23,6 @@ class ItemDetailsScreen extends StatefulWidget {
 }
 
 class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
-  
   @override
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
@@ -28,17 +30,19 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
     });
     super.initState();
   }
-  
+
   @override
   Widget build(BuildContext context) {
-
+    final userProvider = context.watch<UserProvider>();
     return Scaffold(
       backgroundColor: const Color(0xffFFFFFF),
       body: SafeArea(
         child: Consumer<AllItemListProvider>(
           builder: (context, provider, child) {
             if (provider.itemDetailsLoading) {
-              return const Center(child: CircularProgressIndicator(color: AppColors.primaryColor,));
+              return const Center(
+                child: CircularProgressIndicator(color: AppColors.primaryColor),
+              );
             }
             if (provider.errorFetchingOneItem != '') {
               return Center(child: Text(provider.errorFetchingOneItem!));
@@ -69,27 +73,42 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                     Column(
                       spacing: 4,
                       children: [
+                        _buildInfoRow(title: 'Category : ', value: item.category),
+                        _buildInfoRow(title: 'Brand : ', value: item.brand),
+                        _buildInfoRow(title: 'Model : ', value: item.model),
                         _buildInfoRow(
-                          title: 'Category : ',
-                          value: item.category,
-                        ),
-                        _buildInfoRow(
-                          title: 'Brand : ',
-                          value: item.brand,
-                        ),
-                        _buildInfoRow(
-                          title: 'Model : ',
-                          value: item.model,
+                          title: 'Year : ',
+                          value: item.yearOfTheModel,
                         ),
                         _buildInfoRow(
                           title: 'Purchase Date : ',
-                          value: DateFormat("yyyy-MM-dd").format(DateTime.parse(item.purchaseDate)),
+                          value: item.purchaseDate.isNotEmpty
+                              ? DateFormat("yyyy-MM-dd").format(DateTime.parse(item.purchaseDate))
+                              : 'N/A',
+                        ),
+                        _buildInfoRow(
+                          title: 'Current Mileage : ',
+                          value: item.currentMileage != null
+                              ? '${item.currentMileage} miles'
+                              : 'N/A',
                         ),
                         _buildInfoRow(
                           title: 'Total Mileage : ',
-                          value:
-                              '${item.totalMileage} miles',
+                          value: item.totalMileage != null
+                              ? '${item.totalMileage} miles'
+                              : 'N/A',
                         ),
+                        _buildInfoRow(
+                          title: 'Avg. Mileage / Year : ',
+                          value: item.averageMileagePerYear != null
+                              ? '${item.averageMileagePerYear} miles'
+                              : 'N/A',
+                        ),
+                        _buildInfoRow(title: 'Engine : ', value: item.engine),
+                        _buildInfoRow(title: 'Transmission : ', value: item.transmission),
+                        _buildInfoRow(title: 'Drivetrain : ', value: item.drivetrain),
+                        if ((item.userNotes ?? '').isNotEmpty)
+                          _buildInfoRow(title: 'Notes : ', value: item.userNotes!),
                       ],
                     ),
                     SizedBox(height: 12.h),
@@ -102,34 +121,34 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                           borderRadius: BorderRadius.circular(12.r),
                           border: Border.all(color: Colors.grey.shade400),
                         ),
-                        child:
-                            Image.network(
-                                  ApiEndPoints.imagePath(item.imageUrl.replaceFirst("undefined/uploads/", "")),
-                                  width: double.infinity,
-                                  fit: BoxFit.cover,
-                              loadingBuilder: (context, child, loadingProgress) {
-                                if (loadingProgress == null) return child;
-                                return Center(
-                                  child: CircularProgressIndicator(
-                                    value: loadingProgress.expectedTotalBytes != null
-                                        ? loadingProgress.cumulativeBytesLoaded /
-                                        loadingProgress.expectedTotalBytes!
-                                        : null,
-                                    color: const Color(0xFF6359FF),
-                                  ),
-                                );
-                              },
-                                  errorBuilder:
-                                      (context, error, stackTrace) => Column(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        crossAxisAlignment: CrossAxisAlignment.center,
-                                        children: [
-                                          Icon(Icons.image_outlined, size: 30.h,),
-                                          SizedBox(height: 12.h,),
-                                          Text('No Image Available!')
-                                        ],
-                                      ),
-                                ),
+                        child: Image.network(
+                          ApiEndPoints.imagePath(
+                            item.imageUrl.replaceFirst("undefined/uploads/", ""),
+                          ),
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                          loadingBuilder: (context, child, loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return Center(
+                              child: CircularProgressIndicator(
+                                value: loadingProgress.expectedTotalBytes != null
+                                    ? loadingProgress.cumulativeBytesLoaded /
+                                    loadingProgress.expectedTotalBytes!
+                                    : null,
+                                color: const Color(0xFF6359FF),
+                              ),
+                            );
+                          },
+                          errorBuilder: (context, error, stackTrace) => Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Icon(Icons.image_outlined, size: 30.h),
+                              SizedBox(height: 12.h),
+                              Text('No Image Available!'),
+                            ],
+                          ),
+                        ),
                       ),
                     ),
                     SizedBox(height: 12.h),
@@ -141,14 +160,12 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                         return Column(
                           spacing: 12.h,
                           children: List.generate(prov.taskListResponse?.tasks.length ?? 0, (index) {
-                            return _buildUpcomingTask(
-                              prov.taskListResponse!.tasks[index].upcomingTask,
-                              prov.taskListResponse!.tasks[index].nextDueDate,
-                              prov.taskListResponse!.tasks[index].status,
+                            return UpcomingTaskCard(
+                              task: prov.taskListResponse!.tasks[index],
                             );
                           }),
                         );
-                      }
+                      },
                     ),
                     SizedBox(height: 12.h),
                     _buildServiceIntervals(item),
@@ -156,7 +173,8 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                     _buildContainer(
                       child: ForumSuggestionsCard(
                         response: provider.oneItemModel!,
-                      ),
+                        isPremium: userProvider.userResponse?.data.isPremium ?? false,
+                      )
                     ),
                   ],
                 ),
@@ -187,7 +205,7 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                 value: item.serviceIntervals[index],
               );
             }),
-          )
+          ),
         ],
       ),
     );
@@ -208,7 +226,7 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
         ),
         Expanded(
           child: GptMarkdown(
-            value.isNotEmpty ? value : '',
+            value.isNotEmpty ? value : 'N/A',
             style: TextStyle(
               fontWeight: FontWeight.w400,
               fontSize: 14.sp,
@@ -217,57 +235,6 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildUpcomingTask(String task, String lastDate, status) {
-    return _buildContainer(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Text(
-                'Upcoming Task',
-                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 18.sp),
-              ),
-              Spacer(),
-              Text(
-                '$status, ',
-              ),
-              Text(lastDate)
-            ],
-          ),
-          const Divider(color: Colors.grey, thickness: 1.07),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.notifications_none_outlined),
-              SizedBox(width: 8.w),
-              Text(
-                '|',
-                style: TextStyle(
-                  fontWeight: FontWeight.w400,
-                  fontSize: 16.sp,
-                  color: Colors.grey.shade400,
-                ),
-              ),
-              SizedBox(width: 8.w),
-              Expanded(
-                child: Text(
-                  task,
-                  style: TextStyle(
-                    fontWeight: FontWeight.w400,
-                    fontSize: 16.sp,
-                    color: Colors.grey.shade700,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
     );
   }
 

@@ -1,53 +1,100 @@
 class AllItemListModel {
-  bool? success;
-  String? message;
-  List<Items>? items;
+  final bool success;
+  final String message;
+  final List<Items> items;
 
-  AllItemListModel({this.success, this.message, this.items});
+  AllItemListModel({
+    required this.success,
+    required this.message,
+    required this.items,
+  });
 
-  AllItemListModel.fromJson(Map<String, dynamic> json) {
-    success = json['success'];
-    message = json['message'];
-    if (json['items'] != null) {
-      items = <Items>[];
-      json['items'].forEach((v) {
-        items!.add(Items.fromJson(v));
-      });
-    }
-  }
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = <String, dynamic>{};
-    data['success'] = success;
-    data['message'] = message;
-    if (items != null) {
-      data['items'] = items!.map((v) => v.toJson()).toList();
-    }
-    return data;
+  factory AllItemListModel.fromJson(Map<String, dynamic> json) {
+    return AllItemListModel(
+      success: json['success'] ?? false,
+      message: json['message'] ?? '',
+      items: (json['items'] as List<dynamic>?)
+          ?.map((e) => Items.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+          [],
+    );
   }
 }
 
 class Items {
-  String? id;
-  String? category;
-  String? name;
-  String? model;
+  final String id;
+  final String category;
+  final String name;
+  final String model;
+  final String brand;
+  final String yearOfTheModel;
+  final String? engine;
+  final String? transmission;
+  final String? drivetrain;
+  final int? currentMileage;
+  final int? averageMileagePerYear;
+  final String? userNotes;
 
-  Items({this.id, this.category, this.name, this.model});
+  Items({
+    required this.id,
+    required this.category,
+    required this.name,
+    required this.model,
+    required this.brand,
+    required this.yearOfTheModel,
+    this.engine,
+    this.transmission,
+    this.drivetrain,
+    this.currentMileage,
+    this.averageMileagePerYear,
+    this.userNotes,
+  });
 
-  Items.fromJson(Map<String, dynamic> json) {
-    id = json['id'];
-    category = json['category'];
-    name = json['name'];
-    model = json['model'];
+  factory Items.fromJson(Map<String, dynamic> json) {
+    return Items(
+      id: json['id'] ?? '',
+      category: json['category'] ?? '',
+      name: json['name'] ?? '',
+      model: json['model'] ?? '',
+      brand: json['brand'] ?? '',
+      yearOfTheModel: json['year_of_the_model'] ?? '',
+      engine: json['engine'],
+      transmission: json['transmission'],
+      drivetrain: json['drivetrain'],
+      currentMileage: json['current_mileage'],
+      averageMileagePerYear: json['average_mileage_per_year'],
+      userNotes: json['user_notes'],
+    );
   }
 
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = <String, dynamic>{};
-    data['id'] = id;
-    data['category'] = category;
-    data['name'] = name;
-    data['model'] = model;
-    return data;
+  Items copyWith({
+    String? id,
+    String? category,
+    String? name,
+    String? model,
+    String? brand,
+    String? yearOfTheModel,
+    String? engine,
+    String? transmission,
+    String? drivetrain,
+    int? currentMileage,
+    int? averageMileagePerYear,
+    String? userNotes,
+  }) {
+    return Items(
+      id: id ?? this.id,
+      category: category ?? this.category,
+      name: name ?? this.name,
+      model: model ?? this.model,
+      brand: brand ?? this.brand,
+      yearOfTheModel: yearOfTheModel ?? this.yearOfTheModel,
+      engine: engine ?? this.engine,
+      transmission: transmission ?? this.transmission,
+      drivetrain: drivetrain ?? this.drivetrain,
+      currentMileage: currentMileage ?? this.currentMileage,
+      averageMileagePerYear:
+      averageMileagePerYear ?? this.averageMileagePerYear,
+      userNotes: userNotes ?? this.userNotes,
+    );
   }
 }

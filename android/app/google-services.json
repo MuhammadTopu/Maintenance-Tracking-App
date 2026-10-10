@@ -7,6 +7,44 @@
   "client": [
     {
       "client_info": {
+        "mobilesdk_app_id": "1:668126403636:android:636487b2277f2d3ec57e61",
+        "android_client_info": {
+          "package_name": "com.biglickenterprises.maintenance_genie"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyByf1E4yIuHDspDt46tUI8DEO8a6lx6cVE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:668126403636:android:b0c62aaeb12bcba3c57e61",
+        "android_client_info": {
+          "package_name": "com.biglickenterprises.maintenancegenie"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyByf1E4yIuHDspDt46tUI8DEO8a6lx6cVE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
         "mobilesdk_app_id": "1:668126403636:android:56b83c764da95899c57e61",
         "android_client_info": {
           "package_name": "com.raw.maintenance_genie"

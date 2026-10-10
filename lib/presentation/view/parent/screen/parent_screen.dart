@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../../core/services/subscription/subscription_service.dart';
 import '../../../view_models/all_item_list_provider.dart';
 import '../../../view_models/item_task_list_provider.dart';
 import '../../../view_models/parent_screen_provider.dart';
@@ -18,12 +19,26 @@ class _ParentScreenState extends State<ParentScreen> {
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       Future.wait([
-        context.read<UserProvider>().getUserDetails(),
+        _loadUserAndLinkSubscription(),            // CHANGED
         context.read<AllItemListProvider>().getAllItem(),
         context.read<ItemTaskListProvider>().getItemTasks(),
       ]);
     });
     super.initState();
+  }
+
+// NEW
+  Future<void> _loadUserAndLinkSubscription() async {
+    final userProvider = context.read<UserProvider>();
+    final subscription = context.read<SubscriptionService>();
+
+    await userProvider.getUserDetails();
+
+    // Use your backend user id here (check the field name in your model).
+    final userId = userProvider.userResponse?.data.id;
+    if (userId != null && userId.toString().isNotEmpty) {
+      await subscription.logIn(userId.toString());
+    }
   }
 
   @override

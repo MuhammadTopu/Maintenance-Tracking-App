@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import '../../../app/routes/route_names.dart';
 import '../../../core/constants/api_end_points.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/services/subscription/subscription_service.dart';
 import '../../../shared/custom_app_bar.dart';
 import '../../view_models/all_item_list_provider.dart';
 import '../../view_models/login_provider.dart';
@@ -70,7 +71,9 @@ class _ProfileMenuState extends State<ProfileMenu> {
                   future: getMeProvider.getUserName(),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
-                      return CircularProgressIndicator(color: AppColors.primaryColor,);
+                      return CircularProgressIndicator(
+                        color: AppColors.primaryColor,
+                      );
                     } else if (snapshot.hasError) {
                       return Text(
                         'Error loading username',
@@ -95,7 +98,9 @@ class _ProfileMenuState extends State<ProfileMenu> {
                   future: getMeProvider.getUserEmail(),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
-                      return CircularProgressIndicator(color: AppColors.primaryColor,);
+                      return CircularProgressIndicator(
+                        color: AppColors.primaryColor,
+                      );
                     } else if (snapshot.hasError) {
                       return Text(
                         'Error loading email',
@@ -361,11 +366,8 @@ class _ProfileMenuState extends State<ProfileMenu> {
                                               return ElevatedButton(
                                                 onPressed: () {
                                                   provider.logOut();
-                                                  context
-                                                      .read<
-                                                        AllItemListProvider
-                                                      >()
-                                                      .removeItems();
+                                                  context.read<SubscriptionService>().logOut();
+                                                  context.read<AllItemListProvider>().removeItems();
                                                   context.read<ParentScreensProvider>().onSelectedIndex(0);
                                                   Navigator.pushNamedAndRemoveUntil(
                                                     context,

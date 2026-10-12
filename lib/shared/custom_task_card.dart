@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:redacted/redacted.dart';
 
 import '../presentation/view_models/item_task_list_by_item_id_provider.dart';
+import 'shimmer_skeletons.dart';
 
 class CustomTaskCard extends StatelessWidget {
   const CustomTaskCard({
@@ -31,6 +32,7 @@ class CustomTaskCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (isLoading) return const TaskCardSkeleton();
     return Padding(
       padding: EdgeInsets.only(bottom: 10),
       child: Container(
@@ -162,7 +164,7 @@ class CustomTaskCard extends StatelessWidget {
               ),
             ),
           ],
-        ).redacted(context: context, redact: isLoading),
+        ),
       ),
     );
   }

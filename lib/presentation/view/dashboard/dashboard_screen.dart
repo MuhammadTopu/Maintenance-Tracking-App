@@ -9,6 +9,7 @@ import 'package:redacted/redacted.dart';
 import '../../../app/routes/route_names.dart';
 import '../../../shared/custom_app_bar.dart';
 import '../../../shared/custom_task_card.dart';
+import '../../../shared/shimmer_skeletons.dart';
 import '../../view_models/item_task_list_by_item_id_provider.dart';
 import '../../view_models/item_task_list_provider.dart';
 
@@ -32,7 +33,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget build(BuildContext context) {
     final pr = context.watch<AllItemListProvider>();
     final allItems = context.select<AllItemListProvider, dynamic>(
-          (provider) => provider.allItemListModel?.items,
+      (provider) => provider.allItemListModel?.items,
     );
 
     final vehicleCount =
@@ -45,11 +46,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
         allItems
             ?.where(
               (item) =>
-          item.category != 'Vehicle' &&
-              item.category != 'Appliance',
-        )
+                  item.category != 'Vehicle' && item.category != 'Appliance',
+            )
             .length ??
-            0;
+        0;
 
     return Scaffold(
       backgroundColor: const Color(0xffFFFFFF),
@@ -68,6 +68,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     children: [
                       Consumer<ItemTaskListProvider>(
                         builder: (_, pr, _) {
+                          if (pr.loading) return const UpcomingTaskSkeleton();
                           if (pr.taskListResponse?.tasks.isEmpty ?? true) {
                             return const SizedBox.shrink();
                           }
@@ -76,60 +77,55 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               pr.taskListResponse?.tasks.first.upcomingTask ??
                               "";
                           return Container(
-                            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 16.w,
+                              vertical: 10.h,
+                            ),
                             margin: EdgeInsets.only(bottom: 4.h),
                             decoration: BoxDecoration(
                               color: Color(0xffF0FAF9),
                               borderRadius: BorderRadius.circular(16.r),
                             ),
-                            child:
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "Upcoming Task",
+                                  style: TextStyle(
+                                    color: const Color(0xff1D1F2C),
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 18.sp,
+                                  ),
+                                ),
+                                SizedBox(height: 4.h),
+                                Divider(color: Color(0xffB2D2E4)),
+                                SizedBox(height: 8.h),
+                                Row(
                                   children: [
-                                    Text(
-                                      "Upcoming Task",
-                                      style: TextStyle(
-                                        color: const Color(0xff1D1F2C),
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 18.sp,
+                                    const Icon(Icons.notifications_outlined),
+                                    SizedBox(width: 8.w),
+                                    Container(
+                                      height: 25,
+                                      width: 2,
+                                      color: Color(0xffB2D2E4),
+                                    ),
+                                    SizedBox(width: 8.w),
+                                    Expanded(
+                                      child: Text(
+                                        upcomingTask,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          fontSize: 16.sp,
+                                          fontWeight: FontWeight.w400,
+                                          color: const Color(0xff1D1F2C),
+                                        ),
                                       ),
                                     ),
-                                    SizedBox(height: 4.h),
-                                    Divider(color: Color(0xffB2D2E4)),
-                                    SizedBox(height: 8.h),
-                                    Row(
-                                      children: [
-                                        const Icon(
-                                          Icons.notifications_outlined,
-                                        ),
-                                        SizedBox(width: 8.w),
-                                        Container(
-                                          height: 25,
-                                          width: 2,
-                                          color: Color(0xffB2D2E4),
-                                        ),
-                                        SizedBox(width: 8.w),
-                                        Expanded(
-                                          child: Text(
-                                            upcomingTask,
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: TextStyle(
-                                              fontSize: 16.sp,
-                                              fontWeight: FontWeight.w400,
-                                              color: const Color(0xff1D1F2C),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
                                   ],
-                                ).redacted(
-                                  context: context,
-                                  redact:
-                                      pr.taskListResponse?.tasks.isEmpty ??
-                                      false,
                                 ),
+                              ],
+                            ),
                           );
                         },
                       ),
@@ -185,14 +181,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             const Spacer(),
                             InkWell(
                               onTap: () {
-                                context.read<ParentScreensProvider>().onSelectedIndex(2);
+                                context
+                                    .read<ParentScreensProvider>()
+                                    .onSelectedIndex(2);
                               },
                               child: Text(
                                 "View All",
                                 style: TextStyle(
                                   fontSize: 13.sp,
                                   fontWeight: FontWeight.bold,
-                                  color: AppColors.primaryColor
+                                  color: AppColors.primaryColor,
                                 ),
                               ),
                             ),
@@ -208,22 +206,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
                           if (isLoading) {
                             return ListView.builder(
-                              padding: EdgeInsets.all(10.0),
+                              padding: const EdgeInsets.all(10),
                               shrinkWrap: true,
                               physics: const NeverScrollableScrollPhysics(),
                               itemCount: 5,
-                              itemBuilder: (context, index) {
-                                return CustomTaskCard(
-                                  index: index + 1,
-                                  upcomingTask: "",
-                                  itemName: "",
-                                  status: "",
-                                  lastDate: DateTime.now().toIso8601String(),
-                                  taskId: '',
-                                  isLoading: true,
-                                  onTap: null,
-                                );
-                              },
+                              itemBuilder: (_, _) => const TaskCardSkeleton(),
                             );
                           }
 
@@ -263,7 +250,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 taskId: task.id,
                                 isLoading: false,
                                 onTap: () async {
-                                  final provider = context.read<ItemTaskListByItemIdProvider>();
+                                  final provider = context
+                                      .read<ItemTaskListByItemIdProvider>();
 
                                   final taskId = task.id;
                                   final itemId = task.itemId;
@@ -273,10 +261,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
                                     provider.setItemId(itemId);
 
-                                    await provider.setTaskId(
-                                      taskId,
-                                      itemId,
-                                    );
+                                    await provider.setTaskId(taskId, itemId);
 
                                     if (!mounted) return;
 
@@ -312,6 +297,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     required Color color,
     bool isLoading = false,
   }) {
+    if (isLoading) return ItemCardSkeleton(color: color);
     return Expanded(
       child: Card(
         color: color,
@@ -357,7 +343,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
               ),
             ],
-          ).redacted(context: context, redact: isLoading),
+          ),
         ),
       ),
     );

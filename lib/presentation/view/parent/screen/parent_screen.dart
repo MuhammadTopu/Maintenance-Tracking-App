@@ -19,7 +19,7 @@ class _ParentScreenState extends State<ParentScreen> {
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       Future.wait([
-        _loadUserAndLinkSubscription(),            // CHANGED
+        _loadUserAndLinkSubscription(),
         context.read<AllItemListProvider>().getAllItem(),
         context.read<ItemTaskListProvider>().getItemTasks(),
       ]);
@@ -27,14 +27,12 @@ class _ParentScreenState extends State<ParentScreen> {
     super.initState();
   }
 
-// NEW
   Future<void> _loadUserAndLinkSubscription() async {
     final userProvider = context.read<UserProvider>();
     final subscription = context.read<SubscriptionService>();
 
     await userProvider.getUserDetails();
 
-    // Use your backend user id here (check the field name in your model).
     final userId = userProvider.userResponse?.data.id;
     if (userId != null && userId.toString().isNotEmpty) {
       await subscription.logIn(userId.toString());
@@ -56,7 +54,8 @@ class _ParentScreenState extends State<ParentScreen> {
               builder: (context, parentScreenProvider, child) {
                 if (parentScreenProvider.screens.isEmpty ||
                     parentScreenProvider.selectedIndex < 0 ||
-                    parentScreenProvider.selectedIndex >= parentScreenProvider.screens.length) {
+                    parentScreenProvider.selectedIndex >=
+                        parentScreenProvider.screens.length) {
                   return const Center(child: Text('No screens available'));
                 }
 
@@ -68,7 +67,9 @@ class _ParentScreenState extends State<ParentScreen> {
                     .toList();
 
                 if (validScreens.isEmpty) {
-                  return const Center(child: Text('No valid screens available'));
+                  return const Center(
+                    child: Text('No valid screens available'),
+                  );
                 }
 
                 final adjustedIndex = parentScreenProvider.selectedIndex.clamp(
@@ -76,7 +77,10 @@ class _ParentScreenState extends State<ParentScreen> {
                   validScreens.length - 1,
                 );
 
-                return IndexedStack(index: adjustedIndex, children: validScreens);
+                return IndexedStack(
+                  index: adjustedIndex,
+                  children: validScreens,
+                );
               },
             ),
             Transform.translate(

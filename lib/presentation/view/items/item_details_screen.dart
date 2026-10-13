@@ -3,11 +3,11 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gpt_markdown/gpt_markdown.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import '../../../app/routes/route_names.dart';
 import '../../../core/constants/api_end_points.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../data/models/one_item_model.dart';
 import '../../../shared/custom_item_app_bar.dart';
+import '../../../shared/empty_state_widget.dart';
 import '../../view_models/all_item_list_provider.dart';
 import '../../view_models/item_task_list_by_item_id_provider.dart';
 import '../../view_models/user_provider.dart';
@@ -26,7 +26,9 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
   @override
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await context.read<ItemTaskListByItemIdProvider>().getAllTaskListByItemId();
+      await context
+          .read<ItemTaskListByItemIdProvider>()
+          .getAllTaskListByItemId();
     });
     super.initState();
   }
@@ -49,7 +51,11 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
             }
             final item = provider.oneItemModel?.item;
             if (item == null) {
-              return const Center(child: Text('No item data available'));
+              return EmptyState(
+                icon: Icons.inventory_2_outlined,
+                title: 'No item data available',
+                subtitle: 'Add an asset to get started.',
+              );
             }
             return SingleChildScrollView(
               child: Padding(
@@ -73,7 +79,10 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                     Column(
                       spacing: 4,
                       children: [
-                        _buildInfoRow(title: 'Category : ', value: item.category),
+                        _buildInfoRow(
+                          title: 'Category : ',
+                          value: item.category,
+                        ),
                         _buildInfoRow(title: 'Brand : ', value: item.brand),
                         _buildInfoRow(title: 'Model : ', value: item.model),
                         _buildInfoRow(
@@ -83,7 +92,9 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                         _buildInfoRow(
                           title: 'Purchase Date : ',
                           value: item.purchaseDate.isNotEmpty
-                              ? DateFormat("yyyy-MM-dd").format(DateTime.parse(item.purchaseDate))
+                              ? DateFormat(
+                                  "yyyy-MM-dd",
+                                ).format(DateTime.parse(item.purchaseDate))
                               : 'N/A',
                         ),
                         _buildInfoRow(
@@ -105,10 +116,19 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                               : 'N/A',
                         ),
                         _buildInfoRow(title: 'Engine : ', value: item.engine),
-                        _buildInfoRow(title: 'Transmission : ', value: item.transmission),
-                        _buildInfoRow(title: 'Drivetrain : ', value: item.drivetrain),
+                        _buildInfoRow(
+                          title: 'Transmission : ',
+                          value: item.transmission,
+                        ),
+                        _buildInfoRow(
+                          title: 'Drivetrain : ',
+                          value: item.drivetrain,
+                        ),
                         if ((item.userNotes ?? '').isNotEmpty)
-                          _buildInfoRow(title: 'Notes : ', value: item.userNotes!),
+                          _buildInfoRow(
+                            title: 'Notes : ',
+                            value: item.userNotes!,
+                          ),
                       ],
                     ),
                     SizedBox(height: 12.h),
@@ -123,7 +143,10 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                         ),
                         child: Image.network(
                           ApiEndPoints.imagePath(
-                            item.imageUrl.replaceFirst("undefined/uploads/", ""),
+                            item.imageUrl.replaceFirst(
+                              "undefined/uploads/",
+                              "",
+                            ),
                           ),
                           width: double.infinity,
                           fit: BoxFit.cover,
@@ -131,11 +154,12 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                             if (loadingProgress == null) return child;
                             return Center(
                               child: CircularProgressIndicator(
-                                value: loadingProgress.expectedTotalBytes != null
+                                value:
+                                    loadingProgress.expectedTotalBytes != null
                                     ? loadingProgress.cumulativeBytesLoaded /
-                                    loadingProgress.expectedTotalBytes!
+                                          loadingProgress.expectedTotalBytes!
                                     : null,
-                                color: const Color(0xFF6359FF),
+                                color: AppColors.primaryColor,
                               ),
                             );
                           },
@@ -145,7 +169,7 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                             children: [
                               Icon(Icons.image_outlined, size: 30.h),
                               SizedBox(height: 12.h),
-                              Text('No Image Available!'),
+                              Text('No Image Available!', style: TextStyle(fontSize: 14.sp)),
                             ],
                           ),
                         ),
@@ -155,15 +179,20 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                     Consumer<ItemTaskListByItemIdProvider>(
                       builder: (_, prov, __) {
                         if (prov.taskListResponse?.tasks.isEmpty ?? true) {
-                          return _buildContainer(child: Text('No Upcoming Tasks found'));
+                          return _buildContainer(
+                            child: Text('No Upcoming Tasks found', style: TextStyle(fontSize: 14.sp)),
+                          );
                         }
                         return Column(
                           spacing: 12.h,
-                          children: List.generate(prov.taskListResponse?.tasks.length ?? 0, (index) {
-                            return UpcomingTaskCard(
-                              task: prov.taskListResponse!.tasks[index],
-                            );
-                          }),
+                          children: List.generate(
+                            prov.taskListResponse?.tasks.length ?? 0,
+                            (index) {
+                              return UpcomingTaskCard(
+                                task: prov.taskListResponse!.tasks[index],
+                              );
+                            },
+                          ),
                         );
                       },
                     ),
@@ -173,8 +202,9 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                     _buildContainer(
                       child: ForumSuggestionsCard(
                         response: provider.oneItemModel!,
-                        isPremium: userProvider.userResponse?.data.isPremium ?? false,
-                      )
+                        isPremium:
+                            userProvider.userResponse?.data.isPremium ?? false,
+                      ),
                     ),
                   ],
                 ),
@@ -197,15 +227,17 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
           ),
           const Divider(color: Colors.grey, thickness: 1.07),
           item.serviceIntervals.isEmpty
-              ? const Text('No service intervals available')
+              ? Text('No service intervals available', style: TextStyle(fontSize: 14.sp))
               : Column(
-            children: List.generate(item.serviceIntervals.length, (index) {
-              return _buildInfoRow(
-                title: "",
-                value: item.serviceIntervals[index],
-              );
-            }),
-          ),
+                  children: List.generate(item.serviceIntervals.length, (
+                    index,
+                  ) {
+                    return _buildInfoRow(
+                      title: "",
+                      value: item.serviceIntervals[index],
+                    );
+                  }),
+                ),
         ],
       ),
     );
@@ -221,7 +253,7 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
           style: TextStyle(
             fontWeight: FontWeight.w400,
             fontSize: 14.sp,
-            color: Colors.grey.shade700,
+            color: Colors.grey.shade800,
           ),
         ),
         Expanded(
@@ -230,7 +262,7 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
             style: TextStyle(
               fontWeight: FontWeight.w400,
               fontSize: 14.sp,
-              color: Colors.grey.shade700,
+              color: Colors.grey.shade800,
             ),
           ),
         ),
@@ -246,7 +278,7 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
         border: Border.all(color: Colors.grey.shade400),
         color: AppColors.cardColor,
       ),
-      child: Padding(padding: const EdgeInsets.all(16.0), child: child),
+      child: Padding(padding: EdgeInsets.all(16.w), child: child),
     );
   }
 }

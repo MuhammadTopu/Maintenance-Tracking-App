@@ -30,78 +30,80 @@ class AppRoutes {
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
       case RouteName.splash:
-        return _buildRoute(const SplashScreen());
+        return _buildRoute(const SplashScreen(), settings);
 
       case RouteName.login:
-        return _buildRoute(const LoginScreen());
+        return _buildRoute(const LoginScreen(), settings);
 
       case RouteName.signup:
-        return _buildRoute(const SignUpScreen());
+        return _buildRoute(const SignUpScreen(), settings);
 
       case RouteName.verifyEmailOtp:
-        return _buildRoute(const VerifyEmailOtpScreen());
+        return _buildRoute(const VerifyEmailOtpScreen(), settings);
 
       case RouteName.signupInfo:
-        return _buildRoute(const SignUpInfoScreen());
+        return _buildRoute(const SignUpInfoScreen(), settings);
 
       case RouteName.forgetPassword:
-        return _buildRoute(const ForgetPasswordScreen());
+        return _buildRoute(const ForgetPasswordScreen(), settings);
 
       case RouteName.resetPasswordOtp:
-        return _buildRoute(const ResetPassOtpScreen());
+        return _buildRoute(const ResetPassOtpScreen(), settings);
 
       case RouteName.resetPassword:
-        return _buildRoute(const SetPasswordScreen());
+        return _buildRoute(const SetPasswordScreen(), settings);
 
       case RouteName.parent:
-        return _buildRoute(const ParentScreen());
+        return _buildRoute(const ParentScreen(), settings);
 
       case RouteName.addItem:
-        return _buildRoute(AddItemScreen());
+        return _buildRoute(AddItemScreen(), settings);
 
       case RouteName.editProfile:
-        return _buildRoute(const EditProfile());
+        return _buildRoute(const EditProfile(), settings);
 
       case RouteName.security:
-        return _buildRoute(const Security());
+        return _buildRoute(const Security(), settings);
 
       case RouteName.about:
-        return _buildRoute(const About());
+        return _buildRoute(const About(), settings);
 
       case RouteName.faq:
-        return _buildRoute(const FrequentlyAskedQuestions());
+        return _buildRoute(const FrequentlyAskedQuestions(), settings);
 
       case RouteName.privacyPolicy:
-        return _buildRoute(const PrivacyPolicy());
+        return _buildRoute(const PrivacyPolicy(), settings);
 
       case RouteName.support:
-        return _buildRoute(const Support());
+        return _buildRoute(const Support(), settings);
 
       case RouteName.terms:
-        return _buildRoute(const TermsAndConditions());
+        return _buildRoute(const TermsAndConditions(), settings);
 
       case RouteName.supportNext:
-        return _buildRoute(const SupportNext());
+        return _buildRoute(const SupportNext(), settings);
 
       case RouteName.trackingDetail:
-        return _buildRoute(const TrackingDetailScreen());
+        return _buildRoute(const TrackingDetailScreen(), settings);
 
       case RouteName.itemDetails:
-        return _buildRoute(const ItemDetailsScreen());
+        return _buildRoute(const ItemDetailsScreen(), settings);
 
       case RouteName.itemAddQuestion:
-        return _buildRoute(const ItemAddQuestionScreen());
+        return _buildRoute(const ItemAddQuestionScreen(), settings);
 
       case RouteName.subscriptionScreen:
-        return _buildRoute(const SubscriptionScreen());
+        return _buildRoute(const SubscriptionScreen(), settings);
 
       default:
-        return _buildRoute(const UnknownRouteScreen());
+        return _buildRoute(UnknownRouteScreen(routeName: settings.name), settings);
     }
   }
 
-  static PageRouteBuilder _buildRoute(Widget page) {
+  static PageRouteBuilder _buildRoute(Widget page, RouteSettings settings) {
     return PageRouteBuilder(
+      settings: settings,
+
       pageBuilder: (context, animation, secondaryAnimation) => page,
 
       transitionDuration: const Duration(milliseconds: 350),

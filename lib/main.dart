@@ -43,7 +43,6 @@ Future<void> main() async {
 
   // Not awaited on purpose: a slow network must never delay app start.
   unawaited(subscriptionService.init());
-
   runApp(
     MultiProvider(
       providers: [
@@ -75,6 +74,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return ScreenUtilInit(
       designSize: const Size(375, 812),
+      rebuildFactor: RebuildFactors.none,
       minTextAdapt: true,
       splitScreenMode: true,
       builder: (_, __) {

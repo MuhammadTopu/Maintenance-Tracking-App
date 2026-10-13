@@ -47,7 +47,7 @@ class ForumSuggestionsCard extends StatelessWidget {
           },
           separatorBuilder: (context, index) =>
               Divider(height: 20.h, color: Colors.grey.shade300),
-        ) : const Text('No suggestions available'),
+        ) : Text('No suggestions available', style: TextStyle(fontSize: 14.sp)),
       ],
     );
   }

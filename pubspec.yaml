@@ -43,6 +43,7 @@ dependencies:
   firebase_messaging: ^16.5.0
   purchases_flutter: ^10.4.3
   purchases_ui_flutter: ^10.15.2
+  flutter_image_compress: ^2.5.1
 
 
 dev_dependencies:

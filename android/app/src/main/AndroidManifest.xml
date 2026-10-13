@@ -2,8 +2,8 @@
 
     <uses-permission android:name="android.permission.CAMERA"/>
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32"/>
+
+    <uses-feature android:name="android.hardware.camera" android:required="false"/>
 
     <application
         android:label="Maintenance Genie"
@@ -41,6 +41,10 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2"/>
+
+        <meta-data
+            android:name="io.flutter.embedding.android.EnableImpeller"
+            android:value="false" />
     </application>
 
     <queries>

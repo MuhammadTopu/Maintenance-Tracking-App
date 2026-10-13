@@ -1,9 +1,43 @@
 import 'dart:io';
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../core/helper/logger.dart';
 import '../../domain/base_repository/add_items_repository.dart';
-import '../../shared/app_toast.dart';
+
+class AddItemData {
+  final String name;
+  final String brand;
+  final String model;
+  final String category;
+  final DateTime purchaseDate;
+  final String yearOfModel;
+  final int? totalMileage;
+  final String? engine;
+  final String? transmission;
+  final String? drivetrain;
+  final int? currentMileage;
+  final int? averageMileagePerYear;
+  final String? userNotes;
+  final File? imageFile;
+
+  const AddItemData({
+    required this.name,
+    required this.brand,
+    required this.model,
+    required this.category,
+    required this.purchaseDate,
+    required this.yearOfModel,
+    this.totalMileage,
+    this.engine,
+    this.transmission,
+    this.drivetrain,
+    this.currentMileage,
+    this.averageMileagePerYear,
+    this.userNotes,
+    this.imageFile,
+  });
+}
 
 class AddItemProvider extends ChangeNotifier {
   final AddItemRepository _repository;
@@ -14,220 +48,60 @@ class AddItemProvider extends ChangeNotifier {
   bool isLoading = false;
   bool isModelLoading = false;
 
-  int currentStep = 0;
-
-  String? selectedCategory;
-  String? selectedModel;
-  String selectedBrand = 'Select';
-
-  DateTime? selectedDate;
-  DateTime? lastServiceDate;
-
-  String? name;
-  String? price;
-  String? issue;
-  String? yearOfModel;
-  int? totalMileage;
-
-  String? engine;
-  String? transmission;
-  String? drivetrain;
-  int? currentMileage;
-  int? averageMileagePerYear;
-  String? userNotes;
-
   String? lastAddedItemId;
-
-  File? imageFile;
-
   List<String> modelList = [];
 
-  final ImagePicker _picker = ImagePicker();
-
-  // ================= IMAGE =================
-  Future<void> pickImage(ImageSource source) async {
-    try {
-      final XFile? file = await _picker.pickImage(source: source);
-
-      if (file != null) {
-        imageFile = File(file.path);
-      } else {
-        imageFile = null;
-      }
-
-      notifyListeners();
-    } catch (_) {
-      imageFile = null;
-      notifyListeners();
-    }
-  }
+  String? _modelsRequestBrand;
 
   // ================= BRAND -> MODELS =================
   Future<void> getModels(String brand) async {
+    _modelsRequestBrand = brand;
     isModelLoading = true;
-
     modelList = [];
-    selectedModel = null;
-
     notifyListeners();
 
-    final result = await _repository.getModelsByBrand(brand);
+    List<String> result = [];
+    try {
+      result = await _repository.getModelsByBrand(brand);
+    } catch (e) {
+      Log.debug('getModels failed: $e');
+    }
+
+    if (_modelsRequestBrand != brand) return;
 
     modelList = result;
-
     isModelLoading = false;
     notifyListeners();
   }
 
-  // ================= SETTERS =================
-  void setCategory(String? value) {
-    selectedCategory = value;
-    notifyListeners();
-  }
-
-  void setModel(String? value) {
-    selectedModel = value;
-    notifyListeners();
-  }
-
-  void setBrand(String value) {
-    selectedBrand = value;
-    selectedModel = null;
-    modelList = [];
-    Log.debug('Selected brand: $value');
-    notifyListeners();
-  }
-
-  void setDate(DateTime? date) {
-    selectedDate = date;
-    notifyListeners();
-  }
-
-  void setLastServiceDate(DateTime? date) {
-    lastServiceDate = date;
-    notifyListeners();
-  }
-
-  void setName(String value) {
-    name = value;
-    notifyListeners();
-  }
-
-  void setPrice(String value) {
-    price = value;
-    notifyListeners();
-  }
-
-  void setIssue(String value) {
-    issue = value;
-    notifyListeners();
-  }
-
-  void setYearOfModel(String value) {
-    yearOfModel = value;
-    notifyListeners();
-  }
-
-  void setTotalMileage(String value) {
-    totalMileage = value.isEmpty ? null : int.tryParse(value);
-    notifyListeners();
-  }
-
-  void setEngine(String value) {
-    engine = value;
-    notifyListeners();
-  }
-
-  void setTransmission(String value) {
-    transmission = value;
-    notifyListeners();
-  }
-
-  void setDrivetrain(String value) {
-    drivetrain = value;
-    notifyListeners();
-  }
-
-  void setCurrentMileage(String value) {
-    currentMileage = value.isEmpty ? null : int.tryParse(value);
-    notifyListeners();
-  }
-
-  void setAverageMileagePerYear(String value) {
-    averageMileagePerYear = value.isEmpty ? null : int.tryParse(value);
-    notifyListeners();
-  }
-
-  void setUserNotes(String value) {
-    userNotes = value;
-    notifyListeners();
-  }
-
   // ================= ADD ITEM =================
-  Future<bool> addItem() async {
+  Future<bool> addItem(AddItemData data) async {
     isLoading = true;
     notifyListeners();
 
-    Log.debug('Adding item: $name');
+    Log.debug('Adding item: ${data.name}');
 
-    if (selectedCategory == null) {
-      AppToast.showToast('Please select a category', backgroundColor: Colors.red);
-      isLoading = false;
-      notifyListeners();
-      return false;
+    String? itemId;
+    try {
+      itemId = await _repository.addItem(
+        name: data.name,
+        brand: data.brand,
+        model: data.model,
+        category: data.category,
+        purchaseDate: data.purchaseDate.toIso8601String(),
+        totalMileage: data.totalMileage,
+        yearOfModel: data.yearOfModel,
+        imageFile: data.imageFile,
+        engine: data.engine,
+        transmission: data.transmission,
+        drivetrain: data.drivetrain,
+        currentMileage: data.currentMileage,
+        averageMileagePerYear: data.averageMileagePerYear,
+        userNotes: data.userNotes,
+      );
+    } catch (e) {
+      Log.debug('addItem failed: $e');
     }
-
-    if (name == null || name!.isEmpty) {
-      AppToast.showToast('Please enter an item name', backgroundColor: Colors.red);
-      isLoading = false;
-      notifyListeners();
-      return false;
-    }
-
-    if (selectedBrand == 'Select') {
-      AppToast.showToast('Please select a brand', backgroundColor: Colors.red);
-      isLoading = false;
-      notifyListeners();
-      return false;
-    }
-
-    if (selectedModel == null) {
-      AppToast.showToast('Please select a model', backgroundColor: Colors.red);
-      isLoading = false;
-      notifyListeners();
-      return false;
-    }
-
-    if (yearOfModel == null) {
-      AppToast.showToast('Please enter year of model', backgroundColor: Colors.red);
-      isLoading = false;
-      notifyListeners();
-      return false;
-    }
-
-    if (selectedDate == null) {
-      AppToast.showToast('Please select a purchase date', backgroundColor: Colors.red);
-      isLoading = false;
-      notifyListeners();
-      return false;
-    }
-
-    final itemId = await _repository.addItem(
-      name: name ?? '',
-      brand: selectedBrand,
-      model: selectedModel ?? '',
-      category: selectedCategory ?? '',
-      purchaseDate: selectedDate?.toIso8601String() ?? '',
-      totalMileage: totalMileage,
-      yearOfModel: yearOfModel ?? '',
-      imageFile: imageFile,
-      engine: engine,
-      transmission: transmission,
-      drivetrain: drivetrain,
-      currentMileage: currentMileage,
-      averageMileagePerYear: averageMileagePerYear,
-      userNotes: userNotes,
-    );
 
     Log.debug('Item added with id: $itemId');
 
@@ -240,28 +114,9 @@ class AddItemProvider extends ChangeNotifier {
 
   // ================= RESET =================
   void clearFields() {
-    currentStep = 0;
-    selectedCategory = null;
-    selectedModel = null;
-    selectedBrand = 'Select';
-    selectedDate = null;
-    lastServiceDate = null;
-
-    name = '';
-    price = '';
-    issue = '';
-    yearOfModel = null;
-    totalMileage = 0;
-
-    engine = null;
-    transmission = null;
-    drivetrain = null;
-    currentMileage = null;
-    averageMileagePerYear = null;
-    userNotes = null;
-
-    imageFile = null;
     modelList = [];
+    _modelsRequestBrand = null;
+    isModelLoading = false;
     notifyListeners();
   }
 

@@ -1,22 +1,10 @@
-import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:maintenance_genie/core/constants/app_colors.dart';
-import 'package:maintenance_genie/presentation/view_models/user_provider.dart';
-import 'package:maintenance_genie/shared/app_toast.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:provider/provider.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-
-import '../../../app/routes/route_names.dart';
-import '../../../shared/common_widgets.dart';
+import 'package:maintenance_genie/core/constants/app_colors.dart';
 import '../../../shared/custom_item_app_bar.dart';
-import '../../view_models/add_item_provider.dart';
-import '../../view_models/all_item_list_provider.dart';
-import 'widgets/custom_date_picker_field.dart';
-import 'widgets/custom_drop_down_field.dart';
-import 'widgets/custom_year_dropdown_field.dart';
-import 'widgets/show_item_added_dialog.dart';
+import 'tab_forms/home_form.dart';
+import 'tab_forms/other_form.dart';
+import 'tab_forms/vehicle_form.dart';
 
 class AddItemScreen extends StatefulWidget {
   const AddItemScreen({super.key});
@@ -25,519 +13,116 @@ class AddItemScreen extends StatefulWidget {
   State<AddItemScreen> createState() => _AddItemScreenState();
 }
 
-class _AddItemScreenState extends State<AddItemScreen> {
-  final List<String> categoryList = ['Select', 'Vehicle', 'Home', 'Custom'];
+class _AddItemScreenState extends State<AddItemScreen>
+    with SingleTickerProviderStateMixin {
+  static const List<String> _tabLabels = ['Vehicle', 'Home', 'Other'];
+  static const List<String> _categories = ['Vehicle', 'Home', 'Custom'];
 
-  final List<String> brandList = [
-    "Acura",
-    "Alfa Romeo",
-    "Aston Martin",
-    "Audi",
-    "BMW",
-    "Bentley",
-    "Bugatti",
-    "Buick",
-    "Cadillac",
-    "Chevrolet",
-    "Chrysler",
-    "Dodge",
-    "Ferrari",
-    "Fiat",
-    "Ford",
-    "Genesis",
-    "Honda",
-    "Hyundai",
-    "Infiniti",
-    "Jaguar",
-    "Jeep",
-    "Kia",
-    "Lamborghini",
-    "Land Rover",
-    "Lexus",
-    "Lincoln",
-    "Mazda",
-    "McLaren",
-    "Mercedes Benz",
-    "Mini",
-    "Mitsubishi",
-    "Nissan",
-    "Opel",
-    "Peugeot",
-    "Porsche",
-    "Ram",
-    "Renault",
-    "Rolls Royce",
-    "Saab",
-    "Subaru",
-    "Tesla",
-    "Toyota",
-    "Volkswagen",
-    "Volvo",
-  ];
+  late final TabController _tabController;
+  int _currentIndex = 0;
 
-  Future<bool> _requestCameraPermission(BuildContext context) async {
-    final status = await Permission.camera.status;
-
-    if (status.isGranted) return true;
-
-    final result = await Permission.camera.request();
-
-    if (result.isGranted) return true;
-
-    if (result.isPermanentlyDenied) {
-      await openAppSettings();
-    }
-
-    ScaffoldMessenger.of(context)
-      ..clearSnackBars()
-      ..showSnackBar(const SnackBar(content: Text("Camera permission denied")));
-
-    return false;
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: _tabLabels.length, vsync: this)
+      ..addListener(_onTabChanged);
   }
 
-  void _showSnack(BuildContext context, String msg) {
-    ScaffoldMessenger.of(context)
-      ..clearSnackBars()
-      ..showSnackBar(SnackBar(content: Text(msg)));
+  void _onTabChanged() {
+    if (_tabController.index == _currentIndex) return;
+    setState(() => _currentIndex = _tabController.index);
   }
-
-  final TextEditingController nameController = TextEditingController();
-  final TextEditingController brandController = TextEditingController();
-  final TextEditingController modelController = TextEditingController();
-  final TextEditingController yearController = TextEditingController();
-  final TextEditingController mileageController = TextEditingController();
-  final TextEditingController engineController = TextEditingController();
-  final TextEditingController transmissionController = TextEditingController();
-  final TextEditingController drivetrainController = TextEditingController();
-  final TextEditingController currentMileageController = TextEditingController();
-  final TextEditingController averageMileagePerYearController = TextEditingController();
-  final TextEditingController userNotesController = TextEditingController();
 
   @override
   void dispose() {
-    nameController.dispose();
-    brandController.dispose();
-    modelController.dispose();
-    yearController.dispose();
-    mileageController.dispose();
-    engineController.dispose();
-    transmissionController.dispose();
-    drivetrainController.dispose();
-    currentMileageController.dispose();
-    averageMileagePerYearController.dispose();
-    userNotesController.dispose();
+    _tabController
+      ..removeListener(_onTabChanged)
+      ..dispose();
     super.dispose();
-  }
-
-  void clear() {
-    nameController.clear();
-    brandController.clear();
-    modelController.clear();
-    yearController.clear();
-    mileageController.clear();
-    engineController.clear();
-    transmissionController.clear();
-    drivetrainController.clear();
-    currentMileageController.clear();
-    averageMileagePerYearController.clear();
-    userNotesController.clear();
   }
 
   @override
   Widget build(BuildContext context) {
-    final provider = context.read<AddItemProvider>();
-
     return Scaffold(
       backgroundColor: const Color(0xffFFFFFF),
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: EdgeInsets.all(16.w),
-            child: Column(
-              children: [
-                CustomItemAppBar(
-                  title: 'Add Asset',
-                  onTap: () => Navigator.pop(context),
+        child: Padding(
+          padding: EdgeInsets.all(16.w),
+          child: Column(
+            children: [
+              CustomItemAppBar(
+                title: 'Add Asset',
+                onTap: () => Navigator.pop(context),
+              ),
+
+              SizedBox(height: 20.h),
+
+              /// TAB BAR
+              Container(
+                width: double.infinity,
+                height: 42.h,
+                padding: EdgeInsets.symmetric(horizontal: 2.5.w),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(30.r),
+                  color: Colors.white,
+                  border: Border.all(color: AppColors.primaryColor, width: 1),
                 ),
+                child: TabBar(
+                  controller: _tabController,
+                  indicatorColor: Colors.transparent,
+                  labelPadding: EdgeInsets.zero,
+                  indicatorPadding: EdgeInsets.zero,
+                  indicatorSize: TabBarIndicatorSize.tab,
+                  indicatorWeight: 0.1,
+                  dividerColor: Colors.transparent,
+                  tabs: List.generate(
+                    _tabLabels.length,
+                        (i) => Tab(
+                      height: 36.h,
+                      child: _buildTab(_tabLabels[i], _currentIndex == i),
+                    ),
+                  ),
+                ),
+              ),
 
-                SizedBox(height: 20.h),
+              SizedBox(height: 20.h),
 
-                /// CATEGORY + NAME
-                Row(
+              /// TAB CONTENT
+              Expanded(
+                child: TabBarView(
+                  controller: _tabController,
                   children: [
-                    Expanded(
-                      child: CustomPopupDropdown(
-                        title: 'Category',
-                        hint: 'Select',
-                        value: context
-                            .watch<AddItemProvider>()
-                            .selectedCategory,
-                        items: categoryList,
-                        onChanged: provider.setCategory,
-                      ),
-                    ),
-                    SizedBox(width: 10.w),
-                    Expanded(
-                      child: _buildTextField(
-                        title: 'Name',
-                        hint: 'Name',
-                        controller: nameController,
-                        onChanged: provider.setName,
-                      ),
-                    ),
+                    VehicleForm(category: _categories[0]),
+                    HomeForm(category: _categories[1]),
+                    OtherForm(category: _categories[2]),
                   ],
                 ),
-
-                SizedBox(height: 20.h),
-
-                /// BRAND + MODEL
-                Consumer<AddItemProvider>(
-                  builder: (_, pr, __) {
-                    return Row(
-                      children: [
-                        Expanded(
-                          child: pr.selectedCategory == 'Vehicle'
-                              ? CustomPopupDropdown(
-                                  title: 'Make',
-                                  hint: 'Select',
-                                  value: pr.selectedBrand,
-                                  items: brandList,
-                                  onChanged: (value) async {
-                                    provider.setBrand(value);
-                                    await provider.getModels(value);
-                                  },
-                                )
-                              : _buildTextField(
-                                  title: 'Make',
-                                  hint: 'Make',
-                                  controller: brandController,
-                                  onChanged: provider.setBrand,
-                                ),
-                        ),
-                        SizedBox(width: 10.w),
-                        Expanded(
-                          child: pr.selectedCategory == 'Vehicle'
-                              ? IgnorePointer(
-                                  ignoring: pr.isModelLoading,
-                                  child: Opacity(
-                                    opacity: pr.isModelLoading ? 0.5 : 1.0,
-                                    child: CustomPopupDropdown(
-                                      title: 'Model',
-                                      hint: pr.isModelLoading
-                                          ? 'Loading...'
-                                          : 'Select',
-                                      value: pr.selectedModel,
-                                      items: pr.modelList,
-                                      onChanged: pr.setModel,
-                                    ),
-                                  ),
-                                )
-                              : _buildTextField(
-                                  title: 'Model',
-                                  hint: 'Model',
-                                  controller: modelController,
-                                  onChanged: provider.setModel,
-                                ),
-                        ),
-                      ],
-                    );
-                  },
-                ),
-
-                SizedBox(height: 20.h),
-
-                /// YEAR
-                Consumer<AddItemProvider>(
-                  builder: (_, pro, _) {
-                    return YearDropdownField(
-                      title: 'Year of the model',
-                      hint: 'Select',
-                      selectedYear: pro.yearOfModel,
-                      onChanged: provider.setYearOfModel,
-                    );
-                  },
-                ),
-
-                SizedBox(height: 20.h),
-
-                /// DATE + MILEAGE
-                Row(
-                  children: [
-                    Expanded(
-                      child: CustomDatePickerField(
-                        context: context,
-                        title: 'Purchase Date',
-                        hint: 'Select',
-                        selectedDate: context
-                            .watch<AddItemProvider>()
-                            .selectedDate,
-                        onDatePicked: provider.setDate,
-                      ),
-                    ),
-                    SizedBox(width: 10.h),
-                    Expanded(
-                      child: _buildTextField(
-                        title: 'Total Mileage',
-                        hint: 'Number',
-                        controller: mileageController,
-                        onChanged: provider.setTotalMileage,
-                        keyboardType: TextInputType.number,
-                      ),
-                    ),
-                  ],
-                ),
-
-                SizedBox(height: 20.h),
-
-                /// IMAGE SECTION
-                Consumer<AddItemProvider>(
-                  builder: (_, pr, _) {
-                    return SizedBox(
-                      height: 260.h,
-                      child: DottedBorder(
-                        color: Colors.grey,
-                        strokeWidth: 1,
-                        dashPattern: const [5, 8],
-                        child: Padding(
-                          padding: EdgeInsets.all(20.w),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              pr.imageFile != null
-                                  ? Expanded(
-                                      child: Image.file(
-                                        pr.imageFile!,
-                                        fit: BoxFit.contain,
-                                      ),
-                                    )
-                                  : const Icon(
-                                      Icons.image,
-                                      size: 50,
-                                      color: Colors.grey,
-                                    ),
-
-                              SizedBox(height: 10.h),
-
-                              const Text(
-                                '(File Supported .png .jpg .webp)',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey,
-                                ),
-                              ),
-
-                              SizedBox(height: 20.h),
-
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  _imageButton(
-                                    context,
-                                    label: "Take Picture",
-                                    onTap: () async {
-                                      final ok = await _requestCameraPermission(
-                                        context,
-                                      );
-                                      if (!ok) return;
-
-                                      await pr.pickImage(ImageSource.camera);
-                                      AppToast.showToast(
-                                        pr.imageFile != null
-                                            ? "Image selected"
-                                            : "No image selected",
-                                      );
-                                    },
-                                  ),
-                                  SizedBox(width: 10.w),
-                                  _imageButton(
-                                    context,
-                                    label: "Upload Picture",
-                                    onTap: () async {
-                                      await pr.pickImage(ImageSource.gallery);
-                                      AppToast.showToast(
-                                        pr.imageFile != null
-                                            ? "Image selected"
-                                            : "No image selected",
-                                      );
-                                    },
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-
-                SizedBox(height: 20.h),
-                _buildTextField(
-                  title: 'Engine',
-                  hint: 'e.g. 2.5L 4-Cylinder',
-                  controller: engineController,
-                  onChanged: provider.setEngine,
-                ),
-                SizedBox(height: 20.h),
-
-                /// ENGINE + TRANSMISSION
-                _buildTextField(
-                  title: 'Transmission',
-                  hint: 'e.g. 8-Speed Automatic',
-                  controller: transmissionController,
-                  onChanged: provider.setTransmission,
-                ),
-
-                SizedBox(height: 20.h),
-                _buildTextField(
-                  title: 'Drivetrain',
-                  hint: 'e.g. FWD',
-                  controller: drivetrainController,
-                  onChanged: provider.setDrivetrain,
-                ),
-                SizedBox(height: 20.h),
-
-                /// DRIVETRAIN + CURRENT MILEAGE
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildTextField(
-                        title: 'Current Mileage',
-                        hint: 'Number',
-                        controller: currentMileageController,
-                        onChanged: provider.setCurrentMileage,
-                        keyboardType: TextInputType.number,
-                      ),
-                    ),
-                    SizedBox(width: 10.w),
-                    Expanded(
-                      child:  _buildTextField(
-                        title: 'Average Mileage Per Year',
-                        hint: 'Number',
-                        controller: averageMileagePerYearController,
-                        onChanged: provider.setAverageMileagePerYear,
-                        keyboardType: TextInputType.number,
-                      ),
-                    ),
-                  ],
-                ),
-
-                SizedBox(height: 20.h),
-
-                /// USER NOTES
-                _buildTextField(
-                  title: 'User Notes',
-                  hint: 'e.g. Regular maintenance, no major issues...',
-                  controller: userNotesController,
-                  onChanged: provider.setUserNotes,
-                  maxLines: 4,
-                ),
-
-                SizedBox(height: 20.h),
-
-                /// SUBMIT BUTTON
-                Consumer<AddItemProvider>(
-                  builder: (ctx, provider, _) {
-                    return Visibility(
-                      visible: !provider.isLoading,
-                      replacement: Center(
-                        child: CircularProgressIndicator(
-                          color: AppColors.primaryColor,
-                        ),
-                      ),
-                      child: SizedBox(
-                        width: double.infinity,
-                        child: PrimaryButton(
-                          text: 'Add Asset',
-                          onPressed: () async {
-                            if (ctx.read<UserProvider>().userResponse?.data.isPremium == true) {
-                              Navigator.pushNamed(context, RouteName.itemAddQuestion);
-                            } else {
-                              final res = await provider.addItem();
-                              if (res) {
-                                final newItemId = provider.lastAddedItemId;
-                                ctx.read<AllItemListProvider>().getAllItem();
-                                showDialog(
-                                  context: context,
-                                  barrierDismissible: false,
-                                  builder: (_) => ItemAddedDialog(
-                                    onDone: () => Navigator.popAndPushNamed(context, RouteName.parent),
-                                    isPremium: false,
-                                  ),
-                                );
-                                provider.clearFields();
-                              } else {
-                                AppToast.showToast('Something went wrong');
-                              }
-                            }
-                          },
-                        ),
-                      ),
-                    );
-                  }
-                ),
-
-                SizedBox(height: 40.h),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 
-  Widget _buildTextField({
-    required String title,
-    required String hint,
-    required TextEditingController controller,
-    required Function(String) onChanged,
-    TextInputType? keyboardType,
-    int? maxLines = 1,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(title),
-        TextField(
-          controller: controller,
-          onChanged: onChanged,
-          keyboardType: keyboardType,
-          maxLines: maxLines,
-          decoration: InputDecoration(
-            hintText: hint,
-            border: OutlineInputBorder(
-              borderSide: const BorderSide(color: Color(0xff9e9e9e)),
-              borderRadius: BorderRadius.circular(10.r),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderSide: const BorderSide(color: Color(0xff9e9e9e)),
-              borderRadius: BorderRadius.circular(10.r),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderSide: const BorderSide(color: Color(0xff9e9e9e)),
-              borderRadius: BorderRadius.circular(10.r),
-            ),
-            errorStyle: const TextStyle(fontSize: 12, color: Colors.red),
-          ),
+  Widget _buildTab(String title, bool isSelected) {
+    return Container(
+      width: double.infinity,
+      height: 36.h,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: isSelected ? AppColors.primaryColor : Colors.white,
+        borderRadius: BorderRadius.circular(30.r),
+      ),
+      padding: EdgeInsets.all(4.w),
+      child: Text(
+        title,
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          color: isSelected ? Colors.white : const Color(0xff4A4C56),
+          fontWeight: FontWeight.w600,
+          fontSize: 14.sp,
         ),
-      ],
-    );
-  }
-
-  Widget _imageButton(
-    BuildContext context, {
-    required String label,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 7.h),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(99.r),
-          border: Border.all(color: const Color(0xffE9E9EA)),
-        ),
-        child: Text(label),
       ),
     );
   }

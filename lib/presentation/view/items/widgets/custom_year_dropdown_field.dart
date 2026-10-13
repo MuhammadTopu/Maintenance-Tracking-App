@@ -119,7 +119,8 @@ class YearDropdownField extends StatelessWidget {
           onTap: () => _openYearPicker(context),
           child: Container(
             width: double.infinity,
-            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 14.h),
+            height: 46.h,
+            padding: EdgeInsets.symmetric(horizontal: 12.w),
             decoration: BoxDecoration(
               border: Border.all(color: const Color(0xff9e9e9e)),
               borderRadius: BorderRadius.circular(10.r),
@@ -130,7 +131,7 @@ class YearDropdownField extends StatelessWidget {
                 Text(
                   selectedYear ?? hint,
                   style: TextStyle(
-                    color: selectedYear == null ? Colors.grey : Colors.black,
+                    color: selectedYear == null ? const Color(0xffA5A5AB) : Colors.black,
                     fontSize: 14.sp,
                   ),
                 ),

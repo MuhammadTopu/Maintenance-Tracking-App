@@ -87,12 +87,12 @@ class _LoginScreenState extends State<LoginScreen> {
       backgroundColor: const Color(0xffFFFFFF),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
+          padding: EdgeInsets.symmetric(horizontal: 16.w),
           child: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 40),
+                SizedBox(height: 40.h),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
@@ -101,63 +101,63 @@ class _LoginScreenState extends State<LoginScreen> {
                       width: 60.w,
                       child: Image.asset("assets/icons/app_logo.png"),
                     ),
-                    const SizedBox(width: 8),
-                    const Text(
+                    SizedBox(width: 8.w),
+                    Text(
                       "Maintenance\nGenie",
                       style: TextStyle(
                         color: Color(0xff023455),
-                        fontSize: 26,
+                        fontSize: 24.sp,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 18),
+                SizedBox(height: 18.h),
 
-                const Text(
+                Text(
                   "Log in to Your Account",
                   style: TextStyle(
                     color: Color(0xff1D1F2C),
-                    fontSize: 20,
+                    fontSize: 18.sp,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                const SizedBox(height: 8),
-                const Text(
+                SizedBox(height: 8.h),
+                Text(
                   "Enter your email and password to log in\nto your account",
                   style: TextStyle(
                     color: Color(0xff4A4C56),
                     fontWeight: FontWeight.w400,
-                    fontSize: 14,
+                    fontSize: 13.sp,
                   ),
                 ),
-                const SizedBox(height: 20),
+                SizedBox(height: 20.h),
 
-                const Text(
+                Text(
                   "Email",
                   style: TextStyle(
                     color: Color(0xff1D1F2C),
                     fontWeight: FontWeight.w400,
-                    fontSize: 14,
+                    fontSize: 14.sp,
                   ),
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: 8.h),
                 CustomTextField(
                   controller: _emailController,
                   hintText: "Enter your email",
                   keyboardType: TextInputType.emailAddress,
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16.h),
 
-                const Text(
+                Text(
                   "Password",
                   style: TextStyle(
                     color: Color(0xff1D1F2C),
                     fontWeight: FontWeight.w400,
-                    fontSize: 14,
+                    fontSize: 14.sp,
                   ),
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: 8.h),
                 CustomTextField(
                   controller: _passwordController,
                   hintText: "Enter your password",
@@ -173,7 +173,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 20),
+                SizedBox(height: 20.h),
 
                 Align(
                   alignment: Alignment.centerRight,
@@ -181,17 +181,17 @@ class _LoginScreenState extends State<LoginScreen> {
                     onTap: () {
                       Navigator.pushNamed(context, RouteName.forgetPassword);
                     },
-                    child: const Text(
+                    child: Text(
                       "Forgot Password?",
                       style: TextStyle(
                         color: Colors.red,
                         fontWeight: FontWeight.w400,
-                        fontSize: 14,
+                        fontSize: 14.sp,
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(height: 40),
+                SizedBox(height: 40.h),
 
                 Consumer<LoginProvider>(
                   builder: (_, provider, _) {
@@ -207,16 +207,16 @@ class _LoginScreenState extends State<LoginScreen> {
                   },
                 ),
 
-                const SizedBox(height: 32),
+                SizedBox(height: 32.sp),
 
                 Align(
                   alignment: Alignment.center,
                   child: RichText(
                     text: TextSpan(
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: Color(0xff1D1F2C),
                         fontWeight: FontWeight.w400,
-                        fontSize: 16,
+                        fontSize: 16.sp,
                       ),
                       children: [
                         const TextSpan(text: "Don't have an account? "),

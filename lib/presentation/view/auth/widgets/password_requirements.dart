@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class PasswordRequirement extends StatelessWidget {
   final String text;
@@ -16,15 +17,15 @@ class PasswordRequirement extends StatelessWidget {
       children: [
         Icon(
           Icons.check_circle,
-          size: 18,
+          size: 18.w,
           color: isValid ? Colors.green : Colors.red,
         ),
-        const SizedBox(width: 10),
+        SizedBox(width: 10.w),
         Text(
           text,
           style: TextStyle(
             color: isValid ? Colors.green : Colors.red,
-            fontSize: 14,
+            fontSize: 14.sp,
           ),
         ),
       ],

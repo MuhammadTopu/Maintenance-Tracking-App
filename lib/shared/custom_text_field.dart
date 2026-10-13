@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class CustomTextField extends StatelessWidget {
+  final String? title;
   final String? hintText;
   final String? labelText;
   final TextInputType keyboardType;
@@ -15,9 +16,12 @@ class CustomTextField extends StatelessWidget {
   final String? Function(String?)? validator;
   final FocusNode? focusNode;
   final VoidCallback? onSuffixIconPressed;
+  final int? maxLines;
+  final double? borderRadius;
 
   const CustomTextField({
     super.key,
+    this.title,
     this.hintText,
     this.labelText,
     this.keyboardType = TextInputType.text,
@@ -28,44 +32,71 @@ class CustomTextField extends StatelessWidget {
     this.onChanged,
     this.inputFormatters,
     this.validator,
-    this.focusNode, this.onSuffixIconPressed,
+    this.focusNode,
+    this.onSuffixIconPressed,
+    this.maxLines = 1,
+    this.borderRadius,
   });
+
+  static const _hintStyle = TextStyle(color: Color(0xffA5A5AB));
+  static const _errorStyle = TextStyle(fontSize: 12, color: Colors.red);
+  static const _borderSide = BorderSide(color: Color(0xff9e9e9e));
 
   @override
   Widget build(BuildContext context) {
-    return TextFormField(
-      controller: controller,
-      obscureText: obscureText,
-      keyboardType: keyboardType,
-      onChanged: onChanged,
-      inputFormatters: inputFormatters,
-      validator: validator,
-      focusNode: focusNode,
-      decoration: InputDecoration(
-        hintText: hintText,
-        hintStyle: const TextStyle(color: Color(0xffA5A5AB)),
-        labelText: labelText,
-        prefixIcon: prefixIcon,
-        filled: true,
-        fillColor: Colors.white,
-        suffixIcon: suffixIcon,
-        border: OutlineInputBorder(
-          borderSide: const BorderSide(color: Color(0xff9e9e9e)),
-          borderRadius: BorderRadius.circular(4.r),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderSide: const BorderSide(color: Color(0xff9e9e9e)),
-          borderRadius: BorderRadius.circular(4.r),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderSide: const BorderSide(color: Color(0xff9e9e9e)),
-          borderRadius: BorderRadius.circular(4.r),
-        ),
-        errorStyle: const TextStyle(
-          fontSize: 12,
-          color: Colors.red,
-        ),
-      ),
+    final border = OutlineInputBorder(
+      borderSide: _borderSide,
+      borderRadius: BorderRadius.circular(borderRadius ?? 10.r),
+    );
+
+    final decoration = InputDecoration(
+      hintText: hintText,
+      hintStyle: _hintStyle,
+      labelText: labelText,
+      prefixIcon: prefixIcon,
+      suffixIcon: suffixIcon,
+      filled: true,
+      fillColor: Colors.white,
+      border: border,
+      enabledBorder: border,
+      focusedBorder: border,
+      errorStyle: _errorStyle,
+    );
+
+    final int? lines = obscureText ? 1 : maxLines;
+
+    final Widget field = validator == null
+        ? TextField(
+            controller: controller,
+            obscureText: obscureText,
+            keyboardType: keyboardType,
+            onChanged: onChanged,
+            inputFormatters: inputFormatters,
+            focusNode: focusNode,
+            maxLines: lines,
+            decoration: decoration,
+          )
+        : TextFormField(
+            controller: controller,
+            obscureText: obscureText,
+            keyboardType: keyboardType,
+            onChanged: onChanged,
+            inputFormatters: inputFormatters,
+            validator: validator,
+            focusNode: focusNode,
+            maxLines: lines,
+            decoration: decoration,
+          );
+
+    if (title == null) return field;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(title!),
+        SizedBox(height: 4.h),
+        field,
+      ],
     );
   }
 }

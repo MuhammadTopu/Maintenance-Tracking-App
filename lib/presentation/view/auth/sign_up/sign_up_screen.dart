@@ -61,11 +61,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
       backgroundColor: Color(0xffFFFFFF),
       body: SafeArea(
         child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 20),
+          padding: EdgeInsets.symmetric(horizontal: 16.w),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(height: 40),
+              SizedBox(height: 40.h),
               Row(
                 children: [
                   SizedBox(
@@ -73,37 +73,37 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     width: 60.w,
                     child: Image.asset("assets/icons/app_logo.png"),
                   ),
-                  SizedBox(width: 8),
+                  SizedBox(width: 8.w),
                   Text(
                     "Maintenance\nGenie",
                     style: TextStyle(
                       color: Color(0xff023455),
-                      fontSize: 26,
+                      fontSize: 24.sp,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                   Spacer(),
                 ],
               ),
-              SizedBox(height: 18),
+              SizedBox(height: 18.h),
               Text(
                 "Create Your Account",
                 style: TextStyle(
                   color: Color(0xff1D1F2C),
-                  fontSize: 20,
+                  fontSize: 18.sp,
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              SizedBox(height: 20),
+              SizedBox(height: 20.h),
               Text(
                 "Email",
                 style: TextStyle(
                   color: Color(0xff1D1F2C),
                   fontWeight: FontWeight.w400,
-                  fontSize: 14,
+                  fontSize: 14.sp,
                 ),
               ),
-              SizedBox(height: 8),
+              SizedBox(height: 8.h),
               CustomTextField(
                 controller: emailController,
                 hintText: "Enter your email",
@@ -119,7 +119,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 },
                 focusNode: _focusNode,
               ),
-              SizedBox(height: 20),
+              SizedBox(height: 20.h),
               SizedBox(
                 width: MediaQuery.of(context).size.width * 0.9,
                 child: Consumer<SignUpProvider>(
@@ -135,7 +135,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   }
                 ),
               ),
-              SizedBox(height: 12),
+              SizedBox(height: 12.h),
               Row(
                 mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -154,7 +154,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       style: TextStyle(
                         color: Color(0xff1D1F2C),
                         fontWeight: FontWeight.w400,
-                        fontSize: 16,
+                        fontSize: 16.sp,
                       ),
                     ),
                   ),

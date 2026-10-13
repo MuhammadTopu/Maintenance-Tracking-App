@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-class CustomPopupDropdown extends StatelessWidget {
+class CustomPopupDropdown extends StatefulWidget {
   final String title;
   final String? value;
   final List<String> items;
   final String hint;
   final ValueChanged<String> onChanged;
+  final VoidCallback? onDisabledTap;
 
   const CustomPopupDropdown({
     super.key,
@@ -15,62 +16,73 @@ class CustomPopupDropdown extends StatelessWidget {
     required this.value,
     required this.hint,
     required this.onChanged,
+    this.onDisabledTap,
   });
 
-  void _showPopupMenu(BuildContext context, GlobalKey key) async {
-    final RenderBox renderBox =
-    key.currentContext!.findRenderObject() as RenderBox;
-    final Offset offset = renderBox.localToGlobal(Offset.zero);
-    final Size size = renderBox.size;
+  @override
+  State<CustomPopupDropdown> createState() => _CustomPopupDropdownState();
+}
+
+class _CustomPopupDropdownState extends State<CustomPopupDropdown> {
+  final GlobalKey _popupKey = GlobalKey();
+
+  Future<void> _showPopupMenu() async {
+    final box = _popupKey.currentContext!.findRenderObject() as RenderBox;
+    final offset = box.localToGlobal(Offset.zero);
+    final size = box.size;
 
     final selected = await showMenu<String>(
       context: context,
-      constraints: BoxConstraints(
-        maxHeight: 500,
-        minHeight: 170,
-      ),
+      constraints: const BoxConstraints(maxHeight: 500, minHeight: 170, minWidth: 150, maxWidth: 200),
       position: RelativeRect.fromLTRB(
         offset.dx,
         offset.dy + size.height + 4,
         offset.dx + size.width,
         offset.dy,
       ),
-      items:
-      items.map((item) {
-        return PopupMenuItem<String>(value: item, child: Text(item));
-      }).toList(),
+      items: widget.items
+          .map((i) => PopupMenuItem<String>(value: i, child: Text(i)))
+          .toList(),
       color: Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
     );
 
-    if (selected != null && selected != value) {
-      onChanged(selected);
+    if (selected != null && selected != widget.value) {
+      widget.onChanged(selected);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final GlobalKey popupKey = GlobalKey();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title),
+        Text(widget.title),
+        SizedBox(height: 4.h),
         GestureDetector(
-          key: popupKey,
-          onTap: () => _showPopupMenu(context, popupKey),
+          key: _popupKey,
+          onTap: () {
+            if (widget.onDisabledTap != null) {
+              widget.onDisabledTap!();
+              return;
+            }
+            _showPopupMenu();
+          },
           child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 14.w),
+            height: 46.h,
+            padding: EdgeInsets.symmetric(horizontal: 12.w),
             decoration: BoxDecoration(
               border: Border.all(color: Colors.grey),
-              borderRadius: BorderRadius.circular(12.r),
+              borderRadius: BorderRadius.circular(10.r),
             ),
             child: Row(
               children: [
                 Expanded(
                   child: Text(
-                    value ?? hint,
+                    widget.value ?? widget.hint,
+                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      color: value == null ? Colors.grey : Colors.black,
+                      color: widget.value == null ? Colors.grey : Colors.black,
                       fontSize: 14.sp,
                     ),
                   ),

@@ -122,13 +122,23 @@ class _ItemsMenuScreenState extends State<ItemsMenuScreen> {
                         length: 4,
                         child: Column(
                           children: [
-                            const TabBar(
+                            TabBar(
                               tabAlignment: TabAlignment.center,
-                              labelColor: Colors.teal,
+                              labelColor: AppColors.primaryColor,
                               unselectedLabelColor: Colors.black,
-                              indicatorColor: Colors.teal,
+                              indicatorColor: AppColors.primaryColor,
                               indicatorSize: TabBarIndicatorSize.tab,
-                              indicatorWeight: 1,
+                              indicatorWeight: 1.5,
+                              splashFactory: NoSplash.splashFactory,
+                              overlayColor: WidgetStateProperty.all(Colors.transparent),
+                              labelStyle: TextStyle(
+                                fontSize: 13.sp,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              unselectedLabelStyle: TextStyle(
+                                fontSize: 13.sp,
+                                fontWeight: FontWeight.w400,
+                              ),
                               tabs: [
                                 Tab(text: 'All'),
                                 Tab(text: 'Vehicle'),
@@ -195,54 +205,72 @@ class _ItemsMenuScreenState extends State<ItemsMenuScreen> {
         borderRadius: BorderRadius.circular(12.r),
         child: LayoutBuilder(
           builder: (context, constraints) {
-            final double columnSpacing = 0;
-            final double availableWidth = constraints.maxWidth;
-            final double columnWidth = availableWidth / columnCount;
+            final double columnWidth = constraints.maxWidth / columnCount;
 
-            Widget cellText(String text) {
+            // short vertical line, not touching the row's top/bottom
+            Widget divider(double height) => Container(
+              width: 1,
+              height: height,
+              color: Colors.grey.shade300,
+            );
+
+            Widget cell(Widget child, int col, double dividerHeight) {
+              final isLast = col == columnCount - 1;
               return SizedBox(
                 width: columnWidth,
-                child: Text(
-                  text,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 12.w),
+                        child: child,
+                      ),
+                    ),
+                    if (!isLast) divider(dividerHeight),
+                  ],
                 ),
               );
             }
 
-            Widget headerText(String text) {
-              return SizedBox(
-                width: columnWidth,
-                child: Text(
-                  text,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontWeight: FontWeight.w400,
-                    fontSize: 12.sp,
-                    color: Colors.grey.shade700,
-                  ),
+            Widget cellText(String text, int col) => cell(
+              Text(text, maxLines: 2, overflow: TextOverflow.ellipsis),
+              col,
+              28.h, // divider height in data rows
+            );
+
+            Widget headerText(String text, int col) => cell(
+              Text(
+                text,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontWeight: FontWeight.w400,
+                  fontSize: 12.sp,
+                  color: Colors.grey.shade700,
                 ),
-              );
-            }
+              ),
+              col,
+              20.h, // divider height in the header
+            );
 
             return SingleChildScrollView(
               child: SizedBox(
                 width: constraints.maxWidth,
                 child: DataTable(
                   showCheckboxColumn: false,
-                  dataRowMinHeight: 56,
-                  dataRowMaxHeight: 72,
-                  columnSpacing: columnSpacing,
+                  horizontalMargin: 0,
+                  columnSpacing: 0,
+                  dataRowMinHeight: 56.h,
+                  dataRowMaxHeight: 72.h,
                   headingRowColor: WidgetStateProperty.all(Colors.grey.shade50),
                   dataRowColor: WidgetStateProperty.resolveWith<Color?>(
-                        (Set<WidgetState> states) => Colors.white,
+                        (states) => Colors.white,
                   ),
                   columns: [
-                    DataColumn(label: headerText('Category')),
-                    DataColumn(label: headerText('Make')),
-                    DataColumn(label: headerText('Model')),
-                    DataColumn(label: headerText('Name')),
+                    DataColumn(label: headerText('Category', 0)),
+                    DataColumn(label: headerText('Make', 1)),
+                    DataColumn(label: headerText('Model', 2)),
+                    DataColumn(label: headerText('Name', 3)),
                   ],
                   rows: data.map((item) {
                     return DataRow(
@@ -261,10 +289,10 @@ class _ItemsMenuScreenState extends State<ItemsMenuScreen> {
                         }
                       },
                       cells: [
-                        DataCell(cellText(item.category)),
-                        DataCell(cellText(item.brand)),
-                        DataCell(cellText(item.model)),
-                        DataCell(cellText(item.name)),
+                        DataCell(cellText(item.category, 0)),
+                        DataCell(cellText(item.brand, 1)),
+                        DataCell(cellText(item.model, 2)),
+                        DataCell(cellText(item.name, 3)),
                       ],
                     );
                   }).toList(),

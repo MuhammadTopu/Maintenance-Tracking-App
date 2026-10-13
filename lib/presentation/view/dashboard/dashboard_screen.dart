@@ -9,6 +9,7 @@ import 'package:redacted/redacted.dart';
 import '../../../app/routes/route_names.dart';
 import '../../../shared/custom_app_bar.dart';
 import '../../../shared/custom_task_card.dart';
+import '../../../shared/empty_state_widget.dart';
 import '../../../shared/shimmer_skeletons.dart';
 import '../../view_models/item_task_list_by_item_id_provider.dart';
 import '../../view_models/item_task_list_provider.dart';
@@ -201,8 +202,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       Consumer<ItemTaskListProvider>(
                         builder: (_, taskListProvider, _) {
                           final isLoading = taskListProvider.loading;
-                          final tasks =
-                              taskListProvider.taskListResponse?.tasks;
+                          final tasks = taskListProvider.taskListResponse?.tasks;
 
                           if (isLoading) {
                             return ListView.builder(
@@ -215,27 +215,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           }
 
                           if (tasks == null || tasks.isEmpty) {
-                            return Center(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  SizedBox(height: 160.h),
-                                  Text(
-                                    "No tasks available",
-                                    style: TextStyle(
-                                      fontSize: 16.sp,
-                                      fontWeight: FontWeight.w400,
-                                    ),
-                                  ),
-                                ],
+                            return Padding(
+                              padding: EdgeInsets.symmetric(vertical: 40.h),
+                              child: EmptyState(
+                                icon: Icons.task_alt_outlined,
+                                title: 'No tasks available',
+                                subtitle: 'Upcoming maintenance tasks will show up here.',
+                                onRetry: () => taskListProvider.getItemTasks(),
                               ),
                             );
                           }
 
                           final displayCount = tasks.length.clamp(0, 10);
                           return ListView.builder(
-                            padding: EdgeInsets.all(10.0),
+                            padding: EdgeInsets.all(10.w),
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
                             itemCount: displayCount,

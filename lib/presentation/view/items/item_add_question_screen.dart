@@ -33,11 +33,19 @@ class _ItemAddQuestionScreenState extends State<ItemAddQuestionScreen> {
       final allItemProvider = context.read<AllItemListProvider>();
       final questionProvider = context.read<QuestionProvider>();
 
+      final args = ModalRoute.of(context)?.settings.arguments;
+      if (args is! AddItemData) {
+        debugPrint('ItemAddQuestionScreen: missing AddItemData argument');
+        if (mounted) Navigator.pop(context);
+        return;
+      }
+
       questionProvider.setIsGenerateLoading(true);
 
-      final success = await addItemProvider.addItem();
+      final success = await addItemProvider.addItem(args);
 
       if (!success) {
+        questionProvider.setIsGenerateLoading(false);
         if (mounted) Navigator.pop(context);
         return;
       }
@@ -45,6 +53,7 @@ class _ItemAddQuestionScreenState extends State<ItemAddQuestionScreen> {
       final newItemId = addItemProvider.lastAddedItemId;
 
       if (newItemId == null || newItemId.isEmpty) {
+        questionProvider.setIsGenerateLoading(false);
         if (mounted) Navigator.pop(context);
         return;
       }

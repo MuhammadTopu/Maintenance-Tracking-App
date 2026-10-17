@@ -9,6 +9,7 @@ import '../../../app/routes/route_names.dart';
 import '../../../data/models/all_item_list_model.dart';
 import '../../../shared/common_widgets.dart';
 import '../../../shared/custom_app_bar.dart';
+import '../../../shared/empty_state_widget.dart';
 import '../../view_models/all_item_list_provider.dart';
 import '../../view_models/item_task_list_by_item_id_provider.dart';
 
@@ -94,28 +95,23 @@ class _ItemsMenuScreenState extends State<ItemsMenuScreen> {
                       }
 
                       if (provider.errorFetchingAllItems != '') {
-                        return Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(provider.errorFetchingAllItems ?? 'Something went wrong', style: TextStyle(fontSize: 16.sp)),
-                              SizedBox(height: 16.h),
-                              SizedBox(
-                                width: MediaQuery.of(context).size.width * 0.3,
-                                height: 40.h,
-                                child: PrimaryButton(
-                                  text: 'Retry',
-                                  onPressed: () => provider.getAllItem(),
-                                ),
-                              ),
-                            ],
-                          ),
+                        return EmptyState(
+                          icon: Icons.error_outline_rounded,
+                          title: 'Unable to load assets',
+                          subtitle: provider.errorFetchingAllItems,
+                          onRetry: () => provider.getAllItem(),
                         );
                       }
 
                       final items = provider.allItemListModel?.items ?? [];
                       if (items.isEmpty) {
-                        return const Center(child: Text('No items available'));
+                        return EmptyState(
+                          icon: Icons.inventory_2_outlined,
+                          title: 'No assets yet',
+                          subtitle: 'Add your first asset to start tracking its maintenance.',
+                          retryText: 'Add Assets',
+                          onRetry: () => Navigator.pushNamed(context, RouteName.addItem),
+                        );
                       }
 
                       return DefaultTabController(
@@ -143,7 +139,7 @@ class _ItemsMenuScreenState extends State<ItemsMenuScreen> {
                                 Tab(text: 'All'),
                                 Tab(text: 'Vehicle'),
                                 Tab(text: 'Home'),
-                                Tab(text: 'Custom'),
+                                Tab(text: 'Others'),
                               ],
                             ),
                             SizedBox(height: 16.h),
@@ -156,20 +152,22 @@ class _ItemsMenuScreenState extends State<ItemsMenuScreen> {
                                     context,
                                     items.where((item) => item.category == 'Vehicle').toList(),
                                     provider,
+                                    categoryLabel: 'vehicle',
                                   ),
                                   buildTable(
                                     context,
                                     items.where((item) => item.category == 'Appliance').toList(),
                                     provider,
+                                    categoryLabel: 'home',
                                   ),
                                   buildTable(
                                     context,
                                     items
                                         .where((item) =>
-                                    item.category != 'Vehicle' &&
-                                        item.category != 'Appliance')
+                                    item.category != 'Vehicle' && item.category != 'Appliance')
                                         .toList(),
                                     provider,
+                                    categoryLabel: 'custom',
                                   ),
                                 ],
                               ),
@@ -189,9 +187,13 @@ class _ItemsMenuScreenState extends State<ItemsMenuScreen> {
     );
   }
 
-  Widget buildTable(BuildContext context, List<Items> data, provider) {
+  Widget buildTable(BuildContext context, List<Items> data, provider, {String categoryLabel = 'matching'}) {
     if (data.isEmpty) {
-      return const Center(child: Text('No items in this category'));
+      return EmptyState(
+        icon: Icons.category_outlined,
+        title: 'No $categoryLabel assets',
+        subtitle: 'Assets you add in this category will appear here.',
+      );
     }
 
     const int columnCount = 4;

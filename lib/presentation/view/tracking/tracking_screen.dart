@@ -8,6 +8,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../shared/common_widgets.dart';
 import '../../../shared/custom_app_bar.dart';
 import '../../../shared/custom_task_card.dart';
+import '../../../shared/empty_state_widget.dart';
 import '../../view_models/item_task_list_by_item_id_provider.dart';
 import '../../view_models/item_task_list_provider.dart';
 
@@ -164,37 +165,8 @@ class _TrackingScreenState extends State<TrackingScreen> {
                       );
                     }
 
-                    if (taskListProvider
-                            .filteredTaskListResponse
-                            ?.tasks
-                            .isEmpty ??
-                        true) {
-                      return Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              "No tasks available",
-                              style: TextStyle(
-                                fontSize: 16.sp,
-                                fontWeight: FontWeight.w400,
-                              ),
-                            ),
-                            SizedBox(height: 16.h),
-                            if (dropdownValue != 'Cancelled')
-                              SizedBox(
-                                width: MediaQuery.of(context).size.width * 0.3,
-                                height: 40.h,
-                                child: PrimaryButton(
-                                  text: 'Retry',
-                                  onPressed: () => context
-                                      .read<ItemTaskListProvider>()
-                                      .getItemTasks(),
-                                ),
-                              ),
-                          ],
-                        ),
-                      );
+                    if (taskListProvider.filteredTaskListResponse?.tasks.isEmpty ?? true) {
+                      return _buildEmptyState();
                     }
 
                     return ListView.builder(
@@ -254,6 +226,44 @@ class _TrackingScreenState extends State<TrackingScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    final IconData icon;
+    final String title;
+    final String subtitle;
+
+    switch (dropdownValue) {
+      case 'Pending':
+        icon = Icons.pending_actions_outlined;
+        title = 'No pending tasks';
+        subtitle = 'Tasks that are waiting to be done will appear here.';
+        break;
+      case 'Completed':
+        icon = Icons.task_alt_rounded;
+        title = 'No completed tasks';
+        subtitle = 'Tasks you finish will appear here.';
+        break;
+      case 'Cancelled':
+        icon = Icons.cancel_outlined;
+        title = 'No cancelled tasks';
+        subtitle = 'Tasks you cancel will appear here.';
+        break;
+      default:
+        icon = Icons.assignment_outlined;
+        title = 'No tasks available';
+        subtitle = 'Tap the + button to add an item and start tracking its '
+            'service tasks.';
+    }
+
+    return EmptyState(
+      icon: icon,
+      title: title,
+      subtitle: subtitle,
+      onRetry: dropdownValue == 'Cancelled'
+          ? null
+          : () => context.read<ItemTaskListProvider>().getItemTasks(),
     );
   }
 }

@@ -41,9 +41,17 @@ class AuthRepositoriesImpl implements AuthRepository {
   }
 
   @override
-  Future<bool> login({required String email, required String password}) async {
+  Future<bool> login({
+    required String email,
+    required String password,
+    String? fcmToken,
+  }) async {
     try {
-      final body = {"email": email, "password": password};
+      final body = {
+        "email": email,
+        "password": password,
+        "fcm_token": fcmToken,
+      };
       final response = await _apiService.post(ApiEndPoints.login, data: body);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -59,7 +67,7 @@ class AuthRepositoriesImpl implements AuthRepository {
     } on DioException catch (e) {
       final serverMessage =
           e.response?.data['message'] ??
-          "Unauthorized: Please check your credentials.";
+              "Unauthorized: Please check your credentials.";
       AppToast.showToast(serverMessage, backgroundColor: Colors.red);
       return false;
     } catch (e) {

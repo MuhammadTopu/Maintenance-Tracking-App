@@ -53,7 +53,7 @@ class ItemAndTaskListRepositoryImpl implements ItemAndTaskListRepository {
       } else {
         serverMessage = _extractServerMessage(e);
       }
-      AppToast.showToast(serverMessage, backgroundColor: Colors.red);
+      // AppToast.showToast(serverMessage, backgroundColor: Colors.red);
       return null;
     } catch (e) {
       Log.error("Error in fetching all items : $e");

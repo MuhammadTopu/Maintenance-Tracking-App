@@ -12,6 +12,7 @@ import '../../../core/services/subscription/subscription_service.dart';
 import '../../../shared/custom_app_bar.dart';
 import '../../view_models/all_item_list_provider.dart';
 import '../../view_models/login_provider.dart';
+import 'dialog/logout_dialog.dart';
 
 class ProfileMenu extends StatefulWidget {
   const ProfileMenu({super.key});
@@ -289,126 +290,7 @@ class _ProfileMenuState extends State<ProfileMenu> {
                         "assets/icons/arrow_right.png",
                         scale: 1.9,
                       ),
-                      onTap: () {
-                        showDialog(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return Dialog(
-                              backgroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10.0),
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.all(20.0),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Transform.rotate(
-                                      angle: 90 * 3.1415926535 / 180,
-                                      child: const Icon(
-                                        Icons.login_sharp,
-                                        size: 40,
-                                        color: Colors.black54,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 16),
-                                    const Text(
-                                      'Are You Sure',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 18,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      'Do you want to logout?',
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                        color: Colors.black54,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-
-                                    SizedBox(height: 20),
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceAround,
-                                      children: [
-                                        Expanded(
-                                          child: ElevatedButton(
-                                            onPressed: () {
-                                              Navigator.of(context).pop();
-                                            },
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor:
-                                                  Colors.grey.shade200,
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(30),
-                                              ),
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    vertical: 12,
-                                                  ),
-                                            ),
-                                            child: const Text(
-                                              'Cancel',
-                                              style: TextStyle(
-                                                color: Colors.black54,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                        const SizedBox(width: 16),
-                                        Expanded(
-                                          child: Consumer<LoginProvider>(
-                                            builder: (context, provider, child) {
-                                              return ElevatedButton(
-                                                onPressed: () {
-                                                  provider.logOut();
-                                                  context.read<SubscriptionService>().logOut();
-                                                  context.read<AllItemListProvider>().removeItems();
-                                                  context.read<ParentScreensProvider>().onSelectedIndex(0);
-                                                  Navigator.pushNamedAndRemoveUntil(
-                                                    context,
-                                                    RouteName.login,
-                                                    (pre) => false,
-                                                  );
-                                                },
-
-                                                style: ElevatedButton.styleFrom(
-                                                  backgroundColor:
-                                                      Colors.blueAccent,
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                          30,
-                                                        ),
-                                                  ),
-                                                  padding:
-                                                      const EdgeInsets.symmetric(
-                                                        vertical: 12,
-                                                      ),
-                                                ),
-                                                child: const Text(
-                                                  'Log Out',
-                                                  style: TextStyle(
-                                                    color: Colors.white,
-                                                  ),
-                                                ),
-                                              );
-                                            },
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          },
-                        );
-                      },
+                      onTap: () => showLogoutDialog(context),
                     ),
                     SizedBox(height: 30),
                   ],

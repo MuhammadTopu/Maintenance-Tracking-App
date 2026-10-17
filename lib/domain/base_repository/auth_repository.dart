@@ -4,7 +4,7 @@ import '../../data/models/user_response_model.dart';
 
 abstract class AuthRepository {
 
-  Future<bool> login({required String email, required String password});
+  Future<bool> login({required String email, required String password, String? fcmToken,});
   Future<bool> registerStep1({required String email});
   Future<bool> verifyEmailOtp({required String email, required String otp});
   Future<bool> registerStep3({required String name, required String password});

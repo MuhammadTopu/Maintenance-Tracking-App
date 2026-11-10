@@ -2,7 +2,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter/material.dart';
 
 import '../app/routes/route_names.dart';
-import '../presentation/view/test_ss.dart';
 
 class CustomAppBar extends StatelessWidget {
   const CustomAppBar({super.key, this.isInNotificationScreen = false});
@@ -25,8 +24,7 @@ class CustomAppBar extends StatelessWidget {
             if (!isInNotificationScreen)
               GestureDetector(
                 onTap: () {
-                  // Navigator.pushNamed(context, RouteName.notifications);
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => const KeyboardTestScreen()));
+                  Navigator.pushNamed(context, RouteName.notifications);
                 },
                 child: Icon(Icons.notifications_active_outlined, size: 24.w,),
               ),

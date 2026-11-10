@@ -13,16 +13,20 @@ class SplashController {
   });
 
   Future<void> init() async {
-    bool hasToken = false;
+    final storage = TokenStorageService.instance;
 
-    final tokenFuture = TokenStorageService.instance.getToken();
+    final accessFuture = storage.getToken();
+    final refreshFuture = storage.getRefreshToken();
 
     await Future.delayed(const Duration(seconds: 2));
 
-    final token = await tokenFuture;
-    hasToken = token != null && token.isNotEmpty;
+    final access = await accessFuture;
+    final refresh = await refreshFuture;
+    final hasSession =
+        (refresh != null && refresh.isNotEmpty) ||
+            (access != null && access.isNotEmpty);
 
-    if (hasToken) {
+    if (hasSession) {
       onNavigateToHome();
       return;
     }

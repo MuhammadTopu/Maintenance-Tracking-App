@@ -47,7 +47,7 @@ class LoginProvider extends ChangeNotifier {
   }
 
   Future<void> logOut() async {
-    await TokenStorageService.instance.clearToken();
+    await TokenStorageService.instance.clearAll();
     try {
       await NotificationService.instance.clearFcmToken();
     } catch (e) {

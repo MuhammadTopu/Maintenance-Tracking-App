@@ -6,9 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
-
+import 'app/controller/auth_session_handler.dart';
 import 'app/routes/route_configs.dart';
-import 'app/session_expired_listener.dart';
 import 'core/constants/subscription_constants.dart';
 import 'core/di/di_configs.dart';
 import 'core/providers/app_providers.dart';
@@ -95,6 +94,8 @@ Future<void> main() async {
 
   // Not awaited on purpose: a slow network must never delay app start.
   unawaited(subscriptionService.init());
+
+  AuthSessionHandler.instance.init();
 
   runApp(
     MultiProvider(
@@ -184,11 +185,7 @@ class MyApp extends StatelessWidget {
           initialRoute: AppRoutes.initialRoute,
           onGenerateRoute: AppRoutes.onGenerateRoute,
           navigatorObservers: [HeroController()],
-          builder: (context, child) {
-            return _SubscriptionLifecycleListener(
-              child: SessionExpiredListener(child: child!),
-            );
-          },
+          builder: (context, child) => _SubscriptionLifecycleListener(child: child!),
         );
       },
     );

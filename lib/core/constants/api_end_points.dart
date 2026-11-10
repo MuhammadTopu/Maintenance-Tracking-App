@@ -10,6 +10,7 @@ class ApiEndPoints {
   static const String verifyOtp = '$baseUrl/api/users/verify-otp';
   static const String register3 = '$baseUrl/api/users/register-step3';
   static const String login = '$baseUrl/api/users/login';
+  static const String refreshToken = '$baseUrl/api/users/refresh-token';
   static const String getMe = '$baseUrl/api/users/get-me';
 
   // forget password

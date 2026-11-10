@@ -1,9 +1,6 @@
 import 'dart:io';
-
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:http_parser/http_parser.dart';
 import 'package:maintenance_genie/core/helper/logger.dart';
 import 'package:maintenance_genie/core/services/storage/token_storage_service.dart';
 import 'package:maintenance_genie/data/models/user_response_model.dart';
@@ -13,6 +10,7 @@ import '../../core/constants/api_end_points.dart';
 import '../../core/services/api/api_service.dart';
 import '../../domain/base_repository/auth_repository.dart';
 import '../../shared/app_toast.dart';
+import '../models/auth_response_model.dart';
 
 class AuthRepositoriesImpl implements AuthRepository {
   final ApiService _apiService;
@@ -55,11 +53,12 @@ class AuthRepositoriesImpl implements AuthRepository {
       final response = await _apiService.post(ApiEndPoints.login, data: body);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        await TokenStorageService.instance.saveToken(response.data['token']);
-        AppToast.showToast(
-          response.data['message'],
-          backgroundColor: Colors.green,
+        final auth = AuthResponseModel.fromJson(response.data);
+        await TokenStorageService.instance.saveTokens(
+          accessToken: auth.token,
+          refreshToken: auth.refreshToken,
         );
+        AppToast.showToast(auth.message, backgroundColor: Colors.green);
         return true;
       }
       AppToast.showToast(response.data['message'], backgroundColor: Colors.red);
@@ -261,30 +260,29 @@ class AuthRepositoriesImpl implements AuthRepository {
 
   @override
   Future<bool> updateProfileImage(File image) async {
-    final token = await TokenStorageService.instance.getToken();
-    if (token == null) return false;
+    try {
+      final mimeType = lookupMimeType(image.path);
+      final formData = FormData.fromMap({
+        'profilePicture': await MultipartFile.fromFile(
+          image.path,
+          filename: path.basename(image.path),
+          contentType: mimeType != null ? DioMediaType.parse(mimeType) : null,
+        ),
+      });
 
-    final request = http.MultipartRequest(
-      'PUT',
-      Uri.parse(ApiEndPoints.updateUserImage),
-    );
-
-    request.headers['Authorization'] = 'Bearer $token';
-
-    final mimeType = lookupMimeType(image.path);
-    final fileName = path.basename(image.path);
-
-    request.files.add(
-      await http.MultipartFile.fromPath(
-        'profilePicture',
-        image.path,
-        filename: fileName,
-        contentType: mimeType != null ? MediaType.parse(mimeType) : null,
-      ),
-    );
-
-    final response = await request.send();
-    return response.statusCode >= 200 && response.statusCode < 300;
+      final response = await _apiService.put(
+        ApiEndPoints.updateUserImage,
+        formData: formData,
+      );
+      final code = response.statusCode ?? 0;
+      return code >= 200 && code < 300;
+    } on DioException catch (e) {
+      AppToast.showToast(
+        _extractServerMessage(e, fallback: "Failed to update profile image"),
+        backgroundColor: Colors.red,
+      );
+      return false;
+    }
   }
 
   @override
@@ -292,17 +290,16 @@ class AuthRepositoriesImpl implements AuthRepository {
     required String name,
     required String address,
   }) async {
-    final body = {
-      "name": name,
-      "address": address,
-    };
-
-    final response = await _apiService.put(
-      ApiEndPoints.updateUserDetails,
-      data: body,
-    );
-
-    return response.statusCode == 200;
+    try {
+      final response = await _apiService.put(
+        ApiEndPoints.updateUserDetails,
+        data: {"name": name, "address": address},
+      );
+      return response.statusCode == 200;
+    } on DioException catch (e) {
+      AppToast.showToast(_extractServerMessage(e), backgroundColor: Colors.red);
+      return false;
+    }
   }
 
   @override

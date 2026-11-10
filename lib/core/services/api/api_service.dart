@@ -4,7 +4,10 @@ import '../../network/network.dart';
 class ApiService {
   final Dio _dio = Network().dio;
 
-  Future<Response> get(String path, {Map<String, dynamic>? queryParameters}) async {
+  Future<Response> get(
+    String path, {
+    Map<String, dynamic>? queryParameters,
+  }) async {
     try {
       return await _dio.get(path, queryParameters: queryParameters);
     } catch (e) {
@@ -13,11 +16,11 @@ class ApiService {
   }
 
   Future<Response> post(
-      String path, {
-        Map<String, dynamic>? data,
-        FormData? formData,
-        Options? options,
-      }) async {
+    String path, {
+    Map<String, dynamic>? data,
+    FormData? formData,
+    Options? options,
+  }) async {
     try {
       if (formData != null) {
         return await _dio.post(path, data: formData, options: options);
@@ -28,9 +31,13 @@ class ApiService {
     }
   }
 
-  Future<Response> put(String path, {Map<String, dynamic>? data}) async {
+  Future<Response> put(
+    String path, {
+    Map<String, dynamic>? data,
+    FormData? formData,
+  }) async {
     try {
-      return await _dio.put(path, data: data);
+      return await _dio.put(path, data: formData ?? data);
     } catch (e) {
       rethrow;
     }
@@ -51,5 +58,4 @@ class ApiService {
       rethrow;
     }
   }
-
 }

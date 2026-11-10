@@ -1,10 +1,8 @@
 import 'package:dio/dio.dart';
 
-import 'package:maintenance_genie/core/services/storage/token_storage_service.dart';
-
-import '../../app/controller/auth_event_controller.dart';
 import '../constants/api_end_points.dart';
 import '../helper/logger.dart';
+import 'auth_interceptor.dart';
 
 class Network {
   static final Network _instance = Network._internal();
@@ -26,32 +24,24 @@ class Network {
       ),
     );
 
+    dio.interceptors.add(AuthInterceptor(dio: dio));
+
     dio.interceptors.add(
       InterceptorsWrapper(
-        onRequest: (options, handler) async {
-          final token = await TokenStorageService.instance.getToken();
-
-          if (token != null && token.isNotEmpty) {
-            options.headers['Authorization'] = 'Bearer $token';
-          }
-
+        onRequest: (options, handler) {
           Log.info('REQUEST');
           Log.debug(
             '${options.method} ${options.uri}\n\nHeaders: ${options.headers}\n\nData: ${options.data}',
           );
-
           handler.next(options);
         },
-
         onResponse: (response, handler) {
           Log.info('RESPONSE');
           Log.debug(
             '${response.requestOptions.method} ${response.requestOptions.uri}\n\nStatus: ${response.statusCode}\n\nData: ${response.data}',
           );
-
           handler.next(response);
         },
-
         onError: (error, handler) {
           Log.error('''
 ══════════ API ERROR ══════════
@@ -72,11 +62,6 @@ MESSAGE:
 ${error.message}
 ═══════════════════════════════
 ''');
-
-          if (error.response?.statusCode == 401) {
-            AuthEventController.instance.fireSessionExpired();
-          }
-
           handler.next(error);
         },
       ),

@@ -1,3 +1,4 @@
+
 class UserResponse {
   final bool success;
   final String message;
@@ -13,15 +14,15 @@ class UserResponse {
     return UserResponse(
       success: json['success'] ?? false,
       message: json['message'] ?? '',
-      data: UserData.fromJson(json['data']),
+      data: UserData.fromJson(json['data'] ?? {}),
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      "success": success,
-      "message": message,
-      "data": data.toJson(),
+      'success': success,
+      'message': message,
+      'data': data.toJson(),
     };
   }
 }
@@ -31,30 +32,28 @@ class UserData {
   final String name;
   final String email;
   final String? avatar;
-  final String createdAt;
-  final String updatedAt;
   final String? address;
-  final String role;
-  final String type;
-  final String status;
-  final String billingId;
+  final String? provider;
+  final DateTime? subscribedAt;
+  final DateTime? subscriptionValidUntil;
+  final String? subscriptionStatus;
   final String? imageUrl;
   final bool isPremium;
+  final dynamic subscription;
 
   UserData({
     required this.id,
     required this.name,
     required this.email,
     this.avatar,
-    required this.createdAt,
-    required this.updatedAt,
     this.address,
-    required this.role,
-    required this.type,
-    required this.status,
-    required this.billingId,
+    this.provider,
+    this.subscribedAt,
+    this.subscriptionValidUntil,
+    this.subscriptionStatus,
     this.imageUrl,
     required this.isPremium,
+    this.subscription,
   });
 
   factory UserData.fromJson(Map<String, dynamic> json) {
@@ -63,33 +62,37 @@ class UserData {
       name: json['name'] ?? '',
       email: json['email'] ?? '',
       avatar: json['avatar'],
-      createdAt: json['created_at'] ?? '',
-      updatedAt: json['updated_at'] ?? '',
       address: json['address'],
-      role: json['role'] ?? '',
-      type: json['type'] ?? '',
-      status: json['status'] ?? '',
-      billingId: json['billing_id'] ?? '',
+      provider: json['provider'],
+      subscribedAt: json['subscribed_at'] != null
+          ? DateTime.tryParse(json['subscribed_at'])
+          : null,
+      subscriptionValidUntil:
+      json['subscription_valid_until'] != null
+          ? DateTime.tryParse(json['subscription_valid_until'])
+          : null,
+      subscriptionStatus: json['subscription_status'],
       imageUrl: json['imageUrl'],
       isPremium: json['isPremium'] ?? false,
+      subscription: json['subscription'],
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      "id": id,
-      "name": name,
-      "email": email,
-      "avatar": avatar,
-      "created_at": createdAt,
-      "updated_at": updatedAt,
-      "address": address,
-      "role": role,
-      "type": type,
-      "status": status,
-      "billing_id": billingId,
-      "imageUrl": imageUrl,
-      "isPremium": isPremium,
+      'id': id,
+      'name': name,
+      'email': email,
+      'avatar': avatar,
+      'address': address,
+      'provider': provider,
+      'subscribed_at': subscribedAt?.toIso8601String(),
+      'subscription_valid_until':
+      subscriptionValidUntil?.toIso8601String(),
+      'subscription_status': subscriptionStatus,
+      'imageUrl': imageUrl,
+      'isPremium': isPremium,
+      'subscription': subscription,
     };
   }
 }

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:maintenance_genie/domain/base_repository/item_and_task_list_repository.dart';
+import 'package:maintenance_genie/domain/repository/item_and_task_list_repository.dart';
 
 import '../../data/models/task_list_response_model.dart';
 

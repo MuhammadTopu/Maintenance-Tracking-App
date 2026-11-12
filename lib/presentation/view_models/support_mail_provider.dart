@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../domain/base_repository/support_mail_repository.dart';
+import '../../domain/repository/support_mail_repository.dart';
 
 class SupportMailProvider extends ChangeNotifier {
   final SupportMailRepository _repository;

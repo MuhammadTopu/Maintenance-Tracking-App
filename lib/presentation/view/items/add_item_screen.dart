@@ -16,7 +16,6 @@ class AddItemScreen extends StatefulWidget {
 class _AddItemScreenState extends State<AddItemScreen>
     with SingleTickerProviderStateMixin {
   static const List<String> _tabLabels = ['Vehicle', 'Home', 'Other'];
-  static const List<String> _categories = ['Vehicle', 'Home', 'Custom'];
 
   late final TabController _tabController;
   int _currentIndex = 0;
@@ -91,10 +90,10 @@ class _AddItemScreenState extends State<AddItemScreen>
               Expanded(
                 child: TabBarView(
                   controller: _tabController,
-                  children: [
-                    VehicleForm(category: _categories[0]),
-                    HomeForm(category: _categories[1]),
-                    OtherForm(category: _categories[2]),
+                  children: const [
+                    VehicleForm(),
+                    HomeForm(),
+                    OtherForm(),
                   ],
                 ),
               ),

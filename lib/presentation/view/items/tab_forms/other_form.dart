@@ -1,24 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:maintenance_genie/domain/entities/add_item_data.dart';
 import 'package:maintenance_genie/shared/app_toast.dart';
-import 'package:maintenance_genie/shared/common_widgets.dart';
 import 'package:maintenance_genie/shared/custom_text_field.dart';
 
 import '../../../../shared/asset_image_picker.dart';
+import '../mixins/add_item_submission_mixin.dart';
 import '../widgets/custom_date_picker_field.dart';
 import '../widgets/custom_drop_down_field.dart';
 
 class OtherForm extends StatefulWidget {
-  const OtherForm({super.key, required this.category});
-
-  final String category;
+  const OtherForm({super.key});
 
   @override
   State<OtherForm> createState() => _OtherFormState();
 }
 
 class _OtherFormState extends State<OtherForm>
-    with AutomaticKeepAliveClientMixin {
+    with AutomaticKeepAliveClientMixin, AddItemSubmissionMixin {
   @override
   bool get wantKeepAlive => true;
 
@@ -67,6 +66,17 @@ class _OtherFormState extends State<OtherForm>
     super.dispose();
   }
 
+  void _clear() {
+    _name.clear();
+    _description.clear();
+    _notes.clear();
+    _image.clear();
+    _group.value = null;
+    _dueDate.value = null;
+    _repeat.value = null;
+    _reminder.value = null;
+  }
+
   String? _nullIfEmpty(String s) => s.trim().isEmpty ? null : s.trim();
 
   String? _validate() {
@@ -74,27 +84,28 @@ class _OtherFormState extends State<OtherForm>
     return null;
   }
 
-  Map<String, dynamic> _collect() => {
-    'category': widget.category,
-    'name': _name.text.trim(),
-    'group': _group.value,
-    'description': _nullIfEmpty(_description.text),
-    'dueDate': _dueDate.value,
-    'repeat': _repeat.value,
-    'reminder': _reminder.value,
-    'notes': _nullIfEmpty(_notes.text),
-    'attachment': _image.value,
-  };
+  OtherItemData _collect() => OtherItemData(
+    name: _name.text.trim(),
+    group: _group.value,
+    description: _nullIfEmpty(_description.text),
+    dueDate: _dueDate.value,
+    repeat: _repeat.value,
+    reminder: _reminder.value,
+    imageFile: _image.value,
+    userNotes: _nullIfEmpty(_notes.text),
+  );
 
-  void _submit() {
+  Future<void> _submit() async {
     FocusScope.of(context).unfocus();
     final error = _validate();
     if (error != null) {
       AppToast.showToast(error, backgroundColor: Colors.red);
       return;
     }
-    debugPrint('Other form data: ${_collect()}');
-    // TODO: connect API
+
+    // TODO: premium users should continue into the Other question flow once
+    // that screen exists (set openQuestionFlowForPremium: true then).
+    await submitItem(_collect(), onSaved: _clear);
   }
 
   @override
@@ -191,7 +202,7 @@ class _OtherFormState extends State<OtherForm>
           ),
           SizedBox(height: 20.h),
 
-          PrimaryButton(text: 'Add Asset', onPressed: _submit),
+          buildSubmitButton(onPressed: _submit),
           SizedBox(height: 40.h),
         ],
       ),

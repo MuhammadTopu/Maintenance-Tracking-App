@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import '../../core/constants/api_end_points.dart';
 import '../../core/helper/logger.dart';
 import '../../core/services/api/api_service.dart';
-import '../../domain/base_repository/support_mail_repository.dart';
+import '../../domain/repository/support_mail_repository.dart';
 import '../../shared/app_toast.dart';
 
 class SupportMailRepositoryImpl implements SupportMailRepository {

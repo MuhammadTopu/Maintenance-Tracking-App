@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:maintenance_genie/core/helper/logger.dart';
-import 'package:maintenance_genie/domain/base_repository/item_and_task_list_repository.dart';
+import 'package:maintenance_genie/domain/repository/item_and_task_list_repository.dart';
 
 import '../../data/models/all_item_list_model.dart';
 import '../../data/models/one_item_model.dart';

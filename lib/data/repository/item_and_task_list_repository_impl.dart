@@ -8,7 +8,7 @@ import 'package:maintenance_genie/shared/app_toast.dart';
 import '../../core/constants/api_end_points.dart';
 import '../../core/helper/logger.dart';
 import '../../core/services/api/api_service.dart';
-import '../../domain/base_repository/item_and_task_list_repository.dart';
+import '../../domain/repository/item_and_task_list_repository.dart';
 
 class ItemAndTaskListRepositoryImpl implements ItemAndTaskListRepository {
   final ApiService _apiService;

@@ -1,43 +1,8 @@
-import 'dart:io';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_image_compress/flutter_image_compress.dart';
-import 'package:image_picker/image_picker.dart';
 import '../../core/helper/logger.dart';
-import '../../domain/base_repository/add_items_repository.dart';
-
-class AddItemData {
-  final String name;
-  final String brand;
-  final String model;
-  final String category;
-  final DateTime purchaseDate;
-  final String yearOfModel;
-  final int? totalMileage;
-  final String? engine;
-  final String? transmission;
-  final String? drivetrain;
-  final int? currentMileage;
-  final int? averageMileagePerYear;
-  final String? userNotes;
-  final File? imageFile;
-
-  const AddItemData({
-    required this.name,
-    required this.brand,
-    required this.model,
-    required this.category,
-    required this.purchaseDate,
-    required this.yearOfModel,
-    this.totalMileage,
-    this.engine,
-    this.transmission,
-    this.drivetrain,
-    this.currentMileage,
-    this.averageMileagePerYear,
-    this.userNotes,
-    this.imageFile,
-  });
-}
+import '../../domain/repository/add_items_repository.dart';
+import '../../domain/entities/add_item_data.dart';
+export '../../domain/entities/add_item_data.dart';
 
 class AddItemProvider extends ChangeNotifier {
   final AddItemRepository _repository;
@@ -75,40 +40,28 @@ class AddItemProvider extends ChangeNotifier {
   }
 
   // ================= ADD ITEM =================
+
   Future<bool> addItem(AddItemData data) async {
+    if (isLoading) return false;
+
     isLoading = true;
+    lastAddedItemId = null;
     notifyListeners();
 
-    Log.debug('Adding item: ${data.name}');
+    Log.debug('Adding ${data.category} item: ${data.name}');
 
     String? itemId;
     try {
-      itemId = await _repository.addItem(
-        name: data.name,
-        brand: data.brand,
-        model: data.model,
-        category: data.category,
-        purchaseDate: data.purchaseDate.toIso8601String(),
-        totalMileage: data.totalMileage,
-        yearOfModel: data.yearOfModel,
-        imageFile: data.imageFile,
-        engine: data.engine,
-        transmission: data.transmission,
-        drivetrain: data.drivetrain,
-        currentMileage: data.currentMileage,
-        averageMileagePerYear: data.averageMileagePerYear,
-        userNotes: data.userNotes,
-      );
+      itemId = await _repository.addItem(data);
     } catch (e) {
-      Log.debug('addItem failed: $e');
+      Log.error('addItem failed: $e');
+    } finally {
+      lastAddedItemId = itemId;
+      isLoading = false;
+      notifyListeners();
     }
 
     Log.debug('Item added with id: $itemId');
-
-    lastAddedItemId = itemId;
-    isLoading = false;
-    notifyListeners();
-
     return itemId != null;
   }
 

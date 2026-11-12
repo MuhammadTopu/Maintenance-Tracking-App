@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../domain/base_repository/auth_repository.dart';
+import '../../domain/repository/auth_repository.dart';
 import '../../shared/app_toast.dart';
 
 class SignUpProvider extends ChangeNotifier {

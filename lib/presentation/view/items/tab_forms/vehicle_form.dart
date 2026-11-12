@@ -1,32 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:maintenance_genie/app/routes/route_names.dart';
-import 'package:maintenance_genie/core/constants/app_colors.dart';
+import 'package:maintenance_genie/domain/entities/add_item_data.dart';
 import 'package:maintenance_genie/presentation/view_models/add_item_provider.dart';
-import 'package:maintenance_genie/presentation/view_models/all_item_list_provider.dart';
-import 'package:maintenance_genie/presentation/view_models/user_provider.dart';
 import 'package:maintenance_genie/shared/app_toast.dart';
-import 'package:maintenance_genie/shared/common_widgets.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../shared/asset_image_picker.dart';
 import '../../../../shared/custom_text_field.dart';
+import '../mixins/add_item_submission_mixin.dart';
 import '../widgets/custom_date_picker_field.dart';
 import '../widgets/custom_drop_down_field.dart';
 import '../widgets/custom_year_dropdown_field.dart';
-import '../widgets/show_item_added_dialog.dart';
 
 class VehicleForm extends StatefulWidget {
-  const VehicleForm({super.key, required this.category});
-
-  final String category;
+  const VehicleForm({super.key});
 
   @override
   State<VehicleForm> createState() => _VehicleFormState();
 }
 
 class _VehicleFormState extends State<VehicleForm>
-    with AutomaticKeepAliveClientMixin {
+    with AutomaticKeepAliveClientMixin, AddItemSubmissionMixin {
   @override
   bool get wantKeepAlive => true;
 
@@ -128,20 +122,32 @@ class _VehicleFormState extends State<VehicleForm>
 
   String? _nullIfEmpty(String s) => s.trim().isEmpty ? null : s.trim();
 
+  String? _validateOptionalNumber(TextEditingController c, String label) {
+    final text = c.text.trim();
+    if (text.isEmpty) return null;
+    final value = int.tryParse(text);
+    if (value == null || value < 0) return '$label must be a whole number';
+    return null;
+  }
+
   String? _validate() {
     if (nameController.text.trim().isEmpty) return 'Please enter an item name';
     if (_brand.value == null) return 'Please select a make';
     if (_model.value == null) return 'Please select a model';
     if (_year.value == null) return 'Please enter year of model';
     if (_date.value == null) return 'Please select a purchase date';
-    return null;
+    return _validateOptionalNumber(mileageController, 'Total mileage') ??
+        _validateOptionalNumber(currentMileageController, 'Current mileage') ??
+        _validateOptionalNumber(
+          averageMileagePerYearController,
+          'Average mileage per year',
+        );
   }
 
-  AddItemData _collect() => AddItemData(
+  VehicleItemData _collect() => VehicleItemData(
     name: nameController.text.trim(),
     brand: _brand.value!,
     model: _model.value!,
-    category: widget.category,
     purchaseDate: _date.value!,
     yearOfModel: _year.value!,
     imageFile: _image.value,
@@ -157,40 +163,18 @@ class _VehicleFormState extends State<VehicleForm>
   );
 
   Future<void> _submit() async {
+    FocusScope.of(context).unfocus();
     final error = _validate();
     if (error != null) {
       AppToast.showToast(error, backgroundColor: Colors.red);
       return;
     }
 
-    final data = _collect();
-    final isPremium =
-        context.read<UserProvider>().userResponse?.data.isPremium == true;
-
-    if (isPremium) {
-      Navigator.pushNamed(context, RouteName.itemAddQuestion, arguments: data);
-      return;
-    }
-
-    final provider = context.read<AddItemProvider>();
-    final ok = await provider.addItem(data);
-    if (!mounted) return;
-
-    if (ok) {
-      context.read<AllItemListProvider>().getAllItem();
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (_) => ItemAddedDialog(
-          onDone: () => Navigator.popAndPushNamed(context, RouteName.parent),
-          isPremium: false,
-        ),
-      );
-      provider.clearFields();
-      clear();
-    } else {
-      AppToast.showToast('Something went wrong');
-    }
+    await submitItem(
+      _collect(),
+      openQuestionFlowForPremium: true,
+      onSaved: clear,
+    );
   }
 
   void _onBrandChanged(String value) {
@@ -250,8 +234,8 @@ class _VehicleFormState extends State<VehicleForm>
                             onChanged: (v) => _model.value = v,
                             onDisabledTap: brand == null
                                 ? () => AppToast.showToast(
-                                    'Please select a Make first',
-                                  )
+                              'Please select a Make first',
+                            )
                                 : null,
                           ),
                         ),
@@ -369,19 +353,7 @@ class _VehicleFormState extends State<VehicleForm>
           SizedBox(height: 20.h),
 
           /// SUBMIT BUTTON
-          Selector<AddItemProvider, bool>(
-            selector: (_, p) => p.isLoading,
-            builder: (_, isLoading, __) => Visibility(
-              visible: !isLoading,
-              replacement: Center(
-                child: CircularProgressIndicator(color: AppColors.primaryColor),
-              ),
-              child: SizedBox(
-                width: double.infinity,
-                child: PrimaryButton(text: 'Add Asset', onPressed: _submit),
-              ),
-            ),
-          ),
+          buildSubmitButton(onPressed: _submit),
 
           SizedBox(height: 40.h),
         ],

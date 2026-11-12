@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../data/models/user_response_model.dart';
-import '../../domain/base_repository/auth_repository.dart';
+import '../../domain/repository/auth_repository.dart';
 
 class UserProvider extends ChangeNotifier {
   final AuthRepository _repository;

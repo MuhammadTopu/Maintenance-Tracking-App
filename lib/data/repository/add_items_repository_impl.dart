@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:dio/dio.dart';
@@ -8,10 +9,10 @@ import 'package:maintenance_genie/core/services/storage/token_storage_service.da
 import 'package:mime/mime.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:path/path.dart' as path;
-
 import '../../core/constants/api_end_points.dart';
 import '../../core/services/api/api_service.dart';
-import '../../domain/base_repository/add_items_repository.dart';
+import '../../domain/repository/add_items_repository.dart';
+import '../../domain/entities/add_item_data.dart';
 import '../../shared/app_toast.dart';
 import '../models/question_response_model.dart';
 
@@ -19,6 +20,12 @@ class AddItemRepositoryImpl implements AddItemRepository {
   final ApiService _apiService;
 
   AddItemRepositoryImpl(this._apiService);
+
+  static const Duration _addItemTimeout = Duration(seconds: 120);
+
+  static const String _genericError = 'Something went wrong. Please try again.';
+  static const String _noInternet =
+      'Something went wrong!!! Check internet connection';
 
   String _extractServerMessage(
       DioException e, {
@@ -57,111 +64,131 @@ class AddItemRepositoryImpl implements AddItemRepository {
     return [];
   }
 
+  // ================= ADD ITEM =================
+
   @override
-  Future<String?> addItem({
-    required String name,
-    required String brand,
-    required String model,
-    required String category,
-    required String purchaseDate,
-    required int? totalMileage,
-    required String yearOfModel,
-    File? imageFile,
-    String? engine,
-    String? transmission,
-    String? drivetrain,
-    int? currentMileage,
-    int? averageMileagePerYear,
-    String? userNotes,
-  }) async {
+  Future<String?> addItem(AddItemData data) async {
     final token = await TokenStorageService.instance.getToken();
-    if (token == null) return null;
-
-    final request = http.MultipartRequest(
-      'POST',
-      Uri.parse(ApiEndPoints.addItem),
-    );
-
-    request.headers['Authorization'] = 'Bearer $token';
-
-    request.fields['name'] = name;
-    request.fields['brand'] = brand;
-    request.fields['model'] = model;
-    request.fields['category'] = category;
-    request.fields['purchase_date'] = purchaseDate;
-    request.fields['year_of_the_model'] = yearOfModel;
-
-    if (totalMileage != null) {
-      request.fields['total_mileage'] = totalMileage.toString();
+    if (token == null) {
+      _showError('Your session has expired. Please log in again.');
+      return null;
     }
 
-    if (engine != null && engine.isNotEmpty) {
-      request.fields['engine'] = engine;
-    }
-    if (transmission != null && transmission.isNotEmpty) {
-      request.fields['transmission'] = transmission;
-    }
-    if (drivetrain != null && drivetrain.isNotEmpty) {
-      request.fields['drivetrain'] = drivetrain;
-    }
-    if (currentMileage != null) {
-      request.fields['current_mileage'] = currentMileage.toString();
-    }
-    if (averageMileagePerYear != null) {
-      request.fields['average_mileage_per_year'] = averageMileagePerYear.toString();
-    }
-    if (userNotes != null && userNotes.isNotEmpty) {
-      request.fields['user_notes'] = userNotes;
-    }
-
-    if (imageFile != null) {
-      final mimeType = lookupMimeType(imageFile.path);
-      final fileName = path.basename(imageFile.path);
-
-      request.files.add(
-        await http.MultipartFile.fromPath(
-          'img',
-          imageFile.path,
-          filename: fileName,
-          contentType: mimeType != null ? MediaType.parse(mimeType) : null,
-        ),
-      );
-    }
-
-    final response = await request.send();
-    final responseBody = await response.stream.bytesToString();
-
-    Log.debug('STATUS CODE: ${response.statusCode}');
-    Log.debug('RESPONSE BODY: $responseBody');
-    Log.debug('REASON PHRASE: ${response.reasonPhrase}');
-
-    final isSuccess = response.statusCode >= 200 && response.statusCode < 300;
-
-    Map<String, dynamic>? decoded;
     try {
-      decoded = jsonDecode(responseBody) as Map<String, dynamic>;
+      final request = http.MultipartRequest(
+        'POST',
+        Uri.parse(ApiEndPoints.addItem),
+      )
+        ..headers['Authorization'] = 'Bearer $token'
+        ..fields.addAll(data.toFormFields());
+
+      final image = data.imageFile;
+      if (image != null) {
+        request.files.add(await _imagePart(image));
+      }
+
+      final response = await _send(request).timeout(_addItemTimeout);
+      final body = utf8.decode(response.bodyBytes, allowMalformed: true);
+
+      Log.debug('ADD ITEM STATUS: ${response.statusCode}');
+      Log.debug('ADD ITEM BODY: $body');
+
+      final decoded = _decodeJsonObject(body);
+      final isSuccess =
+          response.statusCode >= 200 && response.statusCode < 300;
+
+      if (!isSuccess) {
+        _showError(_failureMessage(response.statusCode, decoded, data));
+        return null;
+      }
+
+      final item = decoded?['item'];
+      final itemId = item is Map ? item['id']?.toString() : null;
+
+      if (itemId == null || itemId.isEmpty) {
+        Log.error('addItem succeeded but response had no item.id: $body');
+        AppToast.showToast(
+          'Item added, but something looked off. Please refresh.',
+          backgroundColor: Colors.orange,
+        );
+        return null;
+      }
+
+      final message = decoded?['message'];
+      AppToast.showToast(
+        message is String && message.isNotEmpty
+            ? message
+            : 'Item added successfully',
+      );
+      return itemId;
+    } on TimeoutException {
+      _showError(
+        'This is taking longer than expected. Please check your items before trying again.',
+      );
+      return null;
+    } on SocketException {
+      _showError(_noInternet);
+      return null;
+    } on http.ClientException {
+      _showError(_noInternet);
+      return null;
     } catch (e) {
-      Log.error('Failed to decode addItem response: $e');
-      decoded = null;
-    }
-
-    if (!isSuccess) {
-      final message = decoded?['message'] as String? ?? 'Something went wrong';
-      AppToast.showToast(message, backgroundColor: Colors.red);
+      Log.error('Error adding item: $e');
+      _showError(_genericError);
       return null;
     }
-
-    final itemId = decoded?['item']?['id'] as String?;
-
-    if (itemId == null) {
-      Log.error('addItem succeeded but response had no item.id: $responseBody');
-      AppToast.showToast('Item added, but something looked off. Please refresh.', backgroundColor: Colors.orange);
-      return null;
-    }
-
-    AppToast.showToast(decoded?['message'] as String? ?? 'Item added successfully');
-    return itemId;
   }
+
+  Future<http.Response> _send(http.MultipartRequest request) async =>
+      http.Response.fromStream(await request.send());
+
+  Future<http.MultipartFile> _imagePart(File file) async {
+    final mimeType = lookupMimeType(file.path);
+    return http.MultipartFile.fromPath(
+      'img',
+      file.path,
+      filename: path.basename(file.path),
+      contentType: mimeType != null ? MediaType.parse(mimeType) : null,
+    );
+  }
+
+  Map<String, dynamic>? _decodeJsonObject(String body) {
+    try {
+      final decoded = jsonDecode(body);
+      return decoded is Map<String, dynamic> ? decoded : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  String _failureMessage(
+      int status,
+      Map<String, dynamic>? body,
+      AddItemData data,
+      ) {
+    final serverMessage = body?['message'];
+    final hasServerMessage =
+        serverMessage is String && serverMessage.trim().isNotEmpty;
+
+    switch (status) {
+      case 400:
+      case 403:
+      case 404:
+        return hasServerMessage ? serverMessage : _genericError;
+      case 401:
+        return 'Your session has expired. Please log in again.';
+      default:
+        if (status >= 500) {
+          return data.category == ItemCategory.vehicle
+              ? 'We couldn\'t generate the maintenance data for this vehicle. Please try again.'
+              : _genericError;
+        }
+        return hasServerMessage ? serverMessage : _genericError;
+    }
+  }
+
+  void _showError(String message) =>
+      AppToast.showToast(message, backgroundColor: Colors.red);
 
   // ================= QUESTIONS =================
 

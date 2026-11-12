@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../domain/base_repository/add_items_repository.dart';
+import '../../domain/repository/add_items_repository.dart';
 import '../../data/models/question_response_model.dart';
 
 class QuestionProvider extends ChangeNotifier {

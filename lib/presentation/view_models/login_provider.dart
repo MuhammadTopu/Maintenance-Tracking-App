@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:maintenance_genie/core/services/storage/token_storage_service.dart';
 import '../../core/helper/logger.dart';
 import '../../core/services/notification/notification_service.dart';
-import '../../domain/base_repository/auth_repository.dart';
+import '../../domain/repository/auth_repository.dart';
 
 class LoginProvider extends ChangeNotifier {
   final AuthRepository _repository;

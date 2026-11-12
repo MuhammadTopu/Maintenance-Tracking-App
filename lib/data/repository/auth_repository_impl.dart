@@ -8,7 +8,7 @@ import 'package:mime/mime.dart';
 import 'package:path/path.dart' as path;
 import '../../core/constants/api_end_points.dart';
 import '../../core/services/api/api_service.dart';
-import '../../domain/base_repository/auth_repository.dart';
+import '../../domain/repository/auth_repository.dart';
 import '../../shared/app_toast.dart';
 import '../models/auth_response_model.dart';
 

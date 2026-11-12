@@ -1,25 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:maintenance_genie/domain/entities/add_item_data.dart';
 import 'package:maintenance_genie/shared/app_toast.dart';
-import 'package:maintenance_genie/shared/common_widgets.dart';
 import 'package:maintenance_genie/shared/custom_text_field.dart';
 
 import '../../../../shared/asset_image_picker.dart';
+import '../mixins/add_item_submission_mixin.dart';
 import '../widgets/custom_drop_down_field.dart';
 import '../widgets/custom_year_dropdown_field.dart';
 import '../widgets/feature_checkbox_list.dart';
 
 class HomeForm extends StatefulWidget {
-  const HomeForm({super.key, required this.category});
-
-  final String category;
+  const HomeForm({super.key});
 
   @override
   State<HomeForm> createState() => _HomeFormState();
 }
 
 class _HomeFormState extends State<HomeForm>
-    with AutomaticKeepAliveClientMixin {
+    with AutomaticKeepAliveClientMixin, AddItemSubmissionMixin {
   @override
   bool get wantKeepAlive => true;
 
@@ -30,28 +29,12 @@ class _HomeFormState extends State<HomeForm>
     'Cabin',
     'Vacation home',
     'Rental property',
-    'Mobile / Manufactured home'
+    'Mobile / Manufactured home',
     'Other',
   ];
   static const _ownership = ['Own', 'Rent'];
-  static const _features = [
-    'Central HVAC / heat pump / furnace',
-    'Window or mini-split AC',
-    'Water heater',
-    'Well',
-    'Septic',
-    'Municipal water/sewer',
-    'Gutters',
-    'Fireplace / wood stove',
-    'Sump pump',
-    'Basement / crawlspace',
-    'Garage',
-    'Deck / porch',
-    'Pool / hot tub',
-    'Irrigation system',
-    'Generator',
-    'Water softener / filtration',
-  ];
+
+  static final List<String> _features = HomeSystems.labels;
 
   final _name = TextEditingController();
   final _zip = TextEditingController();
@@ -76,39 +59,56 @@ class _HomeFormState extends State<HomeForm>
     super.dispose();
   }
 
+  void _clear() {
+    _name.clear();
+    _zip.clear();
+    _notes.clear();
+    _image.clear();
+    _type.value = null;
+    _yearBuilt.value = null;
+    _own.value = null;
+    _selected.value = {};
+  }
+
   void _toggle(String feature) {
     final next = {..._selected.value};
     next.contains(feature) ? next.remove(feature) : next.add(feature);
     _selected.value = next;
   }
 
+  String? _nullIfEmpty(String s) => s.trim().isEmpty ? null : s.trim();
+
   String? _validate() {
     if (_name.text.trim().isEmpty) return 'Please enter a property name';
     if (_type.value == null) return 'Please select a property type';
+    if (_zip.text.trim().length > HomeItemData.maxZipLength) {
+      return 'ZIP code can be at most ${HomeItemData.maxZipLength} characters';
+    }
     return null;
   }
 
-  Map<String, dynamic> _collect() => {
-    'category': widget.category,
-    'name': _name.text.trim(),
-    'propertyType': _type.value,
-    'yearBuilt': _yearBuilt.value,
-    'zipCode': _zip.text.trim().isEmpty ? null : _zip.text.trim(),
-    'ownOrRent': _own.value,
-    'features': _selected.value.toList(),
-    'image': _image.value,
-    'userNotes': _notes.text.trim().isEmpty ? null : _notes.text.trim(),
-  };
+  HomeItemData _collect() => HomeItemData(
+    name: _name.text.trim(),
+    propertyType: _type.value!,
+    yearBuilt: _yearBuilt.value,
+    zipCode: _nullIfEmpty(_zip.text),
+    ownOrRent: _own.value,
+    systems: HomeSystems.slugsOf(_selected.value),
+    imageFile: _image.value,
+    userNotes: _nullIfEmpty(_notes.text),
+  );
 
-  void _submit() {
+  Future<void> _submit() async {
     FocusScope.of(context).unfocus();
     final error = _validate();
     if (error != null) {
       AppToast.showToast(error, backgroundColor: Colors.red);
       return;
     }
-    debugPrint('Home form data: ${_collect()}');
-    // TODO: connect API
+
+    // TODO: premium users should continue into the Home question flow once
+    // that screen exists (set openQuestionFlowForPremium: true then).
+    await submitItem(_collect(), onSaved: _clear);
   }
 
   Widget _heading(String text) => Text(
@@ -216,7 +216,7 @@ class _HomeFormState extends State<HomeForm>
           ),
           SizedBox(height: 20.h),
 
-          PrimaryButton(text: 'Add Asset', onPressed: _submit),
+          buildSubmitButton(onPressed: _submit),
           SizedBox(height: 40.h),
         ],
       ),

@@ -1,13 +1,10 @@
-
-
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:maintenance_genie/core/constants/app_colors.dart';
+import 'package:maintenance_genie/data/models/item.dart';
+import 'package:maintenance_genie/shared/item_display.dart';
 import 'package:provider/provider.dart';
-
 import '../../../app/routes/route_names.dart';
-import '../../../data/models/all_item_list_model.dart';
-import '../../../shared/common_widgets.dart';
 import '../../../shared/custom_app_bar.dart';
 import '../../../shared/empty_state_widget.dart';
 import '../../view_models/all_item_list_provider.dart';
@@ -21,6 +18,8 @@ class ItemsMenuScreen extends StatefulWidget {
 }
 
 class _ItemsMenuScreenState extends State<ItemsMenuScreen> {
+  static const List<double> _columnFractions = [0.22, 0.33, 0.45];
+
   @override
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -103,7 +102,7 @@ class _ItemsMenuScreenState extends State<ItemsMenuScreen> {
                         );
                       }
 
-                      final items = provider.allItemListModel?.items ?? [];
+                      final items = provider.allItemListModel?.items ?? <Item>[];
                       if (items.isEmpty) {
                         return EmptyState(
                           icon: Icons.inventory_2_outlined,
@@ -150,13 +149,13 @@ class _ItemsMenuScreenState extends State<ItemsMenuScreen> {
                                   buildTable(context, items, provider),
                                   buildTable(
                                     context,
-                                    items.where((item) => item.category == 'Vehicle').toList(),
+                                    items.whereType<VehicleItem>().toList(),
                                     provider,
                                     categoryLabel: 'vehicle',
                                   ),
                                   buildTable(
                                     context,
-                                    items.where((item) => item.category == 'Appliance').toList(),
+                                    items.whereType<HomeItem>().toList(),
                                     provider,
                                     categoryLabel: 'home',
                                   ),
@@ -164,10 +163,10 @@ class _ItemsMenuScreenState extends State<ItemsMenuScreen> {
                                     context,
                                     items
                                         .where((item) =>
-                                    item.category != 'Vehicle' && item.category != 'Appliance')
+                                    item is! VehicleItem && item is! HomeItem)
                                         .toList(),
                                     provider,
-                                    categoryLabel: 'custom',
+                                    categoryLabel: 'other',
                                   ),
                                 ],
                               ),
@@ -187,7 +186,12 @@ class _ItemsMenuScreenState extends State<ItemsMenuScreen> {
     );
   }
 
-  Widget buildTable(BuildContext context, List<Items> data, provider, {String categoryLabel = 'matching'}) {
+  Widget buildTable(
+      BuildContext context,
+      List<Item> data,
+      AllItemListProvider provider, {
+        String categoryLabel = 'matching',
+      }) {
     if (data.isEmpty) {
       return EmptyState(
         icon: Icons.category_outlined,
@@ -196,7 +200,7 @@ class _ItemsMenuScreenState extends State<ItemsMenuScreen> {
       );
     }
 
-    const int columnCount = 4;
+    final int columnCount = _columnFractions.length;
 
     return Container(
       decoration: BoxDecoration(
@@ -207,9 +211,9 @@ class _ItemsMenuScreenState extends State<ItemsMenuScreen> {
         borderRadius: BorderRadius.circular(12.r),
         child: LayoutBuilder(
           builder: (context, constraints) {
-            final double columnWidth = constraints.maxWidth / columnCount;
+            double columnWidth(int col) =>
+                constraints.maxWidth * _columnFractions[col];
 
-            // short vertical line, not touching the row's top/bottom
             Widget divider(double height) => Container(
               width: 1,
               height: height,
@@ -219,7 +223,7 @@ class _ItemsMenuScreenState extends State<ItemsMenuScreen> {
             Widget cell(Widget child, int col, double dividerHeight) {
               final isLast = col == columnCount - 1;
               return SizedBox(
-                width: columnWidth,
+                width: columnWidth(col),
                 child: Row(
                   children: [
                     Expanded(
@@ -234,10 +238,15 @@ class _ItemsMenuScreenState extends State<ItemsMenuScreen> {
               );
             }
 
-            Widget cellText(String text, int col) => cell(
-              Text(text, maxLines: 2, overflow: TextOverflow.ellipsis),
+            Widget cellText(String text, int col, {bool bold = false}) => cell(
+              Text(
+                text,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: bold ? const TextStyle(fontWeight: FontWeight.w600) : null,
+              ),
               col,
-              28.h, // divider height in data rows
+              28.h,
             );
 
             Widget headerText(String text, int col) => cell(
@@ -252,7 +261,7 @@ class _ItemsMenuScreenState extends State<ItemsMenuScreen> {
                 ),
               ),
               col,
-              20.h, // divider height in the header
+              20.h,
             );
 
             return SingleChildScrollView(
@@ -270,9 +279,8 @@ class _ItemsMenuScreenState extends State<ItemsMenuScreen> {
                   ),
                   columns: [
                     DataColumn(label: headerText('Category', 0)),
-                    DataColumn(label: headerText('Make', 1)),
-                    DataColumn(label: headerText('Model', 2)),
-                    DataColumn(label: headerText('Name', 3)),
+                    DataColumn(label: headerText('Name', 1)),
+                    DataColumn(label: headerText('Details', 2)),
                   ],
                   rows: data.map((item) {
                     return DataRow(
@@ -292,9 +300,8 @@ class _ItemsMenuScreenState extends State<ItemsMenuScreen> {
                       },
                       cells: [
                         DataCell(cellText(item.category, 0)),
-                        DataCell(cellText(item.brand, 1)),
-                        DataCell(cellText(item.model, 2)),
-                        DataCell(cellText(item.name, 3)),
+                        DataCell(cellText(item.name, 1, bold: false)),
+                        DataCell(cellText(itemSummary(item), 2)),
                       ],
                     );
                   }).toList(),

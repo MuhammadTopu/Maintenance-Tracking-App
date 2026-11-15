@@ -33,6 +33,14 @@ class HomeSystems {
 
   static List<String> get labels => slugByLabel.keys.toList(growable: false);
 
+  static String labelOf(String slug) {
+    for (final entry in slugByLabel.entries) {
+      if (entry.value == slug) return entry.key;
+    }
+    final text = slug.replaceAll('_', ' ').trim();
+    return text.isEmpty ? slug : text[0].toUpperCase() + text.substring(1);
+  }
+
   static List<String> slugsOf(Iterable<String> selectedLabels) {
     final selected = selectedLabels.toSet();
     return [

@@ -9,9 +9,22 @@ import '../../../shared/custom_item_app_bar.dart';
 import '../../view_models/add_item_provider.dart';
 import '../../view_models/all_item_list_provider.dart';
 import '../../view_models/question_provider.dart';
+import '../../../data/models/guided_answer_model.dart';
 import '../../../data/models/question_response_model.dart';
+import 'answers_review_screen.dart';
 import 'recommendation_screen.dart';
+import 'widgets/guided_questions_view.dart';
 
+/// Step after "Add Asset" for premium users, for every category:
+///
+///  1. saves the item (so the server can generate its questions),
+///  2. loads the questions,
+///  3. Vehicle: Yes / No / Planned → recommendations.
+///     Home and Other: typed questions, round by round → read-only review.
+///
+/// It is opened with the `AddItemData` as its route argument and pops `true`
+/// once the item is saved, so the form that opened it can reset itself and the
+/// same item cannot be submitted twice.
 class ItemAddQuestionScreen extends StatefulWidget {
   const ItemAddQuestionScreen({super.key});
 
@@ -20,120 +33,361 @@ class ItemAddQuestionScreen extends StatefulWidget {
 }
 
 class _ItemAddQuestionScreenState extends State<ItemAddQuestionScreen> {
+  /// Vehicle answers (Yes / No / Planned) by question id.
   final Map<String, String> answers = {};
 
-  bool _hasError = false;
+  String? _itemId;
+  String _category = ItemCategory.vehicle;
+  bool _itemSaved = false;
+  bool _loadFailed = false;
+
+  /// True until the item is saved and the questions were requested, so the
+  /// first frame shows the loader and not an empty state.
+  bool _initializing = true;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback(
+          (_) => _createItemAndLoadQuestions(),
+    );
+  }
 
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final addItemProvider = context.read<AddItemProvider>();
-      final allItemProvider = context.read<AllItemListProvider>();
-      final questionProvider = context.read<QuestionProvider>();
+  Future<void> _createItemAndLoadQuestions() async {
+    final addItemProvider = context.read<AddItemProvider>();
+    final allItemProvider = context.read<AllItemListProvider>();
+    final questionProvider = context.read<QuestionProvider>();
 
-      final args = ModalRoute.of(context)?.settings.arguments;
-      if (args is! AddItemData) {
-        debugPrint('ItemAddQuestionScreen: missing AddItemData argument');
-        if (mounted) Navigator.pop(context);
-        return;
-      }
+    final args = ModalRoute.of(context)?.settings.arguments;
+    if (args is! AddItemData) {
+      debugPrint('ItemAddQuestionScreen: missing AddItemData argument');
+      _close();
+      return;
+    }
 
-      questionProvider.setIsGenerateLoading(true);
+    // The provider outlives this screen, so start from a clean slate.
+    questionProvider.reset();
+    questionProvider.setIsGenerateLoading(true);
 
-      final success = await addItemProvider.addItem(args);
+    final success = await addItemProvider.addItem(args);
+    final itemId = addItemProvider.lastAddedItemId;
 
-      if (!success) {
-        questionProvider.setIsGenerateLoading(false);
-        if (mounted) Navigator.pop(context);
-        return;
-      }
-
-      final newItemId = addItemProvider.lastAddedItemId;
-
-      if (newItemId == null || newItemId.isEmpty) {
-        questionProvider.setIsGenerateLoading(false);
-        if (mounted) Navigator.pop(context);
-        return;
-      }
-
-      unawaited(allItemProvider.getAllItem());
-
-      await questionProvider.setQId(newItemId);
-
-      final questions = questionProvider.questionResponse?.questions ?? [];
-      debugPrint('Fetched questions count: ${questions.length}');
-
-      if (questions.isEmpty) {
-        _hasError = true;
-      }
-
-      addItemProvider.clearFields();
-      addItemProvider.clearLastAddedItemId();
+    if (!success || itemId == null || itemId.isEmpty) {
       questionProvider.setIsGenerateLoading(false);
+      _close();
+      return;
+    }
 
-      if (mounted) setState(() {});
-    });
+    _itemSaved = true;
+    _itemId = itemId;
+    _category = args.category;
+
+    addItemProvider.clearFields();
+    addItemProvider.clearLastAddedItemId();
+    unawaited(allItemProvider.getAllItem());
+
+    if (!mounted) return;
+    await _loadQuestions();
+  }
+
+  /// Fetches the questions of the saved item. Also used by "Try again".
+  Future<void> _loadQuestions() async {
+    final itemId = _itemId;
+    if (itemId == null) return;
+
+    final provider = context.read<QuestionProvider>();
+    provider.setIsGenerateLoading(true);
+    await provider.start(itemId: itemId, category: _category);
+
+    _loadFailed = provider.isGuidedFlow && !provider.guidedLoaded;
+    provider.setIsGenerateLoading(false);
+
+    if (mounted) {
+      setState(() => _initializing = false);
+    }
+  }
+
+  /// Closes the screen. Pops `true` when the item was already saved.
+  void _close() {
+    if (!mounted) return;
+    Navigator.of(context).pop(_itemSaved);
+  }
+
+  /// The user wants to leave. Not while the item is being saved or the
+  /// questions are loading: leaving then would drop the screen while a request
+  /// is still running.
+  void _leave() {
+    if (context.read<QuestionProvider>().isGenerateLoading) return;
+    _close();
+  }
+
+  /// Home / Other: show the read-only review. It replaces this screen, so back
+  /// from the review does not return to a finished question list.
+  void _openReview() {
+    Navigator.of(context).pushReplacement<void, bool>(
+      MaterialPageRoute<void>(builder: (_) => const AnswersReviewScreen()),
+      result: _itemSaved,
+    );
+  }
+
+  Future<void> _submitGuided(List<GuidedAnswer> guidedAnswers) async {
+    final provider = context.read<QuestionProvider>();
+    final accepted = await provider.submitGuidedAnswers(guidedAnswers);
+    if (!mounted || !accepted) return; // the error was already shown
+
+    // Finished: review. Otherwise the provider now holds the next round and
+    // this screen rebuilds with it.
+    if (provider.guidedFinished) _openReview();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<QuestionProvider>(
-      builder: (_, provider, __) {
-        if (provider.isGenerateLoading) {
-          return Scaffold(
-            backgroundColor: Colors.white,
-            body: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _leave();
+      },
+      child: Consumer<QuestionProvider>(
+        builder: (_, provider, __) {
+          if (_initializing || provider.isGenerateLoading) {
+            return _buildLoading();
+          }
+          return provider.isGuidedFlow
+              ? _buildGuided(provider)
+              : _buildVehicle(provider);
+        },
+      ),
+    );
+  }
+
+  Widget _buildLoading() {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const WaveLoading(),
+            SizedBox(height: 16.h),
+            Text(
+              "Generating task. Please wait...",
+              style: TextStyle(fontSize: 14.sp, color: Colors.grey[700]),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// A centred message with an optional button, under the usual app bar.
+  Widget _buildMessageState({
+    required IconData icon,
+    required String message,
+    String? actionLabel,
+    VoidCallback? onAction,
+  }) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: Padding(
+          padding: EdgeInsets.all(16.w),
+          child: Column(
+            children: [
+              CustomItemAppBar(
+                title: 'Quick Question & Answer',
+                onTap: _leave,
+              ),
+              Expanded(
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(icon, size: 48.sp, color: Colors.grey[300]),
+                      SizedBox(height: 12.h),
+                      Text(
+                        message,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 14.sp, color: Colors.grey),
+                      ),
+                      if (actionLabel != null && onAction != null) ...[
+                        SizedBox(height: 20.h),
+                        PrimaryButton(text: actionLabel, onPressed: onAction),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ================= HOME / OTHER =================
+
+  Widget _buildGuided(QuestionProvider provider) {
+    if (_loadFailed) {
+      return _buildMessageState(
+        icon: Icons.cloud_off_rounded,
+        message: 'We couldn\'t load the questions for this item.',
+        actionLabel: 'Try again',
+        onAction: _loadQuestions,
+      );
+    }
+
+    final pending = provider.pendingQuestions;
+    if (pending.isEmpty) {
+      // Nothing to ask (or everything is already answered). Tasks can still
+      // be generated.
+      return _buildMessageState(
+        icon: Icons.help_outline_rounded,
+        message: 'No more questions for this item.',
+        actionLabel: 'Continue',
+        onAction: _openReview,
+      );
+    }
+
+    return GuidedQuestionsView(
+      // A new key per round: empty answers, scrolled to the top.
+      key: ValueKey('round-${provider.round}-${pending.first.id}'),
+      questions: pending,
+      round: provider.round,
+      isSubmitting: provider.postLoading,
+      onSubmit: _submitGuided,
+      onClose: _leave,
+    );
+  }
+
+  // ================= VEHICLE =================
+
+  Widget _buildVehicle(QuestionProvider provider) {
+    final questions = provider.questionResponse?.questions ?? [];
+
+    if (questions.isEmpty) {
+      return _buildMessageState(
+        icon: Icons.help_outline_rounded,
+        message: 'No maintenance questions available for this item.',
+      );
+    }
+
+    final answeredCount = answers.length;
+
+    return Scaffold(
+      backgroundColor: const Color(0xffFAFAFA),
+      body: SafeArea(
+        child: Column(
+          children: [
+            Padding(
+              padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 0),
+              child: CustomItemAppBar(
+                title: 'Quick Question & Answer',
+                onTap: _leave,
+              ),
+            ),
+            SizedBox(height: 12.h),
+
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.w),
+              child: Row(
                 children: [
-                  const WaveLoading(),
-                  SizedBox(height: 16.h),
+                  Expanded(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(99.r),
+                      child: LinearProgressIndicator(
+                        value: answeredCount / questions.length,
+                        minHeight: 6.h,
+                        backgroundColor: const Color(0xffE9E9EA),
+                        valueColor: AlwaysStoppedAnimation(
+                          AppColors.primaryColor,
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 10.w),
                   Text(
-                    "Generating task. Please wait...",
-                    style: TextStyle(fontSize: 14.sp, color: Colors.grey[700]),
+                    '$answeredCount/${questions.length}',
+                    style: TextStyle(
+                      fontSize: 12.sp,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey[700],
+                    ),
                   ),
                 ],
               ),
             ),
-          );
-        }
 
-        final questions = provider.questionResponse?.questions ?? [];
+            SizedBox(height: 16.h),
 
-        if (_hasError || questions.isEmpty) {
-          return Scaffold(
-            backgroundColor: Colors.white,
-            body: SafeArea(
-              child: Padding(
-                padding: EdgeInsets.all(16.w),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 16.h),
                 child: Column(
                   children: [
-                    CustomItemAppBar(
-                      title: 'Quick Question & Answer',
-                      onTap: () => Navigator.pop(context),
+                    ...questions.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final q = entry.value;
+                      return QuestionTile(
+                        index: index + 1,
+                        question: q,
+                        selectedAnswer: answers[q.id] ?? "",
+                        onChanged: (String? value) {
+                          setState(() {
+                            answers[q.id] = value!;
+                            debugPrint("Selected Answers: $answers");
+                          });
+                        },
+                      );
+                    }),
+                  ],
+                ),
+              ),
+            ),
+
+            Container(
+              padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 12.h),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 12,
+                    offset: const Offset(0, -4),
+                  ),
+                ],
+              ),
+              child: SafeArea(
+                top: false,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(
+                      width: double.infinity,
+                      child: Visibility(
+                        visible: !provider.postLoading,
+                        replacement: Padding(
+                          padding: EdgeInsets.symmetric(vertical: 12.h),
+                          child: Center(
+                            child: CircularProgressIndicator(
+                              color: AppColors.primaryColor,
+                            ),
+                          ),
+                        ),
+                        child: PrimaryButton(
+                          text: 'Submit',
+                          onPressed: answeredCount == questions.length
+                              ? () => _submitVehicle(provider, questions)
+                              : null,
+                        ),
+                      ),
                     ),
-                    Expanded(
-                      child: Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.help_outline_rounded,
-                              size: 48.sp,
-                              color: Colors.grey[300],
-                            ),
-                            SizedBox(height: 12.h),
-                            Text(
-                              'No maintenance questions available for this item.',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 14.sp,
-                                color: Colors.grey,
-                              ),
-                            ),
-                          ],
+                    TextButton(
+                      onPressed: _leave,
+                      child: Text(
+                        'Cancel',
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontSize: 12.sp,
                         ),
                       ),
                     ),
@@ -141,155 +395,34 @@ class _ItemAddQuestionScreenState extends State<ItemAddQuestionScreen> {
                 ),
               ),
             ),
-          );
-        }
-
-        final answeredCount = answers.length;
-
-        return Scaffold(
-          backgroundColor: const Color(0xffFAFAFA),
-          body: SafeArea(
-            child: Column(
-              children: [
-                Padding(
-                  padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 0),
-                  child: CustomItemAppBar(
-                    title: 'Quick Question & Answer',
-                    onTap: () => Navigator.pop(context),
-                  ),
-                ),
-                SizedBox(height: 12.h),
-
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16.w),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(99.r),
-                          child: LinearProgressIndicator(
-                            value: answeredCount / questions.length,
-                            minHeight: 6.h,
-                            backgroundColor: const Color(0xffE9E9EA),
-                            valueColor: AlwaysStoppedAnimation(
-                              AppColors.primaryColor,
-                            ),
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: 10.w),
-                      Text(
-                        '$answeredCount/${questions.length}',
-                        style: TextStyle(
-                          fontSize: 12.sp,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.grey[700],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                SizedBox(height: 16.h),
-
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 16.h),
-                    child: Column(
-                      children: [
-                        ...questions.asMap().entries.map((entry) {
-                          final index = entry.key;
-                          final q = entry.value;
-                          return QuestionTile(
-                            index: index + 1,
-                            question: q,
-                            selectedAnswer: answers[q.id] ?? "",
-                            onChanged: (String? value) {
-                              setState(() {
-                                answers[q.id] = value!;
-                                debugPrint("Selected Answers: $answers");
-                              });
-                            },
-                          );
-                        }),
-                      ],
-                    ),
-                  ),
-                ),
-
-                Container(
-                  padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 12.h),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 12,
-                        offset: const Offset(0, -4),
-                      ),
-                    ],
-                  ),
-                  child: SafeArea(
-                    top: false,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        SizedBox(
-                          width: double.infinity,
-                          child: Visibility(
-                            visible: !provider.postLoading,
-                            replacement: Padding(
-                              padding: EdgeInsets.symmetric(vertical: 12.h),
-                              child: Center(
-                                child: CircularProgressIndicator(color: AppColors.primaryColor),
-                              ),
-                            ),
-                            child: PrimaryButton(
-                              text: 'Submit',
-                              onPressed: answeredCount == questions.length
-                                  ? () async {
-                                final orderedAnswers = questions
-                                    .map((q) => answers[q.id] ?? '')
-                                    .toList();
-
-                                debugPrint('Submitting answers in order: $orderedAnswers');
-
-                                final success = await provider.answerQuestions(orderedAnswers);
-
-                                if (!mounted) return;
-
-                                if (success && provider.answeredResponse != null) {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => RecommendationScreen(
-                                        response: provider.answeredResponse!,
-                                      ),
-                                    ),
-                                  );
-                                }
-                              }
-                                  : null,
-                            ),
-                          ),
-                        ),
-                        TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: Text(
-                            'Cancel',
-                            style: TextStyle(color: Colors.grey[600], fontSize: 12.sp),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
+          ],
+        ),
+      ),
     );
+  }
+
+  Future<void> _submitVehicle(
+      QuestionProvider provider,
+      List<MaintenanceQuestion> questions,
+      ) async {
+    // One answer per question, in the order the questions were returned.
+    final orderedAnswers = questions.map((q) => answers[q.id] ?? '').toList();
+
+    debugPrint('Submitting answers in order: $orderedAnswers');
+
+    final success = await provider.answerQuestions(orderedAnswers);
+
+    if (!mounted) return;
+
+    if (success && provider.answeredResponse != null) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) =>
+              RecommendationScreen(response: provider.answeredResponse!),
+        ),
+      );
+    }
   }
 }
 

@@ -159,7 +159,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             isLoading: pr.loading,
                           ),
                           _buildItemCard(
-                            'Custom',
+                            'Others',
                             customCount,
                             "assets/images/ber.png",
                             color: const Color(0xffF0FAF9),

@@ -1,14 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:maintenance_genie/presentation/view_models/parent_screen_provider.dart';
 import 'package:provider/provider.dart';
-import '../../../app/routes/route_names.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/helper/question_flow_completion.dart';
 import '../../../shared/common_widgets.dart';
 import '../../../shared/custom_item_app_bar.dart';
 import '../../../data/models/question_response_model.dart';
 import '../../view_models/question_provider.dart';
-import '../../view_models/item_task_list_provider.dart';
+
+/// The API calls the status of a "No" answer "Attention Needed". "Recommended"
+/// is accepted too, as older responses used it.
+const Set<String> _attentionStatuses = {'recommended', 'attention needed'};
+
+String _statusOf(MaintenanceQuestion question) =>
+    (question.recommendations.isNotEmpty
+        ? question.recommendations.first.status
+        : '')
+        .trim()
+        .toLowerCase();
 
 class RecommendationScreen extends StatelessWidget {
   final QuestionsResponse response;
@@ -19,36 +28,13 @@ class RecommendationScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final questions = response.questions;
 
-    final recommendedCount = questions
-        .where(
-          (q) =>
-              (q.recommendations.isNotEmpty
-                      ? q.recommendations.first.status
-                      : '')
-                  .toLowerCase() ==
-              'recommended',
-        )
+    int countOf(Set<String> statuses) => questions
+        .where((q) => statuses.contains(_statusOf(q)))
         .length;
-    final completeCount = questions
-        .where(
-          (q) =>
-              (q.recommendations.isNotEmpty
-                      ? q.recommendations.first.status
-                      : '')
-                  .toLowerCase() ==
-              'complete',
-        )
-        .length;
-    final plannedCount = questions
-        .where(
-          (q) =>
-              (q.recommendations.isNotEmpty
-                      ? q.recommendations.first.status
-                      : '')
-                  .toLowerCase() ==
-              'planned',
-        )
-        .length;
+
+    final recommendedCount = countOf(_attentionStatuses);
+    final completeCount = countOf({'complete'});
+    final plannedCount = countOf({'planned'});
 
     return Scaffold(
       backgroundColor: const Color(0xffFAFAFA),
@@ -190,27 +176,7 @@ class RecommendationScreen extends StatelessWidget {
                         ),
                         child: PrimaryButton(
                           text: 'Generate Tasks',
-                          onPressed: () async {
-                            final success = await provider.generateTasks();
-
-                            if (!ctx.mounted) return;
-
-                            if (success) {
-                              await ctx
-                                  .read<ItemTaskListProvider>()
-                                  .getItemTasks();
-
-                              if (!ctx.mounted) return;
-
-                              ctx.read<ParentScreensProvider>().onSelectedIndex(
-                                1,
-                              );
-                              Navigator.of(ctx).pushNamedAndRemoveUntil(
-                                RouteName.parent,
-                                (route) => false,
-                              );
-                            }
-                          },
+                          onPressed: () => generateTasksAndFinish(ctx),
                         ),
                       ),
                     );
@@ -286,8 +252,8 @@ class RecommendationTile extends StatelessWidget {
 
   QuestionRecommendation? get _recommendation =>
       question.recommendations.isNotEmpty
-      ? question.recommendations.first
-      : null;
+          ? question.recommendations.first
+          : null;
 
   Color get _statusColor {
     switch (_recommendation?.status.toLowerCase()) {
@@ -296,6 +262,7 @@ class RecommendationTile extends StatelessWidget {
       case 'planned':
         return const Color(0xffE58A00);
       case 'recommended':
+      case 'attention needed':
         return const Color(0xffC62828);
       default:
         return Colors.grey;
@@ -309,6 +276,7 @@ class RecommendationTile extends StatelessWidget {
       case 'planned':
         return Icons.schedule_rounded;
       case 'recommended':
+      case 'attention needed':
         return Icons.error_rounded;
       default:
         return Icons.info_rounded;

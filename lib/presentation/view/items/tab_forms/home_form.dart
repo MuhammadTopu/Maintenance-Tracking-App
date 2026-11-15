@@ -106,9 +106,11 @@ class _HomeFormState extends State<HomeForm>
       return;
     }
 
-    // TODO: premium users should continue into the Home question flow once
-    // that screen exists (set openQuestionFlowForPremium: true then).
-    await submitItem(_collect(), onSaved: _clear);
+    await submitItem(
+      _collect(),
+      openQuestionFlowForPremium: true,
+      onSaved: _clear,
+    );
   }
 
   Widget _heading(String text) => Text(

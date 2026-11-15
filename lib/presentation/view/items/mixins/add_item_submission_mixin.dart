@@ -9,8 +9,19 @@ import 'package:provider/provider.dart';
 
 import '../widgets/show_item_added_dialog.dart';
 
+/// Submit flow shared by the Vehicle, Home and Other forms, so the three forms
+/// cannot drift apart.
 mixin AddItemSubmissionMixin<T extends StatefulWidget> on State<T> {
-
+  /// Saves [data].
+  ///
+  ///  * Free user: saves the item, refreshes the list and shows the "item
+  ///    added" dialog.
+  ///  * Premium user ([openQuestionFlowForPremium]): opens the question flow,
+  ///    which saves the item itself and then asks its maintenance questions
+  ///    (Vehicle: Yes / No / Planned. Home and Other: typed questions, then a
+  ///    review of the answers).
+  ///
+  /// [onSaved] resets the form. It runs once the item exists, in both cases.
   Future<void> submitItem(
       AddItemData data, {
         required VoidCallback onSaved,
@@ -23,17 +34,26 @@ mixin AddItemSubmissionMixin<T extends StatefulWidget> on State<T> {
       final isPremium =
           context.read<UserProvider>().userResponse?.data.isPremium == true;
       if (isPremium) {
-        Navigator.pushNamed(
+        // The question screen pops `true` once the item is saved, even if the
+        // user then leaves without finishing the questions. Reset the form in
+        // that case: the item exists, so submitting the same form again would
+        // create a duplicate.
+        final itemSaved = await Navigator.pushNamed(
           context,
           RouteName.itemAddQuestion,
           arguments: data,
         );
+        if (itemSaved == true && mounted) {
+          addItemProvider.clearFields();
+          onSaved();
+        }
         return;
       }
     }
 
     final allItems = context.read<AllItemListProvider>();
     final saved = await addItemProvider.addItem(data);
+    // On failure the repository has already shown the reason.
     if (!mounted || !saved) return;
 
     allItems.getAllItem();
@@ -49,6 +69,8 @@ mixin AddItemSubmissionMixin<T extends StatefulWidget> on State<T> {
     onSaved();
   }
 
+  /// The "Add Asset" button. Swaps to a spinner while a request is running so
+  /// the user cannot submit twice.
   Widget buildSubmitButton({required VoidCallback onPressed}) {
     return Selector<AddItemProvider, bool>(
       selector: (_, p) => p.isLoading,

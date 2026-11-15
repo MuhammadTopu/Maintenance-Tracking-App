@@ -14,6 +14,8 @@ import '../../core/services/api/api_service.dart';
 import '../../domain/repository/add_items_repository.dart';
 import '../../domain/entities/add_item_data.dart';
 import '../../shared/app_toast.dart';
+import '../models/guided_answer_model.dart';
+import '../models/guided_question_model.dart';
 import '../models/question_response_model.dart';
 
 class AddItemRepositoryImpl implements AddItemRepository {
@@ -192,99 +194,143 @@ class AddItemRepositoryImpl implements AddItemRepository {
 
   // ================= QUESTIONS =================
 
+  /// Vehicle. `GET /items/:id/questions`.
   @override
-  Future<QuestionsResponse?> getQuestion(String id) async {
-    try {
-      final response = await _apiService.get(ApiEndPoints.getQuestion(id));
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        return QuestionsResponse.fromJson(response.data);
-      }
-
-      AppToast.showToast(
-        response.data['message'] ?? 'Failed to load questions',
-        backgroundColor: Colors.red,
-      );
-      return null;
-    } on DioException catch (e) {
-      final serverMessage = e.type == DioExceptionType.connectionError
-          ? "Something went wrong!!! Check internet connection"
-          : _extractServerMessage(e);
-      AppToast.showToast(serverMessage, backgroundColor: Colors.red);
-      return null;
-    } catch (e) {
-      Log.error("Error fetching question: $e");
-      return null;
-    }
+  Future<QuestionsResponse?> getQuestion(String id) {
+    return _call<QuestionsResponse>(
+      label: 'getQuestion',
+      failureMessage: 'Failed to load questions',
+      request: () => _apiService.post(ApiEndPoints.getQuestion(id)),
+      parse: QuestionsResponse.fromJson,
+    );
   }
 
+  /// Vehicle. Answers are Yes / No / Planned, one per question and in the order
+  /// the questions were returned.
   @override
   Future<QuestionsResponse?> answerQuestions({
     required String itemId,
     required List<String> answers,
-  }) async {
-    try {
-      final body = {"answers": answers};
-
-      final response = await _apiService.post(
+  }) {
+    return _call<QuestionsResponse>(
+      label: 'answerQuestions',
+      failureMessage: 'Failed to answer questions',
+      request: () => _apiService.post(
         ApiEndPoints.answerQuestion(itemId),
-        data: body,
-      );
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        if (response.data['questions'] != null) {
-          return QuestionsResponse.fromJson(response.data);
+        data: {'answers': answers},
+      ),
+      parse: (json) {
+        if (json['questions'] == null) {
+          AppToast.showToast(
+            'No recommendations found.',
+            backgroundColor: Colors.orange,
+          );
+          return null;
         }
-        AppToast.showToast('No recommendations found.', backgroundColor: Colors.orange);
-        return null;
-      }
+        return QuestionsResponse.fromJson(json);
+      },
+    );
+  }
 
-      AppToast.showToast(
-        response.data['message'] ?? 'Failed to answer questions',
-        backgroundColor: Colors.red,
-      );
-      return null;
-    } on DioException catch (e) {
-      final serverMessage = e.type == DioExceptionType.connectionError
-          ? "Something went wrong!!! Check internet connection"
-          : _extractServerMessage(e);
-      AppToast.showToast(serverMessage, backgroundColor: Colors.red);
-      return null;
-    } catch (e) {
-      Log.error("Error answering questions: $e");
-      return null;
-    }
+  /// Home and Other. `GET /items/:id/questions`.
+  @override
+  Future<GuidedQuestionsResponse?> getGuidedQuestions(String itemId) {
+    return _call<GuidedQuestionsResponse>(
+      label: 'getGuidedQuestions',
+      failureMessage: 'Failed to load questions',
+      request: () => _apiService.post(ApiEndPoints.getQuestion(itemId)),
+      parse: GuidedQuestionsResponse.fromJson,
+    );
+  }
+
+  /// Home and Other. Body: `{"answers": [{question_id, answer | skipped}]}`.
+  @override
+  Future<GuidedQuestionsResponse?> submitGuidedAnswers({
+    required String itemId,
+    required List<GuidedAnswer> answers,
+  }) {
+    return _call<GuidedQuestionsResponse>(
+      label: 'submitGuidedAnswers',
+      failureMessage: 'Failed to submit answers',
+      request: () => _apiService.post(
+        ApiEndPoints.answerQuestion(itemId),
+        data: {
+          'answers': [for (final answer in answers) answer.toJson()],
+        },
+      ),
+      parse: GuidedQuestionsResponse.fromJson,
+    );
   }
 
   @override
   Future<bool> generateTasks({required String itemId}) async {
-    try {
-      final response = await _apiService.post(
-        ApiEndPoints.generateTasks(itemId),
-      );
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
+    final done = await _call<bool>(
+      label: 'generateTasks',
+      failureMessage: 'Failed to generate tasks',
+      request: () => _apiService.post(ApiEndPoints.generateTasks(itemId)),
+      parse: (json) {
+        final message = json['message'];
         AppToast.showToast(
-          response.data['message'] ?? 'Tasks generated successfully',
+          message is String && message.isNotEmpty
+              ? message
+              : 'Tasks generated successfully',
           backgroundColor: Colors.green,
         );
         return true;
+      },
+    );
+    return done ?? false;
+  }
+
+  // ================= SHARED REQUEST HANDLING =================
+
+  /// Runs [request], parses a 200/201 JSON object with [parse] and turns every
+  /// failure into one toast for the user, then `null`. A 403 with
+  /// `premiumRequired: true` carries its own message ("Upgrade to Premium…").
+  Future<T?> _call<T>({
+    required String label,
+    required String failureMessage,
+    required Future<Response<dynamic>> Function() request,
+    required T? Function(Map<String, dynamic> json) parse,
+  }) async {
+    try {
+      final response = await request();
+      final json = _asJsonMap(response.data);
+      final status = response.statusCode;
+
+      if ((status == 200 || status == 201) && json != null) {
+        return parse(json);
       }
 
-      AppToast.showToast(
-        response.data['message'] ?? 'Failed to generate tasks',
-        backgroundColor: Colors.red,
+      final message = json?['message'];
+      _showError(
+        message is String && message.trim().isNotEmpty
+            ? message
+            : failureMessage,
       );
-      return false;
+      return null;
     } on DioException catch (e) {
-      final serverMessage = e.type == DioExceptionType.connectionError
-          ? "Something went wrong!!! Check internet connection"
-          : _extractServerMessage(e);
-      AppToast.showToast(serverMessage, backgroundColor: Colors.red);
-      return false;
+      _showError(_dioMessage(e));
+      return null;
     } catch (e) {
-      Log.error("Error generating tasks: $e");
-      return false;
+      Log.error('$label failed: $e');
+      return null;
+    }
+  }
+
+  Map<String, dynamic>? _asJsonMap(dynamic data) =>
+      data is Map ? Map<String, dynamic>.from(data) : null;
+
+  String _dioMessage(DioException e) {
+    switch (e.type) {
+      case DioExceptionType.connectionError:
+        return _noInternet;
+      case DioExceptionType.connectionTimeout:
+      case DioExceptionType.sendTimeout:
+      case DioExceptionType.receiveTimeout:
+        return 'The request timed out. Please try again.';
+      default:
+        return _extractServerMessage(e);
     }
   }
 }

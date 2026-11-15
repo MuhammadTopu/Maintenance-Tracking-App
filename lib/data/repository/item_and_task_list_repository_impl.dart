@@ -16,9 +16,9 @@ class ItemAndTaskListRepositoryImpl implements ItemAndTaskListRepository {
   ItemAndTaskListRepositoryImpl(this._apiService);
 
   String _extractServerMessage(
-    DioException e, {
-    String fallback = "Unauthorized: Please Login Again.",
-  }) {
+      DioException e, {
+        String fallback = "Unauthorized: Please Login Again.",
+      }) {
     final data = e.response?.data;
     if (data is Map<String, dynamic>) {
       final message = data['message'];
@@ -47,13 +47,21 @@ class ItemAndTaskListRepositoryImpl implements ItemAndTaskListRepository {
       }
       return null;
     } on DioException catch (e) {
-      String serverMessage = '';
-      if (e.type == DioExceptionType.connectionError) {
-        serverMessage = "Something went wrong!!! Check internet connection";
-      } else {
-        serverMessage = _extractServerMessage(e);
+      // A user with no items gets 404 "No items found for this user". That is
+      // an empty list, not a failure, so the screen shows "No assets yet".
+      final isNoItems =
+          e.response?.statusCode == 404 &&
+              _extractServerMessage(e, fallback: '').toLowerCase().contains(
+                'no items',
+              );
+      if (isNoItems) {
+        return AllItemListModel(
+          success: true,
+          message: 'No items found',
+          items: <Item>[],
+        );
       }
-      // AppToast.showToast(serverMessage, backgroundColor: Colors.red);
+      // Other failures: the screen shows its generic error state.
       return null;
     } catch (e) {
       Log.error("Error in fetching all items : $e");

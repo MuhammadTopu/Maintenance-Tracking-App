@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gpt_markdown/gpt_markdown.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import '../../../core/constants/api_end_points.dart';
 import '../../../core/constants/app_colors.dart';
-import '../../../data/models/one_item_model.dart';
+import '../../../data/models/item.dart';
 import '../../../shared/custom_item_app_bar.dart';
 import '../../../shared/empty_state_widget.dart';
+import '../../../shared/item_display.dart';
 import '../../view_models/all_item_list_provider.dart';
 import '../../view_models/item_task_list_by_item_id_provider.dart';
 import '../../view_models/user_provider.dart';
@@ -79,55 +78,10 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                     Column(
                       spacing: 4,
                       children: [
-                        _buildInfoRow(
-                          title: 'Category : ',
-                          value: item.category,
-                        ),
-                        _buildInfoRow(title: 'Brand : ', value: item.brand),
-                        _buildInfoRow(title: 'Model : ', value: item.model),
-                        _buildInfoRow(
-                          title: 'Year : ',
-                          value: item.yearOfTheModel,
-                        ),
-                        _buildInfoRow(
-                          title: 'Purchase Date : ',
-                          value: item.purchaseDate.isNotEmpty
-                              ? DateFormat(
-                                  "yyyy-MM-dd",
-                                ).format(DateTime.parse(item.purchaseDate))
-                              : 'N/A',
-                        ),
-                        _buildInfoRow(
-                          title: 'Current Mileage : ',
-                          value: item.currentMileage != null
-                              ? '${item.currentMileage} miles'
-                              : 'N/A',
-                        ),
-                        _buildInfoRow(
-                          title: 'Total Mileage : ',
-                          value: item.totalMileage != null
-                              ? '${item.totalMileage} miles'
-                              : 'N/A',
-                        ),
-                        _buildInfoRow(
-                          title: 'Avg. Mileage / Year : ',
-                          value: item.averageMileagePerYear != null
-                              ? '${item.averageMileagePerYear} miles'
-                              : 'N/A',
-                        ),
-                        _buildInfoRow(title: 'Engine : ', value: item.engine),
-                        _buildInfoRow(
-                          title: 'Transmission : ',
-                          value: item.transmission,
-                        ),
-                        _buildInfoRow(
-                          title: 'Drivetrain : ',
-                          value: item.drivetrain,
-                        ),
-                        if ((item.userNotes ?? '').isNotEmpty)
+                        for (final row in itemInfoRows(item))
                           _buildInfoRow(
-                            title: 'Notes : ',
-                            value: item.userNotes!,
+                            title: '${row.key} : ',
+                            value: row.value,
                           ),
                       ],
                     ),
@@ -141,13 +95,10 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                           borderRadius: BorderRadius.circular(12.r),
                           border: Border.all(color: Colors.grey.shade400),
                         ),
-                        child: Image.network(
-                          ApiEndPoints.imagePath(
-                            item.imageUrl.replaceFirst(
-                              "undefined/uploads/",
-                              "",
-                            ),
-                          ),
+                        child: item.imageUrl == null
+                            ? _buildNoImage()
+                            : Image.network(
+                          item.imageUrl!,
                           width: double.infinity,
                           fit: BoxFit.cover,
                           loadingBuilder: (context, child, loadingProgress) {
@@ -155,23 +106,16 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                             return Center(
                               child: CircularProgressIndicator(
                                 value:
-                                    loadingProgress.expectedTotalBytes != null
+                                loadingProgress.expectedTotalBytes != null
                                     ? loadingProgress.cumulativeBytesLoaded /
-                                          loadingProgress.expectedTotalBytes!
+                                    loadingProgress.expectedTotalBytes!
                                     : null,
                                 color: AppColors.primaryColor,
                               ),
                             );
                           },
-                          errorBuilder: (context, error, stackTrace) => Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Icon(Icons.image_outlined, size: 30.h),
-                              SizedBox(height: 12.h),
-                              Text('No Image Available!', style: TextStyle(fontSize: 14.sp)),
-                            ],
-                          ),
+                          errorBuilder: (context, error, stackTrace) =>
+                              _buildNoImage(),
                         ),
                       ),
                     ),
@@ -187,7 +131,7 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                           spacing: 12.h,
                           children: List.generate(
                             prov.taskListResponse?.tasks.length ?? 0,
-                            (index) {
+                                (index) {
                               return UpcomingTaskCard(
                                 task: prov.taskListResponse!.tasks[index],
                               );
@@ -203,7 +147,7 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                       child: ForumSuggestionsCard(
                         response: provider.oneItemModel!,
                         isPremium:
-                            userProvider.userResponse?.data.isPremium ?? false,
+                        userProvider.userResponse?.data.isPremium ?? false,
                       ),
                     ),
                   ],
@@ -213,6 +157,18 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
           },
         ),
       ),
+    );
+  }
+
+  Widget _buildNoImage() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Icon(Icons.image_outlined, size: 30.h),
+        SizedBox(height: 12.h),
+        Text('No Image Available!', style: TextStyle(fontSize: 14.sp)),
+      ],
     );
   }
 
@@ -229,15 +185,15 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
           item.serviceIntervals.isEmpty
               ? Text('No service intervals available', style: TextStyle(fontSize: 14.sp))
               : Column(
-                  children: List.generate(item.serviceIntervals.length, (
-                    index,
-                  ) {
-                    return _buildInfoRow(
-                      title: "",
-                      value: item.serviceIntervals[index],
-                    );
-                  }),
-                ),
+            children: List.generate(item.serviceIntervals.length, (
+                index,
+                ) {
+              return _buildInfoRow(
+                title: "",
+                value: item.serviceIntervals[index],
+              );
+            }),
+          ),
         ],
       ),
     );

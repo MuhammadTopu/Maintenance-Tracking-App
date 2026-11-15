@@ -103,9 +103,11 @@ class _OtherFormState extends State<OtherForm>
       return;
     }
 
-    // TODO: premium users should continue into the Other question flow once
-    // that screen exists (set openQuestionFlowForPremium: true then).
-    await submitItem(_collect(), onSaved: _clear);
+    await submitItem(
+      _collect(),
+      openQuestionFlowForPremium: true,
+      onSaved: _clear,
+    );
   }
 
   @override

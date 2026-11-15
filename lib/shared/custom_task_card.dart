@@ -30,6 +30,20 @@ class CustomTaskCard extends StatelessWidget {
   final String taskId;
   final bool isLoading;
 
+  String _formatDate(String? dateString) {
+    if (dateString == null || dateString.trim().isEmpty) {
+      return 'Not available';
+    }
+
+    final date = DateTime.tryParse(dateString.trim());
+
+    if (date == null) {
+      return 'Not available';
+    }
+
+    return DateFormat('MM/dd/yyyy').format(date);
+  }
+
   @override
   Widget build(BuildContext context) {
     if (isLoading) return const TaskCardSkeleton();
@@ -107,11 +121,14 @@ class CustomTaskCard extends StatelessWidget {
                 Spacer(),
                 Expanded(
                   child: Text(
-                    DateFormat("MM/dd/yyyy").format(DateTime.parse(lastDate)),
+                    _formatDate(lastDate),
                     overflow: TextOverflow.ellipsis,
                     maxLines: 1,
                     textAlign: TextAlign.end,
-                    style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.w400),
+                    style: TextStyle(
+                      fontSize: 13.sp,
+                      fontWeight: FontWeight.w400,
+                    ),
                   ),
                 ),
               ],

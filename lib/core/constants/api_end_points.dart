@@ -38,6 +38,8 @@ class ApiEndPoints {
   static const String updateUserDetails = '$baseUrl/api/users/update-user-details';
   static const String sendMailToAdmin = '$baseUrl/api/users/sende-mail';
   static const String updatePassword = '$baseUrl/api/users/change-password';
+  static const String deleteAccount = '$baseUrl/api/users/delete-account';
+  static const String reportIssue = '$baseUrl/api/reports';
 
   // tracking
   static const String getAllTaskList = '$baseUrl/api/items/all-tasks';

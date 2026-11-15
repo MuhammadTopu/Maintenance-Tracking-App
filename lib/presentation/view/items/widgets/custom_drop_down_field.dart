@@ -8,6 +8,7 @@ class CustomPopupDropdown extends StatefulWidget {
   final String hint;
   final ValueChanged<String> onChanged;
   final VoidCallback? onDisabledTap;
+  final double? menuHeight;
 
   const CustomPopupDropdown({
     super.key,
@@ -17,6 +18,7 @@ class CustomPopupDropdown extends StatefulWidget {
     required this.hint,
     required this.onChanged,
     this.onDisabledTap,
+    this.menuHeight,
   });
 
   @override
@@ -33,7 +35,12 @@ class _CustomPopupDropdownState extends State<CustomPopupDropdown> {
 
     final selected = await showMenu<String>(
       context: context,
-      constraints: const BoxConstraints(maxHeight: 500, minHeight: 170, minWidth: 150, maxWidth: 200),
+      constraints: BoxConstraints(
+        minHeight: widget.menuHeight ?? 170,
+        maxHeight: widget.menuHeight ?? 500,
+        minWidth: 150,
+        maxWidth: 200,
+      ),
       position: RelativeRect.fromLTRB(
         offset.dx,
         offset.dy + size.height + 4,

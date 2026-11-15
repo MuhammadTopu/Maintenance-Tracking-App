@@ -8,10 +8,14 @@ import 'package:provider/provider.dart';
 import '../../../app/routes/route_names.dart';
 import '../../../core/constants/api_end_points.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/di/di_configs.dart';
+import '../../../core/services/api/api_service.dart';
 import '../../../core/services/subscription/subscription_service.dart';
+import '../../../domain/repository/support_mail_repository.dart';
 import '../../../shared/custom_app_bar.dart';
 import '../../view_models/all_item_list_provider.dart';
 import '../../view_models/login_provider.dart';
+import 'dialog/account_dialogs.dart';
 import 'dialog/logout_dialog.dart';
 
 class ProfileMenu extends StatefulWidget {
@@ -265,7 +269,6 @@ class _ProfileMenuState extends State<ProfileMenu> {
                         Navigator.pushNamed(context, RouteName.support);
                       },
                     ),
-                    SizedBox(height: 20),
                     Container(
                       width: double.infinity,
                       height: 40,
@@ -273,7 +276,53 @@ class _ProfileMenuState extends State<ProfileMenu> {
                       alignment: Alignment.centerLeft,
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: const Text(
-                        'Login/Logout',
+                        'More Options',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ),
+                    ListTile(
+                      leading: Image.asset(
+                        "assets/icons/triangle-exclamation.png",
+                        scale: 4,
+                        color: Colors.grey.shade700,
+                      ),
+                      title: Text('Report an Issue'),
+                      trailing: Image.asset(
+                        "assets/icons/arrow_right.png",
+                        scale: 1.9,
+                      ),
+                      onTap: () => showReportIssueDialog(
+                        context,
+                        getIt<SupportMailRepository>(),
+                      ),
+                    ),
+                    ListTile(
+                      leading: Image.asset(
+                        "assets/icons/trash.png",
+                        scale: 4,
+                        color: Colors.grey.shade700,
+                      ),
+                      title: Text('Delete Account'),
+                      trailing: Image.asset(
+                        "assets/icons/arrow_right.png",
+                        scale: 1.9,
+                      ),
+                      onTap: () => showDeleteAccountDialog(
+                        context,
+                        getIt<SupportMailRepository>(),
+                      ),
+                    ),
+                    Container(
+                      width: double.infinity,
+                      height: 40,
+                      color: Color(0xffEEF5F9),
+                      alignment: Alignment.centerLeft,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: const Text(
+                        'Logout',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           color: Colors.grey,
@@ -284,6 +333,7 @@ class _ProfileMenuState extends State<ProfileMenu> {
                       leading: Image.asset(
                         "assets/icons/logout.png",
                         scale: 2.5,
+                        color: Colors.grey.shade700,
                       ),
                       title: Text('Logout'),
                       trailing: Image.asset(

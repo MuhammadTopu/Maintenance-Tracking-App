@@ -13,9 +13,9 @@ class SupportMailRepositoryImpl implements SupportMailRepository {
   SupportMailRepositoryImpl(this._apiService);
 
   String _extractServerMessage(
-    DioException e, {
-    String fallback = "Unauthorized: Please Login Again.",
-  }) {
+      DioException e, {
+        String fallback = "Unauthorized: Please Login Again.",
+      }) {
     final data = e.response?.data;
     if (data is Map<String, dynamic>) {
       final message = data['message'];
@@ -32,17 +32,22 @@ class SupportMailRepositoryImpl implements SupportMailRepository {
     return fallback;
   }
 
+  void _handleDioError(DioException e) {
+    final msg = e.type == DioExceptionType.connectionError
+        ? "Something went wrong!!! Check internet connection"
+        : _extractServerMessage(e);
+    AppToast.showToast(msg, backgroundColor: Colors.red);
+  }
+
   @override
   Future<String?> sendSupportMail({
     required String subject,
     required String message,
   }) async {
     try {
-      final body = {
-        "subject": subject,
-        "message": message
-      };
-      final response = await _apiService.post(ApiEndPoints.sendMailToAdmin, data: body);
+      final body = {"subject": subject, "message": message};
+      final response =
+      await _apiService.post(ApiEndPoints.sendMailToAdmin, data: body);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         if (response.data['success'] == true) {
@@ -51,17 +56,58 @@ class SupportMailRepositoryImpl implements SupportMailRepository {
       }
       return null;
     } on DioException catch (e) {
-      String serverMessage = '';
-      if (e.type == DioExceptionType.connectionError) {
-        serverMessage = "Something went wrong!!! Check internet connection";
-      } else {
-        serverMessage = _extractServerMessage(e);
-      }
-      AppToast.showToast(serverMessage, backgroundColor: Colors.red);
+      _handleDioError(e);
       return null;
     } catch (e) {
-      Log.error("Error in fetching all items : $e");
+      Log.error("Error in sending support mail : $e");
       throw Exception(e);
+    }
+  }
+
+  @override
+  Future<bool> deleteAccount({
+    required String password,
+    required String reason,
+  }) async {
+    try {
+      final response = await _apiService.post(
+        ApiEndPoints.deleteAccount,
+        data: {"password": password, "reason": reason},
+      );
+      return response.statusCode == 200 && response.data['success'] == true;
+    } on DioException catch (e) {
+      _handleDioError(e);
+      return false;
+    } catch (e) {
+      Log.error("Error deleting account : $e");
+      AppToast.showToast("Something went wrong", backgroundColor: Colors.red);
+      return false;
+    }
+  }
+
+  @override
+  Future<bool> reportIssue({
+    required String type,
+    required String subject,
+    required String description,
+  }) async {
+    try {
+      final response = await _apiService.post(
+        ApiEndPoints.reportIssue,
+        data: {
+          "type": type,
+          "subject": subject,
+          "description": description,
+        },
+      );
+      return response.statusCode == 200 || response.statusCode == 201;
+    } on DioException catch (e) {
+      _handleDioError(e);
+      return false;
+    } catch (e) {
+      Log.error("Error reporting issue : $e");
+      AppToast.showToast("Something went wrong", backgroundColor: Colors.red);
+      return false;
     }
   }
 }

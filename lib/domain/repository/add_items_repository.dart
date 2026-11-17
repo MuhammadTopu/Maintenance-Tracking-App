@@ -8,8 +8,6 @@ abstract class AddItemRepository {
 
   Future<String?> addItem(AddItemData data);
 
-  // ---- Vehicle: Yes / No / Planned questions with recommendations ----
-
   Future<QuestionsResponse?> getQuestion(String id);
 
   Future<QuestionsResponse?> answerQuestions({
@@ -17,19 +15,12 @@ abstract class AddItemRepository {
     required List<String> answers,
   });
 
-  // ---- Home and Other: typed questions in rounds, no recommendations ----
-
-  /// `GET /items/:id/questions` for a Home or Other item.
   Future<GuidedQuestionsResponse?> getGuidedQuestions(String itemId);
 
-  /// `POST /items/:id/submit-answers` for a Home or Other item. Returns the
-  /// next round (empty `questions` when there is nothing left to ask).
   Future<GuidedQuestionsResponse?> submitGuidedAnswers({
     required String itemId,
     required List<GuidedAnswer> answers,
   });
-
-  // ---- All categories ----
 
   Future<bool> generateTasks({required String itemId});
 }

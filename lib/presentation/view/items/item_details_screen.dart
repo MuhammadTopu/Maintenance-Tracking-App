@@ -11,7 +11,7 @@ import '../../view_models/all_item_list_provider.dart';
 import '../../view_models/item_task_list_by_item_id_provider.dart';
 import '../../view_models/user_provider.dart';
 import 'widgets/forum_suggestion_card_widget.dart';
-import 'widgets/upcoming_task_card_widget.dart';
+import 'widgets/item_tasks_section.dart';
 
 class ItemDetailsScreen extends StatefulWidget {
   final String? itemId;
@@ -24,12 +24,14 @@ class ItemDetailsScreen extends StatefulWidget {
 class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
   @override
   void initState() {
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await context
-          .read<ItemTaskListByItemIdProvider>()
-          .getAllTaskListByItemId();
-    });
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final tasks = context.read<ItemTaskListByItemIdProvider>();
+      final id = widget.itemId;
+      if (id != null && id.isNotEmpty) tasks.setItemId(id);
+      tasks.loadItemTasks();
+    });
   }
 
   @override
@@ -120,26 +122,7 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                       ),
                     ),
                     SizedBox(height: 12.h),
-                    Consumer<ItemTaskListByItemIdProvider>(
-                      builder: (_, prov, __) {
-                        if (prov.taskListResponse?.tasks.isEmpty ?? true) {
-                          return _buildContainer(
-                            child: Text('No Upcoming Tasks found', style: TextStyle(fontSize: 14.sp)),
-                          );
-                        }
-                        return Column(
-                          spacing: 12.h,
-                          children: List.generate(
-                            prov.taskListResponse?.tasks.length ?? 0,
-                                (index) {
-                              return UpcomingTaskCard(
-                                task: prov.taskListResponse!.tasks[index],
-                              );
-                            },
-                          ),
-                        );
-                      },
-                    ),
+                    const ItemTasksSection(),
                     SizedBox(height: 12.h),
                     _buildServiceIntervals(item),
                     SizedBox(height: 12.h),

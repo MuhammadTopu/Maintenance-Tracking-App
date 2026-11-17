@@ -1,127 +1,92 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:intl/intl.dart';
-import 'package:maintenance_genie/core/constants/app_colors.dart';
-import 'package:provider/provider.dart';
-import 'package:redacted/redacted.dart';
-
-import '../presentation/view_models/item_task_list_by_item_id_provider.dart';
-import 'shimmer_skeletons.dart';
+import 'package:maintenance_genie/data/models/task_list_response_model.dart';
+import 'package:maintenance_genie/shared/task_display.dart';
+import 'package:maintenance_genie/shared/task_status_chip.dart';
 
 class CustomTaskCard extends StatelessWidget {
   const CustomTaskCard({
     super.key,
-    required this.upcomingTask,
-    required this.itemName,
-    required this.status,
-    required this.lastDate,
+    required this.task,
     required this.index,
     this.onTap,
-    required this.taskId,
-    required this.isLoading,
   });
 
+  final TaskResponse task;
   final int index;
-  final String upcomingTask;
-  final String itemName;
-  final String status;
-  final String lastDate;
   final VoidCallback? onTap;
-  final String taskId;
-  final bool isLoading;
-
-  String _formatDate(String? dateString) {
-    if (dateString == null || dateString.trim().isEmpty) {
-      return 'Not available';
-    }
-
-    final date = DateTime.tryParse(dateString.trim());
-
-    if (date == null) {
-      return 'Not available';
-    }
-
-    return DateFormat('MM/dd/yyyy').format(date);
-  }
 
   @override
   Widget build(BuildContext context) {
-    if (isLoading) return const TaskCardSkeleton();
+    final isComplete = task.isComplete;
+    final dateLabel = isComplete ? 'Completed on :' : 'Due date :';
+    final dateValue = isComplete
+        ? (task.completedOnLabel ?? task.dueDateLabel)
+        : task.dueDateLabel;
+
     return Padding(
-      padding: EdgeInsets.only(bottom: 10),
-      child: Container(
-        padding: EdgeInsets.all(12.0),
-        decoration: BoxDecoration(
-          color: Color(0xffF0FAF9),
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Material(
+        color: const Color(0xffF0FAF9),
+        borderRadius: BorderRadius.circular(10),
+        child: InkWell(
           borderRadius: BorderRadius.circular(10),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "$index. $upcomingTask",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-            ),
-            SizedBox(height: 16.h),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(
-                  width: 20.w,
-                  child: Image.asset("assets/images/item.png", height: 18.sp),
+                Text(
+                  '$index. ${task.upcomingTask}',
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
-                SizedBox(width: 8.w),
-                Text("Item :"),
-                Spacer(),
-                Expanded(
-                  child: Text(
-                    itemName,
+                SizedBox(height: 16.h),
+                _CardRow(
+                  leading: Image.asset(
+                    'assets/images/item.png',
+                    height: 18.sp,
+                  ),
+                  label: 'Item :',
+                  value: Text(
+                    task.itemName,
                     textAlign: TextAlign.right,
                     overflow: TextOverflow.ellipsis,
                     maxLines: 1,
-                    style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.w500),
+                    style: TextStyle(
+                      fontSize: 15.sp,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ),
-              ],
-            ),
-            SizedBox(height: 12.h),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                SizedBox(
-                  width: 20.w,
-                  child: Icon(Icons.check_box_outlined, color: Colors.grey, size: 20.sp),
-                ),
-                SizedBox(width: 8.w),
-                Text("Status :"),
-                Spacer(),
-                Expanded(
-                  child: Text(
-                    status,
-                    textAlign: TextAlign.right,
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                    style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w400),
+                SizedBox(height: 12.h),
+                _CardRow(
+                  leading: Icon(
+                    Icons.check_box_outlined,
+                    color: Colors.grey,
+                    size: 20.sp,
+                  ),
+                  label: 'Status :',
+                  value: Align(
+                    alignment: Alignment.centerRight,
+                    child: TaskStatusChip(status: task.status, dense: true),
                   ),
                 ),
-              ],
-            ),
-            SizedBox(height: 12.h),
-
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                SizedBox(
-                  width: 20.w,
-                  child: Icon(Icons.calendar_month, color: Colors.grey, size: 20.sp),
-                ),
-                SizedBox(width: 8.w),
-
-                Text("Last date :"),
-                Spacer(),
-                Expanded(
-                  child: Text(
-                    _formatDate(lastDate),
+                SizedBox(height: 12.h),
+                _CardRow(
+                  leading: Icon(
+                    Icons.calendar_month,
+                    color: Colors.grey,
+                    size: 20.sp,
+                  ),
+                  label: dateLabel,
+                  value: Text(
+                    dateValue,
                     overflow: TextOverflow.ellipsis,
                     maxLines: 1,
                     textAlign: TextAlign.end,
@@ -131,58 +96,60 @@ class CustomTaskCard extends StatelessWidget {
                     ),
                   ),
                 ),
-              ],
-            ),
-            SizedBox(height: 12),
-            Align(
-              alignment: Alignment.centerRight,
-              child: GestureDetector(
-                onTap: onTap,
-                child: Container(
-                  width: 84.w,
-                  height: 36.h,
-                  padding: EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(30),
-                    border: Border(
-                      bottom: BorderSide(
-                        color: Colors.grey,
-                        //   width: 1.0,
+                const SizedBox(height: 12),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: Container(
+                    width: 84.w,
+                    height: 36.h,
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(30),
+                      border: const Border(
+                        bottom: BorderSide(color: Colors.grey),
                       ),
                     ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text('Detail'),
+                        const SizedBox(width: 8),
+                        Image.asset('assets/icons/arrow.png'),
+                      ],
+                    ),
                   ),
-                  child:
-                      context.watch<ItemTaskListByItemIdProvider>().loader &&
-                              taskId ==
-                                  context
-                                      .watch<ItemTaskListByItemIdProvider>()
-                                      .loaderTaskId
-                          ? Center(
-                            child: CircularProgressIndicator(
-                              color: AppColors.primaryColor,
-                              constraints: BoxConstraints(
-                                maxHeight: 20,
-                                maxWidth: 20,
-                                minHeight: 20,
-                                minWidth: 20,
-                              ),
-                            ),
-                          )
-                          : Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text("Detail"),
-                              SizedBox(width: 8),
-                              Image.asset("assets/icons/arrow.png"),
-                            ],
-                          ),
                 ),
-              ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
+    );
+  }
+}
+
+class _CardRow extends StatelessWidget {
+  const _CardRow({
+    required this.leading,
+    required this.label,
+    required this.value,
+  });
+
+  final Widget leading;
+  final String label;
+  final Widget value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        SizedBox(width: 20.w, child: leading),
+        SizedBox(width: 8.w),
+        Text(label),
+        SizedBox(width: 8.w),
+        Expanded(child: value),
+      ],
     );
   }
 }

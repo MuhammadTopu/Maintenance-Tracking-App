@@ -10,6 +10,7 @@ import '../../../../shared/app_toast.dart';
 import '../../../../shared/common_widgets.dart';
 import '../../../../shared/custom_text_field.dart';
 import '../../../view_models/all_item_list_provider.dart';
+import '../../../view_models/item_task_list_provider.dart';
 import '../../../view_models/login_provider.dart';
 import '../../../view_models/parent_screen_provider.dart';
 import '../../items/widgets/custom_drop_down_field.dart';
@@ -47,6 +48,7 @@ Future<void> showDeleteAccountDialog(
   final loginProvider = context.read<LoginProvider>();
   final subscription = context.read<SubscriptionService>();
   final items = context.read<AllItemListProvider>();
+  final tasks = context.read<ItemTaskListProvider>();
   final parentScreens = context.read<ParentScreensProvider>();
 
   const maxWords = 200;
@@ -87,6 +89,7 @@ Future<void> showDeleteAccountDialog(
               }
               subscription.logOut();
               items.removeItems();
+              tasks.reset();
               parentScreens.onSelectedIndex(0);
 
               navigator.pushNamedAndRemoveUntil(RouteName.login, (_) => false);

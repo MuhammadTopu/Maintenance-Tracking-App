@@ -8,6 +8,8 @@ import 'package:maintenance_genie/presentation/view_models/login_provider.dart';
 import 'package:maintenance_genie/presentation/view_models/parent_screen_provider.dart';
 import 'package:provider/provider.dart';
 
+import '../../../view_models/item_task_list_provider.dart';
+
 Future<void> showLogoutDialog(BuildContext context) {
   return showDialog<void>(
     context: context,
@@ -34,6 +36,7 @@ class _LogoutDialogState extends State<_LogoutDialog> {
     final loginProvider = context.read<LoginProvider>();
     final subscription = context.read<SubscriptionService>();
     final items = context.read<AllItemListProvider>();
+    final tasks = context.read<ItemTaskListProvider>();
     final parentScreens = context.read<ParentScreensProvider>();
 
     try {
@@ -43,6 +46,7 @@ class _LogoutDialogState extends State<_LogoutDialog> {
     }
     subscription.logOut();
     items.removeItems();
+    tasks.reset();
     parentScreens.onSelectedIndex(0);
 
     navigator.pushNamedAndRemoveUntil(RouteName.login, (_) => false);

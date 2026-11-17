@@ -1,5 +1,7 @@
 import 'package:maintenance_genie/domain/entities/add_item_data.dart';
 
+import '../../core/constants/api_end_points.dart';
+
 sealed class Item {
   Item._fromJson(Map<String, dynamic> json)
       : id = _asString(json['id']) ?? '',
@@ -7,9 +9,8 @@ sealed class Item {
         userNotes = _asString(json['user_notes']),
         createdAt = _asString(json['created_at']),
         currentDate = _asString(json['current_date']),
-        imageUrl = _asString(json['image_url']),
+        imageUrl = ApiEndPoints.resolveImageUrl(_asString(json['image_url'])),
         user = _asUser(json['user']),
-  // Returned for every category (Vehicle, Home and Other), detail only.
         serviceIntervals = _asStringList(json['service_intervals']),
         forumSuggestions = _asForumSuggestions(json['forum_suggestions']);
 

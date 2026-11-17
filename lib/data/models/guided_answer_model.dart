@@ -1,7 +1,5 @@
 import 'guided_question_model.dart';
 
-/// One entry of the `answers` array sent to `POST /items/:id/submit-answers`
-/// for Home and Other.
 class GuidedAnswer {
   const GuidedAnswer._({
     required this.questionId,
@@ -9,14 +7,11 @@ class GuidedAnswer {
     required this.isSkipped,
   });
 
-  /// An answered question. [value] is a string, a number, or a list of strings,
-  /// depending on the question's input type.
   const GuidedAnswer.answered({
     required String questionId,
     required Object value,
   }) : this._(questionId: questionId, value: value, isSkipped: false);
 
-  /// A skipped question. The API only allows this for optional questions.
   const GuidedAnswer.skip(String questionId)
       : this._(questionId: questionId, value: null, isSkipped: true);
 
@@ -29,11 +24,9 @@ class GuidedAnswer {
     if (isSkipped) 'skipped': true else 'answer': value,
   };
 
-  /// Text for the read-only review screen.
   String get displayValue => isSkipped ? 'Skipped' : formatAnswer(value);
 }
 
-/// A question together with the answer the user gave, for the review screen.
 class AnsweredQuestion {
   const AnsweredQuestion({
     required this.id,
@@ -46,13 +39,10 @@ class AnsweredQuestion {
   final String id;
   final int round;
   final String question;
-
-  /// Already formatted for display. "Skipped" when [skipped].
   final String answer;
   final bool skipped;
 }
 
-/// Turns an answer (string, number, list) into display text.
 String formatAnswer(Object? value) {
   if (value == null) return '';
   if (value is Iterable) {
@@ -69,21 +59,11 @@ String formatAnswer(Object? value) {
   return value.toString().trim();
 }
 
-/// Validates what the user entered and builds the request entry for it. All
-/// rules are here, in plain Dart, so they can be unit tested.
-///
-/// The "draft" a question's widget produces is:
-///  * single choice and yes/no: the selected `String`
-///  * multiple choice: a `List<String>`
-///  * numeric and text: the typed `String`
-///  * "Not sure" on a numeric or text question: the `String` [notSure]
 class GuidedAnswerBuilder {
   GuidedAnswerBuilder._();
 
-  /// Accepted by the API as the answer to a question of any type.
   static const String notSure = 'Not sure';
 
-  /// Nothing entered: no value, blank text, or an empty selection.
   static bool isBlank(Object? draft) {
     if (draft == null) return true;
     if (draft is String) return draft.trim().isEmpty;
@@ -91,15 +71,11 @@ class GuidedAnswerBuilder {
     return false;
   }
 
-  /// Either the entry to send or the reason the draft is not valid. Exactly one
-  /// of the two is set.
   static ({GuidedAnswer? answer, String? error}) build(
       GuidedQuestion question,
       Object? draft,
       ) {
     if (isBlank(draft)) {
-      // A blank optional question is sent as skipped. A blank required one
-      // blocks the submit.
       return question.optional
           ? (answer: GuidedAnswer.skip(question.questionId), error: null)
           : (answer: null, error: 'This question is required');
@@ -147,7 +123,6 @@ class GuidedAnswerBuilder {
           error: null,
           );
         }
-        // The API wants a real number, not a numeric string.
         final number = num.tryParse(typed);
         if (number == null || !number.isFinite) {
           return (answer: null, error: 'Enter a valid number');

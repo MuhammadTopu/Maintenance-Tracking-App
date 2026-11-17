@@ -10,6 +10,37 @@ import '../../../shared/empty_state_widget.dart';
 import '../../view_models/all_item_list_provider.dart';
 import '../../view_models/item_task_list_by_item_id_provider.dart';
 
+class _Palette {
+  _Palette._();
+
+  static const Color background = Color(0xFFF4F9FC);
+  static const Color headerRow = Color(0xFFE6F1F8);
+  static const Color zebra = Color(0xFFF7FBFD);
+  static const Color rowHighlight = Color(0xFFEAF4FA);
+  static const Color border = Color(0xFFD3E5F0);
+  static const Color divider = Color(0xFFE0ECF4);
+  static const Color title = Color(0xFF2C5F7D);
+  static const Color headerText = Color(0xFF3F7FA5);
+  static const Color buttonEnd = Color(0xFF4A8DB5);
+
+  // Category text: three depths of the primary blue.
+  static const Color vehicle = Color(0xFF245B80);
+  static const Color home = Color(0xFF3A83AD);
+  static const Color other = Color(0xFF5A93B5);
+
+  static Color forCategory(String category) {
+    switch (category.trim().toLowerCase()) {
+      case 'vehicle':
+        return vehicle;
+      case 'home':
+      case 'appliance':
+        return home;
+      default:
+        return other;
+    }
+  }
+}
+
 class ItemsMenuScreen extends StatefulWidget {
   const ItemsMenuScreen({super.key});
 
@@ -31,11 +62,13 @@ class _ItemsMenuScreenState extends State<ItemsMenuScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xffFFFFFF),
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: Padding(
           padding: EdgeInsets.all(16.w),
           child: RefreshIndicator(
+            color: AppColors.primaryColor,
+            backgroundColor: Colors.white,
             onRefresh: () async {
               await context.read<AllItemListProvider>().getAllItem();
             },
@@ -66,7 +99,23 @@ class _ItemsMenuScreenState extends State<ItemsMenuScreen> {
                           height: 48.h,
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(90.r),
-                            color: AppColors.primaryColor,
+                            gradient: const LinearGradient(
+                              colors: [
+                                AppColors.primaryColor,
+                                _Palette.buttonEnd,
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.primaryColor.withValues(
+                                  alpha: 0.28,
+                                ),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
                           ),
                           padding: EdgeInsets.symmetric(horizontal: 24.w),
                           child: Center(
@@ -120,8 +169,9 @@ class _ItemsMenuScreenState extends State<ItemsMenuScreen> {
                             TabBar(
                               tabAlignment: TabAlignment.center,
                               labelColor: AppColors.primaryColor,
-                              unselectedLabelColor: Colors.black,
+                              unselectedLabelColor: AppColors.secondaryTextColor,
                               indicatorColor: AppColors.primaryColor,
+                              dividerColor: _Palette.border,
                               indicatorSize: TabBarIndicatorSize.tab,
                               indicatorWeight: 1.5,
                               splashFactory: NoSplash.splashFactory,
@@ -204,8 +254,9 @@ class _ItemsMenuScreenState extends State<ItemsMenuScreen> {
 
     return Container(
       decoration: BoxDecoration(
+        color: Colors.white,
         borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: Colors.grey.shade400),
+        border: Border.all(color: _Palette.border),
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12.r),
@@ -217,7 +268,7 @@ class _ItemsMenuScreenState extends State<ItemsMenuScreen> {
             Widget divider(double height) => Container(
               width: 1,
               height: height,
-              color: Colors.grey.shade300,
+              color: _Palette.divider,
             );
 
             Widget cell(Widget child, int col, double dividerHeight) {
@@ -238,12 +289,20 @@ class _ItemsMenuScreenState extends State<ItemsMenuScreen> {
               );
             }
 
-            Widget cellText(String text, int col, {bool bold = false}) => cell(
+            Widget cellText(
+                String text,
+                int col, {
+                  bool bold = false,
+                  Color color = AppColors.primaryTextColor,
+                }) => cell(
               Text(
                 text,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: bold ? const TextStyle(fontWeight: FontWeight.w600) : null,
+                style: TextStyle(
+                  color: color,
+                  fontWeight: bold ? FontWeight.w600 : null,
+                ),
               ),
               col,
               28.h,
@@ -255,56 +314,83 @@ class _ItemsMenuScreenState extends State<ItemsMenuScreen> {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  fontWeight: FontWeight.w400,
+                  fontWeight: FontWeight.w600,
                   fontSize: 12.sp,
-                  color: Colors.grey.shade700,
+                  color: _Palette.headerText,
                 ),
               ),
               col,
               20.h,
             );
 
-            return SingleChildScrollView(
-              child: SizedBox(
-                width: constraints.maxWidth,
-                child: DataTable(
-                  showCheckboxColumn: false,
-                  horizontalMargin: 0,
-                  columnSpacing: 0,
-                  dataRowMinHeight: 56.h,
-                  dataRowMaxHeight: 72.h,
-                  headingRowColor: WidgetStateProperty.all(Colors.grey.shade50),
-                  dataRowColor: WidgetStateProperty.resolveWith<Color?>(
-                        (states) => Colors.white,
+            // Same table, same rows – only the colours differ. The Theme only
+            // recolours the thin lines DataTable draws between rows.
+            return Theme(
+              data: Theme.of(context).copyWith(
+                dividerColor: _Palette.divider,
+                dividerTheme: const DividerThemeData(color: _Palette.divider),
+              ),
+              child: SingleChildScrollView(
+                child: SizedBox(
+                  width: constraints.maxWidth,
+                  child: DataTable(
+                    showCheckboxColumn: false,
+                    horizontalMargin: 0,
+                    columnSpacing: 0,
+                    dataRowMinHeight: 56.h,
+                    dataRowMaxHeight: 72.h,
+                    headingRowColor: WidgetStateProperty.all(_Palette.headerRow),
+                    columns: [
+                      DataColumn(label: headerText('Category', 0)),
+                      DataColumn(label: headerText('Name', 1)),
+                      DataColumn(label: headerText('Details', 2)),
+                    ],
+                    rows: List<DataRow>.generate(data.length, (index) {
+                      final item = data[index];
+                      final base = index.isEven ? Colors.white : _Palette.zebra;
+
+                      return DataRow(
+                        selected: false,
+                        color: WidgetStateProperty.resolveWith<Color?>(
+                              (states) =>
+                          states.contains(WidgetState.hovered) ||
+                              states.contains(WidgetState.focused)
+                              ? _Palette.rowHighlight
+                              : base,
+                        ),
+                        onSelectChanged: (selected) async {
+                          if (selected ?? false) {
+                            Navigator.pushNamed(
+                              context,
+                              RouteName.itemDetails,
+                              arguments: item.id,
+                            );
+                            provider.setId(item.id);
+                            context
+                                .read<ItemTaskListByItemIdProvider>()
+                                .setItemId(item.id);
+                          }
+                        },
+                        cells: [
+                          DataCell(
+                            cellText(
+                              item.category,
+                              0,
+                              color: AppColors.primaryTextColor,
+                            ),
+                          ),
+                          DataCell(cellText(item.name, 1, bold: false)),
+                          DataCell(
+                            cellText(
+                              itemSummary(item),
+                              2,
+                              color: AppColors.secondaryTextColor,
+                            ),
+                          ),
+                        ],
+                      );
+                    }),
                   ),
-                  columns: [
-                    DataColumn(label: headerText('Category', 0)),
-                    DataColumn(label: headerText('Name', 1)),
-                    DataColumn(label: headerText('Details', 2)),
-                  ],
-                  rows: data.map((item) {
-                    return DataRow(
-                      selected: false,
-                      onSelectChanged: (selected) async {
-                        if (selected ?? false) {
-                          Navigator.pushNamed(
-                            context,
-                            RouteName.itemDetails,
-                            arguments: item.id,
-                          );
-                          provider.setId(item.id);
-                          context
-                              .read<ItemTaskListByItemIdProvider>()
-                              .setItemId(item.id);
-                        }
-                      },
-                      cells: [
-                        DataCell(cellText(item.category, 0)),
-                        DataCell(cellText(item.name, 1, bold: false)),
-                        DataCell(cellText(itemSummary(item), 2)),
-                      ],
-                    );
-                  }).toList(),
                 ),
               ),
             );

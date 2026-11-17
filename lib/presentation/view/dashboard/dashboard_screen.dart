@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:maintenance_genie/core/constants/app_colors.dart';
+import 'package:maintenance_genie/data/models/item.dart';
+import 'package:maintenance_genie/data/models/task_list_response_model.dart';
 import 'package:maintenance_genie/presentation/view_models/all_item_list_provider.dart';
+import 'package:maintenance_genie/presentation/view_models/item_task_list_provider.dart';
 import 'package:maintenance_genie/presentation/view_models/parent_screen_provider.dart';
+import 'package:maintenance_genie/shared/custom_app_bar.dart';
+import 'package:maintenance_genie/shared/custom_task_card.dart';
+import 'package:maintenance_genie/shared/empty_state_widget.dart';
+import 'package:maintenance_genie/shared/shimmer_skeletons.dart';
+import 'package:maintenance_genie/shared/task_display.dart';
 import 'package:provider/provider.dart';
-import 'package:redacted/redacted.dart';
 
-import '../../../app/routes/route_names.dart';
-import '../../../shared/custom_app_bar.dart';
-import '../../../shared/custom_task_card.dart';
-import '../../../shared/empty_state_widget.dart';
-import '../../../shared/shimmer_skeletons.dart';
-import '../../view_models/item_task_list_by_item_id_provider.dart';
-import '../../view_models/item_task_list_provider.dart';
+import '../../../core/helper/task_actions.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -26,31 +27,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      final tasks = context.read<ItemTaskListProvider>();
+      // Cheap if the list is already loaded.
+      tasks.ensureDashboardLoaded();
       await context.read<AllItemListProvider>().getAllItem();
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final pr = context.watch<AllItemListProvider>();
-    final allItems = context.select<AllItemListProvider, dynamic>(
-      (provider) => provider.allItemListModel?.items,
-    );
+    final itemsProvider = context.watch<AllItemListProvider>();
+    final items = itemsProvider.allItemListModel?.items ?? const <Item>[];
 
-    final vehicleCount =
-        allItems?.where((item) => item.category == 'Vehicle').length ?? 0;
-
-    final applianceCount =
-        allItems?.where((item) => item.category == 'Appliance').length ?? 0;
-
-    final customCount =
-        allItems
-            ?.where(
-              (item) =>
-                  item.category != 'Vehicle' && item.category != 'Appliance',
-            )
-            .length ??
-        0;
+    final vehicleCount = items.where((i) => i.category == 'Vehicle').length;
+    final homeCount = items
+        .where((i) => i.category == 'Home' || i.category == 'Appliance')
+        .length;
+    final otherCount = items.length - vehicleCount - homeCount;
 
     return Scaffold(
       backgroundColor: const Color(0xffFFFFFF),
@@ -68,72 +62,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Consumer<ItemTaskListProvider>(
-                        builder: (_, pr, _) {
-                          if (pr.loading) return const UpcomingTaskSkeleton();
-                          if (pr.taskListResponse?.tasks.isEmpty ?? true) {
-                            return const SizedBox.shrink();
+                        builder: (context, provider, _) {
+                          if (provider.isDashboardLoading &&
+                              provider.upcomingTask == null) {
+                            return const UpcomingTaskSkeleton();
                           }
-
-                          final upcomingTask =
-                              pr.taskListResponse?.tasks.first.upcomingTask ??
-                              "";
-                          return Container(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 16.w,
-                              vertical: 10.h,
-                            ),
-                            margin: EdgeInsets.only(bottom: 4.h),
-                            decoration: BoxDecoration(
-                              color: Color(0xffF0FAF9),
-                              borderRadius: BorderRadius.circular(16.r),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "Upcoming Task",
-                                  style: TextStyle(
-                                    color: const Color(0xff1D1F2C),
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 18.sp,
-                                  ),
-                                ),
-                                SizedBox(height: 4.h),
-                                Divider(color: Color(0xffB2D2E4)),
-                                SizedBox(height: 8.h),
-                                Row(
-                                  children: [
-                                    const Icon(Icons.notifications_outlined),
-                                    SizedBox(width: 8.w),
-                                    Container(
-                                      height: 25,
-                                      width: 2,
-                                      color: Color(0xffB2D2E4),
-                                    ),
-                                    SizedBox(width: 8.w),
-                                    Expanded(
-                                      child: Text(
-                                        upcomingTask,
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: TextStyle(
-                                          fontSize: 16.sp,
-                                          fontWeight: FontWeight.w400,
-                                          color: const Color(0xff1D1F2C),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          );
+                          final task = provider.upcomingTask;
+                          if (task == null) return const SizedBox.shrink();
+                          return _UpcomingTaskCard(task: task);
                         },
                       ),
                       Padding(
                         padding: EdgeInsets.symmetric(horizontal: 10.w),
                         child: Text(
-                          "Assets",
+                          'Assets',
                           style: TextStyle(
                             fontSize: 18.sp,
                             fontWeight: FontWeight.bold,
@@ -147,23 +89,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           _buildItemCard(
                             'Vehicles',
                             vehicleCount,
-                            "assets/images/car.png",
+                            'assets/images/car.png',
                             color: const Color(0xffF4F8EC),
-                            isLoading: pr.loading,
+                            isLoading: itemsProvider.loading,
                           ),
                           _buildItemCard(
                             'Home',
-                            applianceCount,
-                            "assets/images/home.png",
+                            homeCount,
+                            'assets/images/home.png',
                             color: const Color(0xffEEF5F9),
-                            isLoading: pr.loading,
+                            isLoading: itemsProvider.loading,
                           ),
                           _buildItemCard(
                             'Others',
-                            customCount,
-                            "assets/images/ber.png",
+                            otherCount,
+                            'assets/images/ber.png',
                             color: const Color(0xffF0FAF9),
-                            isLoading: pr.loading,
+                            isLoading: itemsProvider.loading,
                           ),
                         ],
                       ),
@@ -173,7 +115,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         child: Row(
                           children: [
                             Text(
-                              "Task List",
+                              'Task List',
                               style: TextStyle(
                                 fontSize: 18.sp,
                                 fontWeight: FontWeight.bold,
@@ -181,13 +123,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             ),
                             const Spacer(),
                             InkWell(
-                              onTap: () {
-                                context
-                                    .read<ParentScreensProvider>()
-                                    .onSelectedIndex(2);
-                              },
+                              // Tab 2 = tracking screen.
+                              onTap: () => context
+                                  .read<ParentScreensProvider>()
+                                  .onSelectedIndex(2),
                               child: Text(
-                                "View All",
+                                'View All',
                                 style: TextStyle(
                                   fontSize: 13.sp,
                                   fontWeight: FontWeight.bold,
@@ -198,78 +139,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ],
                         ),
                       ),
-
                       Consumer<ItemTaskListProvider>(
-                        builder: (_, taskListProvider, _) {
-                          final isLoading = taskListProvider.loading;
-                          final tasks = taskListProvider.taskListResponse?.tasks;
-
-                          if (isLoading) {
-                            return ListView.builder(
-                              padding: const EdgeInsets.all(10),
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              itemCount: 5,
-                              itemBuilder: (_, _) => const TaskCardSkeleton(),
-                            );
-                          }
-
-                          if (tasks == null || tasks.isEmpty) {
-                            return Padding(
-                              padding: EdgeInsets.symmetric(vertical: 40.h),
-                              child: EmptyState(
-                                icon: Icons.task_alt_outlined,
-                                title: 'No tasks available',
-                                subtitle: 'Upcoming maintenance tasks will show up here.',
-                                onRetry: () => taskListProvider.getItemTasks(),
-                              ),
-                            );
-                          }
-
-                          final displayCount = tasks.length.clamp(0, 10);
-                          return ListView.builder(
-                            padding: EdgeInsets.all(10.w),
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemCount: displayCount,
-                            itemBuilder: (BuildContext context, int index) {
-                              final task = tasks[index];
-                              return CustomTaskCard(
-                                index: index + 1,
-                                upcomingTask: task.upcomingTask,
-                                itemName: task.itemName,
-                                status: task.status,
-                                lastDate: task.nextDueDate ?? "",
-                                taskId: task.id,
-                                isLoading: false,
-                                onTap: () async {
-                                  final provider = context
-                                      .read<ItemTaskListByItemIdProvider>();
-
-                                  final taskId = task.id;
-                                  final itemId = task.itemId;
-
-                                  try {
-                                    provider.setLoader(true, taskId);
-
-                                    provider.setItemId(itemId);
-
-                                    await provider.setTaskId(taskId, itemId);
-
-                                    if (!mounted) return;
-
-                                    Navigator.pushNamed(
-                                      context,
-                                      RouteName.trackingDetail,
-                                    );
-                                  } finally {
-                                    provider.setLoader(false, taskId);
-                                  }
-                                },
-                              );
-                            },
-                          );
-                        },
+                        builder: (context, provider, _) =>
+                            _buildTaskList(provider),
                       ),
                     ],
                   ),
@@ -283,13 +155,58 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  Widget _buildTaskList(ItemTaskListProvider provider) {
+    final tasks = provider.dashboardTasks;
+
+    if (provider.isDashboardLoading && tasks.isEmpty) {
+      return ListView.builder(
+        padding: const EdgeInsets.all(10),
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: 5,
+        itemBuilder: (_, _) => const TaskCardSkeleton(),
+      );
+    }
+
+    if (tasks.isEmpty) {
+      final failed = provider.hasDashboardError;
+      return Padding(
+        padding: EdgeInsets.symmetric(vertical: 40.h),
+        child: EmptyState(
+          icon: failed ? Icons.cloud_off_outlined : Icons.task_alt_outlined,
+          title: failed ? 'Could not load tasks' : 'No tasks available',
+          subtitle: failed
+              ? 'Check your connection and try again.'
+              : 'Upcoming maintenance tasks will show up here.',
+          onRetry: provider.getItemTasks,
+        ),
+      );
+    }
+
+    return ListView.builder(
+      padding: EdgeInsets.all(10.w),
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: tasks.length, // at most 20
+      itemBuilder: (context, index) {
+        final task = tasks[index];
+        return CustomTaskCard(
+          key: ValueKey<String>(task.id),
+          index: index + 1,
+          task: task,
+          onTap: () => openTaskDetails(context, task),
+        );
+      },
+    );
+  }
+
   Widget _buildItemCard(
-    String title,
-    int count,
-    String icon, {
-    required Color color,
-    bool isLoading = false,
-  }) {
+      String title,
+      int count,
+      String icon, {
+        required Color color,
+        bool isLoading = false,
+      }) {
     if (isLoading) return ItemCardSkeleton(color: color);
     return Expanded(
       child: Card(
@@ -315,8 +232,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                   SizedBox(width: 8.w),
                   Text(
-                    textAlign: TextAlign.end,
                     '$count',
+                    textAlign: TextAlign.end,
                     style: TextStyle(
                       fontSize: 20.sp,
                       fontWeight: FontWeight.bold,
@@ -336,6 +253,86 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _UpcomingTaskCard extends StatelessWidget {
+  const _UpcomingTaskCard({required this.task});
+
+  final TaskResponse task;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: 4.h),
+      child: Material(
+        color: const Color(0xffF0FAF9),
+        borderRadius: BorderRadius.circular(16.r),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16.r),
+          onTap: () => openTaskDetails(context, task),
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Upcoming Task',
+                  style: TextStyle(
+                    color: const Color(0xff1D1F2C),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 18.sp,
+                  ),
+                ),
+                SizedBox(height: 4.h),
+                const Divider(color: Color(0xffB2D2E4)),
+                SizedBox(height: 8.h),
+                Row(
+                  children: [
+                    const Icon(Icons.notifications_outlined),
+                    SizedBox(width: 8.w),
+                    Container(
+                      height: 36,
+                      width: 2,
+                      color: const Color(0xffB2D2E4),
+                    ),
+                    SizedBox(width: 8.w),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            task.upcomingTask,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 16.sp,
+                              fontWeight: FontWeight.w400,
+                              color: const Color(0xff1D1F2C),
+                            ),
+                          ),
+                          SizedBox(height: 2.h),
+                          Text(
+                            '${task.itemName} · ${task.dueDateLabel}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 12.sp,
+                              color: Colors.grey.shade700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Icon(Icons.chevron_right, color: Colors.grey),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),

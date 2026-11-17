@@ -1,3 +1,6 @@
+// PLACE AT: lib/data/repository/item_and_task_list_repository_impl.dart
+// (replaces the existing file; getAllItemsList / getOneItem are unchanged)
+
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:maintenance_genie/data/models/all_item_list_model.dart';
@@ -33,6 +36,30 @@ class ItemAndTaskListRepositoryImpl implements ItemAndTaskListRepository {
       }
     }
     return fallback;
+  }
+
+  /// User-facing message for a failed task request. Unlike
+  /// [_extractServerMessage] it never claims "Unauthorized" for a timeout or a
+  /// 500.
+  String _taskErrorMessage(DioException e) {
+    switch (e.type) {
+      case DioExceptionType.connectionError:
+        return 'Check your internet connection and try again.';
+      case DioExceptionType.connectionTimeout:
+      case DioExceptionType.sendTimeout:
+      case DioExceptionType.receiveTimeout:
+        return 'The request timed out. Please try again.';
+      default:
+        break;
+    }
+    final status = e.response?.statusCode ?? 0;
+    if (status >= 500) {
+      return 'Something went wrong on our side. Please try again.';
+    }
+    return _extractServerMessage(
+      e,
+      fallback: 'Something went wrong. Please try again.',
+    );
   }
 
   @override
@@ -95,64 +122,99 @@ class ItemAndTaskListRepositoryImpl implements ItemAndTaskListRepository {
     }
   }
 
-  @override
-  Future<TaskListResponse?> getAllTasksList() async {
-    try {
-      final response = await _apiService.get(ApiEndPoints.getAllTaskList);
+  // ---------------------------------------------------------------------------
+  // Tasks
+  // ---------------------------------------------------------------------------
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        if (response.data['success'] == true) {
-          return TaskListResponse.fromJson(response.data);
-        }
-      }
-      return null;
-    } on DioException catch (e) {
-      String serverMessage = '';
-      if (e.type == DioExceptionType.connectionError) {
-        serverMessage = "Something went wrong!!! Check internet connection";
-      } else {
-        serverMessage = _extractServerMessage(e);
-      }
-      AppToast.showToast(serverMessage, backgroundColor: Colors.red);
-      return null;
-    } catch (e) {
-      Log.error("Error in fetching all tasks : $e");
-      throw Exception(e);
-    }
+  @override
+  Future<TaskListResponse?> getAllTasksList({
+    TaskFilter filter = TaskFilter.all,
+    int page = 1,
+    int limit = kTaskPageSize,
+  }) {
+    return _fetchTaskPage(
+      ApiEndPoints.getAllTaskList(filter: filter.apiValue, page: page, limit: limit),
+      'all tasks (${filter.apiValue}, page $page)',
+    );
   }
 
   @override
   Future<TaskListResponse?> getTaskListByItemId({
     required String itemId,
-  }) async {
+    TaskFilter filter = TaskFilter.all,
+    int page = 1,
+    int limit = kTaskPageSize,
+  }) {
+    return _fetchTaskPage(
+      ApiEndPoints.getAllTaskListByItemId(
+        itemId,
+        filter: filter.apiValue,
+        page: page,
+        limit: limit,
+      ),
+      'tasks of item $itemId (${filter.apiValue}, page $page)',
+    );
+  }
+
+  Future<TaskListResponse?> _fetchTaskPage(String url, String label) async {
     try {
-      final response = await _apiService.get(
-        ApiEndPoints.getAllTaskListByItemId(itemId),
-      );
+      final response = await _apiService.get(url);
+      final data = response.data;
+      final ok = response.statusCode == 200 || response.statusCode == 201;
 
-      if (response.statusCode == 200 && response.data['success'] == true) {
-        return TaskListResponse.fromJson(response.data);
+      if (ok && data is Map && data['success'] == true) {
+        return TaskListResponse.fromJson(Map<String, dynamic>.from(data));
       }
-
       return null;
     } on DioException catch (e) {
-      AppToast.showToast(_extractServerMessage(e), backgroundColor: Colors.red);
+      Log.error('Error fetching $label : ${e.message}');
+      AppToast.showToast(_taskErrorMessage(e), backgroundColor: Colors.red);
+      return null;
+    } catch (e) {
+      // Malformed payload etc. Never crash the screen over it.
+      Log.error('Error parsing $label : $e');
+      AppToast.showToast(
+        'Something went wrong. Please try again.',
+        backgroundColor: Colors.red,
+      );
       return null;
     }
   }
 
   @override
-  Future<bool> toggleTaskStatus({required String taskId}) async {
+  Future<TaskResponse?> toggleTaskStatus({required String taskId}) async {
     try {
+      // PATCH with no body – the backend flips Complete <-> not complete and
+      // returns the full updated task.
       final response = await _apiService.patch(
         ApiEndPoints.toggleTaskStatus(taskId),
       );
+      final data = response.data;
 
-      return response.statusCode == 200;
+      if (response.statusCode == 200 &&
+          data is Map &&
+          data['success'] == true &&
+          data['task'] is Map) {
+        return TaskResponse.fromJson(
+          Map<String, dynamic>.from(data['task'] as Map),
+        );
+      }
+      AppToast.showToast(
+        'Could not update the task. Please try again.',
+        backgroundColor: Colors.red,
+      );
+      return null;
     } on DioException catch (e) {
-      AppToast.showToast(_extractServerMessage(e), backgroundColor: Colors.red);
-
-      return false;
+      Log.error('Error toggling task $taskId : ${e.message}');
+      AppToast.showToast(_taskErrorMessage(e), backgroundColor: Colors.red);
+      return null;
+    } catch (e) {
+      Log.error('Error parsing toggle response for $taskId : $e');
+      AppToast.showToast(
+        'Something went wrong. Please try again.',
+        backgroundColor: Colors.red,
+      );
+      return null;
     }
   }
 }

@@ -1,11 +1,4 @@
-/// Questions for Home and Other items.
-///
-/// Vehicle keeps its own format (`question_response_model.dart`): fixed
-/// Yes / No / Planned answers and recommendations. Home and Other questions are
-/// generated per item, come in rounds, and each one says how it must be
-/// answered (`input_type`).
 
-/// How a question has to be answered. Drives which widget is shown.
 enum QuestionInputType {
   singleChoice,
   multiChoice,
@@ -13,8 +6,6 @@ enum QuestionInputType {
   numeric,
   text;
 
-  /// An unknown or missing value becomes [text], so a new input type added on
-  /// the server still gives the user a way to answer.
   static QuestionInputType fromApi(String? raw) {
     switch (raw?.trim().toLowerCase()) {
       case 'single_choice':
@@ -46,37 +37,25 @@ class GuidedQuestion {
     this.skipped = false,
   });
 
-  /// Database id. The API also accepts this in place of [questionId].
   final String id;
-
-  /// Stable key such as `septic_last_pumped`. This is what an answer refers to.
   final String questionId;
   final String text;
   final QuestionInputType inputType;
   final List<String> options;
-
-  /// Optional questions may be skipped.
   final bool optional;
   final String reason;
   final String? maintenanceImpact;
   final int round;
-
-  /// Saved answer, if this question was already answered: a string, a number or
-  /// a list of strings.
   final Object? answer;
   final bool skipped;
 
   static const List<String> _defaultYesNo = ['Yes', 'No', 'Not sure'];
 
-  /// Choices to show. A `yes_no` question without options still gets
-  /// Yes / No / Not sure.
   List<String> get choices {
     if (options.isNotEmpty) return options;
     return inputType == QuestionInputType.yesNo ? _defaultYesNo : const [];
   }
 
-  /// The input type to actually render. A choice question that arrives without
-  /// any options is shown as a text field, so the user is never stuck.
   QuestionInputType get effectiveType {
     switch (inputType) {
       case QuestionInputType.singleChoice:
@@ -89,7 +68,6 @@ class GuidedQuestion {
     }
   }
 
-  /// True once an answer is saved on the server, or the question was skipped.
   bool get isAnswered => skipped || _hasValue(answer);
 
   factory GuidedQuestion.fromJson(Map<String, dynamic> json) {
@@ -117,8 +95,6 @@ class GuidedQuestion {
   }
 }
 
-/// One page of the `GET /items/:id/questions` and
-/// `POST /items/:id/submit-answers` responses for Home and Other.
 class GuidedQuestionsResponse {
   const GuidedQuestionsResponse({
     required this.success,
@@ -129,8 +105,6 @@ class GuidedQuestionsResponse {
 
   final bool success;
   final int round;
-
-  /// `true` while there are unanswered questions or another round to come.
   final bool needsMoreInformation;
   final List<GuidedQuestion> questions;
 

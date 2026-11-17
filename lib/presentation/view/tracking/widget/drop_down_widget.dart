@@ -1,119 +1,96 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:maintenance_genie/data/models/task_list_response_model.dart';
+import 'package:maintenance_genie/presentation/view_models/item_task_list_by_item_id_provider.dart';
+import 'package:maintenance_genie/shared/app_toast.dart';
+import 'package:maintenance_genie/shared/task_status_chip.dart';
 import 'package:provider/provider.dart';
 
-import '../../../view_models/item_task_list_by_item_id_provider.dart';
-import '../../../view_models/item_task_list_provider.dart';
+import '../../../../core/helper/task_actions.dart';
 
-class DropDownWidget extends StatefulWidget {
-  const DropDownWidget({super.key, required this.status});
+class DropDownWidget extends StatelessWidget {
+  const DropDownWidget({super.key, required this.task});
 
-  final String status;
+  final TaskResponse task;
 
-  @override
-  State<DropDownWidget> createState() => _DropDownWidgetState();
-}
-
-class _DropDownWidgetState extends State<DropDownWidget> {
-  final LayerLink _layerLink = LayerLink();
-  OverlayEntry? _overlayEntry;
-
-  bool showItem = false;
-
-  void _showPopupMenu(BuildContext context) {
-    _removeOverlay();
-
-    _overlayEntry = OverlayEntry(
-      builder:
-          (context) => Positioned(
-            width: 150.w,
-            child: CompositedTransformFollower(
-              link: _layerLink,
-              showWhenUnlinked: false,
-              offset: Offset(-80, 40),
-              child: Material(
-                elevation: 4,
-                borderRadius: BorderRadius.circular(12.r),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [_buildMenuItem("Mark as Completed")],
-                ),
-              ),
-            ),
-          ),
+  Future<void> _toggle(BuildContext context) async {
+    final wasComplete = task.isComplete;
+    final success = await toggleSelectedTask(context);
+    if (!success || !context.mounted) return;
+    AppToast.showToast(
+      wasComplete ? 'Task reopened' : 'Task marked as completed',
     );
-
-    Overlay.of(context).insert(_overlayEntry!);
-  }
-
-  Widget _buildMenuItem(String value) {
-    return InkWell(
-      onTap: () async {
-        debugPrint('Tapped: $value');
-        await context.read<ItemTaskListByItemIdProvider>().toggleTaskStatus();
-        await context.read<ItemTaskListByItemIdProvider>().refreshTaskList();
-        _removeOverlay();
-        await context.read<ItemTaskListProvider>().getItemTasks();
-      },
-      child: Container(
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12.r),
-          border: Border.all(color: Colors.grey.shade100, width: 1.w),
-        ),
-        padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 16.w),
-        child: Text(value),
-      ),
-    );
-  }
-
-  void _removeOverlay() {
-    _overlayEntry?.remove();
-    _overlayEntry = null;
-  }
-
-  @override
-  void dispose() {
-    _removeOverlay();
-    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return CompositedTransformTarget(
-      link: _layerLink,
-      child: GestureDetector(
-        onTap: () {
-          setState(() {
-            showItem = !showItem;
-          });
-          if (showItem && widget.status != "Completed") {
-            _showPopupMenu(context);
-          } else {
-            _removeOverlay();
-          }
-        },
-        child: Container(
-          padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
-          decoration: BoxDecoration(
-            color: Colors.lightBlue.shade50,
-            borderRadius: BorderRadius.circular(24.r),
-            border: Border.all(color: Colors.grey.shade400),
-          ),
+    final toggling = context.select<ItemTaskListByItemIdProvider, bool>(
+          (provider) => provider.isToggling,
+    );
+    final isComplete = task.isComplete;
+
+    return PopupMenuButton<String>(
+      enabled: !toggling,
+      tooltip: 'Change status',
+      offset: const Offset(0, 44),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+      onSelected: (_) => _toggle(context),
+      surfaceTintColor: Colors.white,
+      color: Colors.white,
+      itemBuilder: (_) => [
+        PopupMenuItem<String>(
+          value: 'toggle',
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(widget.status),
-              SizedBox(width: 4.w,),
+              Icon(
+                isComplete ? Icons.replay : Icons.check_circle_outline,
+                size: 20.sp,
+                color: isComplete
+                    ? const Color(0xff4A4C56)
+                    : TaskStatus.complete.foreground,
+              ),
+              SizedBox(width: 10.w),
+              Text(isComplete ? 'Reopen task' : 'Mark as Completed'),
+            ],
+          ),
+        ),
+      ],
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+        decoration: BoxDecoration(
+          color: task.status.background,
+          borderRadius: BorderRadius.circular(24.r),
+          border: Border.all(color: Colors.grey.shade400),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              task.status.label,
+              style: TextStyle(
+                color: task.status.foreground,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            SizedBox(width: 6.w),
+            if (toggling)
+              SizedBox(
+                height: 16.w,
+                width: 16.w,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: task.status.foreground,
+                ),
+              )
+            else
               SvgPicture.asset(
                 'assets/icons/arrow-down.svg',
                 height: 16.w,
                 width: 16.w,
               ),
-            ],
-          ),
+          ],
         ),
       ),
     );

@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:maintenance_genie/app/routes/route_names.dart';
+import 'package:maintenance_genie/core/constants/app_colors.dart';
+import 'package:maintenance_genie/data/models/task_list_response_model.dart';
+import 'package:maintenance_genie/presentation/view_models/item_task_list_provider.dart';
+import 'package:maintenance_genie/shared/custom_app_bar.dart';
+import 'package:maintenance_genie/shared/custom_task_card.dart';
+import 'package:maintenance_genie/shared/empty_state_widget.dart';
+import 'package:maintenance_genie/shared/shimmer_skeletons.dart';
 import 'package:provider/provider.dart';
 
-import '../../../app/routes/route_names.dart';
-import '../../../core/constants/app_colors.dart';
-import '../../../shared/common_widgets.dart';
-import '../../../shared/custom_app_bar.dart';
-import '../../../shared/custom_task_card.dart';
-import '../../../shared/empty_state_widget.dart';
-import '../../view_models/item_task_list_by_item_id_provider.dart';
-import '../../view_models/item_task_list_provider.dart';
+import '../../../core/helper/task_actions.dart';
 
 class TrackingScreen extends StatefulWidget {
   const TrackingScreen({super.key});
@@ -20,37 +21,41 @@ class TrackingScreen extends StatefulWidget {
 }
 
 class _TrackingScreenState extends State<TrackingScreen> {
-  String dropdownValue = 'Most Recent';
   final ScrollController _scrollController = ScrollController();
   bool _isFabVisible = true;
 
   @override
   void initState() {
     super.initState();
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ItemTaskListProvider>().getItemTasks();
+      if (!mounted) return;
+      context.read<ItemTaskListProvider>().ensureSelectedLoaded();
     });
-
-    _scrollController.addListener(() {
-      final direction = _scrollController.position.userScrollDirection;
-
-      if (direction == ScrollDirection.reverse && _isFabVisible) {
-        setState(() => _isFabVisible = false);
-      } else if (direction == ScrollDirection.forward && !_isFabVisible) {
-        setState(() => _isFabVisible = true);
-      }
-
-      if (_scrollController.position.pixels <= 0 && !_isFabVisible) {
-        setState(() => _isFabVisible = true);
-      }
-    });
+    _scrollController.addListener(_onScroll);
   }
 
   @override
   void dispose() {
+    _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     super.dispose();
+  }
+
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+    final position = _scrollController.position;
+
+    var visible = _isFabVisible;
+    if (position.userScrollDirection == ScrollDirection.reverse) {
+      visible = false;
+    } else if (position.userScrollDirection == ScrollDirection.forward) {
+      visible = true;
+    }
+    if (position.pixels <= 0) visible = true;
+
+    if (visible != _isFabVisible && mounted) {
+      setState(() => _isFabVisible = visible);
+    }
   }
 
   @override
@@ -68,10 +73,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
             padding: const EdgeInsets.only(bottom: 110, right: 10),
             child: FloatingActionButton(
               backgroundColor: const Color(0xff589DC4),
-              onPressed: () {
-                debugPrint("Floating action button pressed");
-                Navigator.pushNamed(context, RouteName.addItem);
-              },
+              onPressed: () => Navigator.pushNamed(context, RouteName.addItem),
               child: Icon(Icons.add, size: 24.sp, color: Colors.white),
             ),
           ),
@@ -91,134 +93,19 @@ class _TrackingScreenState extends State<TrackingScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "Task List",
+                      'Task List',
                       style: TextStyle(
                         fontSize: 18.sp,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    Container(
-                      padding: EdgeInsets.symmetric(vertical: 2, horizontal: 8),
-                      decoration: BoxDecoration(
-                        color: const Color(0xffF6F8FA),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: DropdownButton<String>(
-                        value: dropdownValue,
-                        onChanged: (String? newValue) {
-                          if (newValue != null) {
-                            setState(() {
-                              dropdownValue = newValue;
-                            });
-                            context.read<ItemTaskListProvider>().filterTasks(
-                              newValue,
-                            );
-                          }
-                        },
-                        icon: const Icon(
-                          Icons.keyboard_arrow_down,
-                          color: Color(0xffA5A5AB),
-                        ),
-                        underline: const SizedBox(),
-                        dropdownColor: const Color(0xffF6F8FA),
-                        borderRadius: BorderRadius.circular(12.r),
-                        items:
-                            <String>[
-                              'Most Recent',
-                              'Pending',
-                              'Completed',
-                              'Cancelled',
-                            ].map<DropdownMenuItem<String>>((String value) {
-                              return DropdownMenuItem<String>(
-                                value: value,
-                                child: Row(
-                                  children: [
-                                    const Icon(
-                                      Icons.calendar_month_rounded,
-                                      size: 20,
-                                      color: Colors.grey,
-                                    ),
-                                    SizedBox(width: 8.w),
-                                    Text(
-                                      value,
-                                      style: const TextStyle(
-                                        color: Color(0xff4A4C56),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            }).toList(),
-                      ),
-                    ),
+                    _buildFilterDropdown(),
                   ],
                 ),
               ),
               Expanded(
                 child: Consumer<ItemTaskListProvider>(
-                  builder: (_, taskListProvider, _) {
-                    if (taskListProvider.loading) {
-                      return const Center(
-                        child: CircularProgressIndicator(
-                          color: AppColors.primaryColor,
-                        ),
-                      );
-                    }
-
-                    if (taskListProvider.filteredTaskListResponse?.tasks.isEmpty ?? true) {
-                      return _buildEmptyState();
-                    }
-
-                    return ListView.builder(
-                      controller: _scrollController,
-                      padding: EdgeInsets.all(10.0),
-                      itemCount:
-                          taskListProvider
-                              .filteredTaskListResponse
-                              ?.tasks
-                              .length ??
-                          0,
-                      itemBuilder: (BuildContext context, int index) {
-                        final task = taskListProvider
-                            .filteredTaskListResponse
-                            ?.tasks[index];
-                        return CustomTaskCard(
-                          index: index + 1,
-                          upcomingTask: task?.upcomingTask ?? "",
-                          itemName: task?.itemName ?? "",
-                          status: task?.status ?? "",
-                          lastDate: task?.nextDueDate ?? "",
-                          taskId: task?.id ?? '',
-                          isLoading:
-                              taskListProvider.filteredTaskListResponse ==
-                                  null ||
-                              (taskListProvider
-                                      .filteredTaskListResponse
-                                      ?.tasks
-                                      .isEmpty ??
-                                  true),
-                          onTap: () async {
-                            context
-                                .read<ItemTaskListByItemIdProvider>()
-                                .setLoader(true, task?.id ?? '');
-                            context
-                                .read<ItemTaskListByItemIdProvider>()
-                                .setItemId(task?.itemId ?? '');
-                            await context
-                                .read<ItemTaskListByItemIdProvider>()
-                                .setTaskId(task?.id ?? '', task?.itemId ?? '');
-                            Navigator.pushNamed(
-                              context,
-                              RouteName.trackingDetail,
-                            );
-                            context
-                                .read<ItemTaskListByItemIdProvider>()
-                                .setLoader(false, task?.id ?? '');
-                          },
-                        );
-                      },
-                    );
-                  },
+                  builder: (context, provider, _) => _buildBody(provider),
                 ),
               ),
               SizedBox(height: 80.h),
@@ -229,41 +116,191 @@ class _TrackingScreenState extends State<TrackingScreen> {
     );
   }
 
-  Widget _buildEmptyState() {
-    final IconData icon;
-    final String title;
-    final String subtitle;
+  // ---------------------------------------------------------------------------
+  // Filter dropdown
+  // ---------------------------------------------------------------------------
 
-    switch (dropdownValue) {
-      case 'Pending':
-        icon = Icons.pending_actions_outlined;
-        title = 'No pending tasks';
-        subtitle = 'Tasks that are waiting to be done will appear here.';
-        break;
-      case 'Completed':
-        icon = Icons.task_alt_rounded;
-        title = 'No completed tasks';
-        subtitle = 'Tasks you finish will appear here.';
-        break;
-      case 'Cancelled':
-        icon = Icons.cancel_outlined;
-        title = 'No cancelled tasks';
-        subtitle = 'Tasks you cancel will appear here.';
-        break;
-      default:
-        icon = Icons.assignment_outlined;
-        title = 'No tasks available';
-        subtitle = 'Tap the + button to add an item and start tracking its '
-            'service tasks.';
+  Widget _buildFilterDropdown() {
+    return Consumer<ItemTaskListProvider>(
+      builder: (context, provider, _) {
+        return Container(
+          padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 8),
+          decoration: BoxDecoration(
+            color: const Color(0xffF6F8FA),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: DropdownButton<TaskFilter>(
+            value: provider.selectedFilter,
+            onChanged: (filter) {
+              if (filter == null) return;
+              if (_scrollController.hasClients) _scrollController.jumpTo(0);
+              provider.selectFilter(filter);
+            },
+            icon: const Icon(
+              Icons.keyboard_arrow_down,
+              color: Color(0xffA5A5AB),
+            ),
+            underline: const SizedBox(),
+            dropdownColor: const Color(0xffF6F8FA),
+            borderRadius: BorderRadius.circular(12.r),
+            items: [
+              for (final filter in TaskFilter.values)
+                DropdownMenuItem<TaskFilter>(
+                  value: filter,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.calendar_month_rounded,
+                        size: 20,
+                        color: Colors.grey,
+                      ),
+                      SizedBox(width: 8.w),
+                      Text(
+                        _filterLabel(filter, provider),
+                        style: const TextStyle(color: Color(0xff4A4C56)),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  String _filterLabel(TaskFilter filter, ItemTaskListProvider provider) {
+    if (!provider.hasCounts) return filter.label;
+    return '${filter.label} (${provider.counts.of(filter)})';
+  }
+
+  // ---------------------------------------------------------------------------
+  // Body
+  // ---------------------------------------------------------------------------
+
+  Widget _buildBody(ItemTaskListProvider provider) {
+    final tasks = provider.tasks;
+
+    if (provider.isLoading && tasks.isEmpty) {
+      return ListView.builder(
+        padding: const EdgeInsets.all(10),
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: 5,
+        itemBuilder: (_, _) => const TaskCardSkeleton(),
+      );
     }
+
+    if (provider.hasError) {
+      return EmptyState(
+        icon: Icons.cloud_off_outlined,
+        title: 'Could not load tasks',
+        subtitle: 'Check your connection and try again.',
+        onRetry: provider.refreshSelected,
+      );
+    }
+
+    if (tasks.isEmpty) return _buildEmptyState(provider.selectedFilter);
+
+    final showFooter = provider.hasNextPage || provider.isLoadingMore;
+
+    return RefreshIndicator(
+      color: AppColors.primaryColor,
+      onRefresh: provider.refreshSelected,
+      child: ListView.builder(
+        controller: _scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(10),
+        itemCount: tasks.length + (showFooter ? 1 : 0),
+        itemBuilder: (context, index) {
+          if (index == tasks.length) return _buildFooter(provider);
+
+          final task = tasks[index];
+          return CustomTaskCard(
+            key: ValueKey<String>(task.id),
+            index: index + 1,
+            task: task,
+            onTap: () => openTaskDetails(context, task),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildFooter(ItemTaskListProvider provider) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 12.h),
+      child: Column(
+        children: [
+          Text(
+            'Showing ${provider.tasks.length} of ${provider.total}',
+            style: TextStyle(fontSize: 12.sp, color: Colors.grey.shade600),
+          ),
+          SizedBox(height: 10.h),
+          if (provider.isLoadingMore)
+            SizedBox(
+              height: 28.h,
+              width: 28.h,
+              child: const CircularProgressIndicator(
+                strokeWidth: 2.5,
+                color: AppColors.primaryColor,
+              ),
+            )
+          else
+            OutlinedButton(
+              onPressed: provider.loadMore,
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.primaryColor,
+                side: const BorderSide(color: AppColors.primaryColor),
+                shape: const StadiumBorder(),
+                padding: EdgeInsets.symmetric(horizontal: 28.w, vertical: 10.h),
+              ),
+              child: const Text('Load more'),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(TaskFilter filter) {
+    final (IconData icon, String title, String subtitle) = switch (filter) {
+      TaskFilter.overdue => (
+        Icons.event_busy_outlined,
+        'No overdue tasks',
+        'Tasks that passed their due date will appear here.',
+      ),
+      TaskFilter.dueNow => (
+        Icons.alarm_outlined,
+        'Nothing due right now',
+        'Tasks that are due today will appear here.',
+      ),
+      TaskFilter.upcoming => (
+        Icons.event_outlined,
+        'No upcoming tasks',
+        'Tasks that are coming up soon will appear here.',
+      ),
+      TaskFilter.future => (
+        Icons.event_available_outlined,
+        'No future tasks',
+        'Tasks scheduled further ahead will appear here.',
+      ),
+      TaskFilter.completed => (
+        Icons.task_alt_rounded,
+        'No completed tasks',
+        'Tasks you finish will appear here.',
+      ),
+      TaskFilter.all => (
+        Icons.assignment_outlined,
+        'No tasks available',
+        'Tap the + button to add an item and start tracking its service tasks.',
+      ),
+    };
 
     return EmptyState(
       icon: icon,
       title: title,
       subtitle: subtitle,
-      onRetry: dropdownValue == 'Cancelled'
-          ? null
-          : () => context.read<ItemTaskListProvider>().getItemTasks(),
+      onRetry: () => context.read<ItemTaskListProvider>().refreshSelected(),
     );
   }
 }

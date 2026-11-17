@@ -194,7 +194,6 @@ class AddItemRepositoryImpl implements AddItemRepository {
 
   // ================= QUESTIONS =================
 
-  /// Vehicle. `GET /items/:id/questions`.
   @override
   Future<QuestionsResponse?> getQuestion(String id) {
     return _call<QuestionsResponse>(
@@ -205,8 +204,6 @@ class AddItemRepositoryImpl implements AddItemRepository {
     );
   }
 
-  /// Vehicle. Answers are Yes / No / Planned, one per question and in the order
-  /// the questions were returned.
   @override
   Future<QuestionsResponse?> answerQuestions({
     required String itemId,
@@ -232,7 +229,6 @@ class AddItemRepositoryImpl implements AddItemRepository {
     );
   }
 
-  /// Home and Other. `GET /items/:id/questions`.
   @override
   Future<GuidedQuestionsResponse?> getGuidedQuestions(String itemId) {
     return _call<GuidedQuestionsResponse>(
@@ -243,7 +239,6 @@ class AddItemRepositoryImpl implements AddItemRepository {
     );
   }
 
-  /// Home and Other. Body: `{"answers": [{question_id, answer | skipped}]}`.
   @override
   Future<GuidedQuestionsResponse?> submitGuidedAnswers({
     required String itemId,
@@ -284,9 +279,6 @@ class AddItemRepositoryImpl implements AddItemRepository {
 
   // ================= SHARED REQUEST HANDLING =================
 
-  /// Runs [request], parses a 200/201 JSON object with [parse] and turns every
-  /// failure into one toast for the user, then `null`. A 403 with
-  /// `premiumRequired: true` carries its own message ("Upgrade to Premium…").
   Future<T?> _call<T>({
     required String label,
     required String failureMessage,

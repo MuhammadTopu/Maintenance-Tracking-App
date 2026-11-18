@@ -79,7 +79,6 @@ class _SplashScreenState extends State<SplashScreen>
 
             // Logo size
             final imageHeight = (screenHeight * 0.28).clamp(160.0, 320.0);
-            final imageWidth = imageHeight * (156 / 170); // aspect ratio
 
             final titleFontSize = (screenWidth * 0.06).clamp(20.0, 30.0);
             final bodyFontSize = (screenWidth * 0.035).clamp(13.0, 17.0);

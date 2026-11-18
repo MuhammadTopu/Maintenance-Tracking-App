@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 
 import '../../data/models/user_response_model.dart';
 import '../../domain/repository/auth_repository.dart';
@@ -55,27 +54,17 @@ class UserProvider extends ChangeNotifier {
 
   // ================= STATE =================
   File? image;
-  final ImagePicker _picker = ImagePicker();
 
   bool isUpdating = false;
   bool isUploaded = false;
 
   String message = '';
 
-  // ================= PICK IMAGE =================
-  Future<void> pickImage() async {
-    final picked = await _picker.pickImage(
-      source: ImageSource.gallery,
-      imageQuality: 80,
-    );
-
-    if (picked != null) {
-      image = File(picked.path);
-    }
-
+  // ================= SET IMAGE (picked by ImageHelper in the UI) =================
+  void setImage(File? file) {
+    image = file;
     notifyListeners();
   }
-
   // ================= UPDATE IMAGE =================
   Future<bool> updateUserImage() async {
     if (image == null) return false;

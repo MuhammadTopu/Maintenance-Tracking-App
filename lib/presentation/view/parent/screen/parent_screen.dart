@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:maintenance_genie/app/controller/notification_navigator.dart';
+import 'package:maintenance_genie/presentation/view_models/notification_provider.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/services/subscription/subscription_service.dart';
 import '../../../view_models/all_item_list_provider.dart';
@@ -17,14 +19,26 @@ class ParentScreen extends StatefulWidget {
 class _ParentScreenState extends State<ParentScreen> {
   @override
   void initState() {
+    super.initState();
+
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+
       Future.wait([
         _loadUserAndLinkSubscription(),
         context.read<AllItemListProvider>().getAllItem(),
         context.read<ItemTaskListProvider>().getItemTasks(),
+        context.read<NotificationProvider>().activate(),
       ]);
+
+      NotificationNavigator.instance.attachHome();
     });
-    super.initState();
+  }
+
+  @override
+  void dispose() {
+    NotificationNavigator.instance.detachHome();
+    super.dispose();
   }
 
   Future<void> _loadUserAndLinkSubscription() async {

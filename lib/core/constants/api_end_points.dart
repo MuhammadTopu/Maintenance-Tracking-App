@@ -86,9 +86,25 @@ class ApiEndPoints {
     String filter = 'all',
     int page = 1,
     int limit = 20,
-  }) => '$baseUrl/api/items/$itemId/tasks?filter=$filter&page=$page&limit=$limit';
+  }) =>
+      '$baseUrl/api/items/$itemId/tasks?filter=$filter&page=$page&limit=$limit';
   static String addReceiptByTaskId(String taskId) =>
       '$baseUrl/api/items/upload-maintenance-history/$taskId';
   static String toggleTaskStatus(String taskId) =>
       '$baseUrl/api/items/toggle-task-status/$taskId';
+
+  // notifications
+  static String notifications({
+    int page = 1,
+    int limit = 20,
+  }) => '$baseUrl/api/notifications?page=$page&limit=$limit';
+
+  static const String readAllNotifications =
+      '$baseUrl/api/notifications/read-all';
+
+  static String readNotification(String id) =>
+      '$baseUrl/api/notifications/$id/read';
+
+  static String deleteNotification(String id) =>
+      '$baseUrl/api/notifications/$id';
 }

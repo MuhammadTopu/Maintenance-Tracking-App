@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:maintenance_genie/shared/app_toast.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../core/constants/api_end_points.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/helper/image_picker_helper.dart';
 import '../../../../shared/common_widgets.dart';
 import '../../../../shared/custom_item_app_bar.dart';
 import '../../../view_models/user_provider.dart';
@@ -63,68 +65,141 @@ class _EditProfileState extends State<EditProfile> {
     );
   }
 
-  // ================= IMAGE DIALOG =================
-  Future<void> _showImagePicker(UserProvider provider) async {
-    showDialog(
-      context: context,
-      builder: (_) {
-        return AlertDialog(
-          backgroundColor: Colors.white,
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
+  // ================= IMAGE PICK / UPLOAD =================
+  Future<void> _pick(ImageSource source) async {
+    final file = await ImageHelper.pick(context, source);
+    if (file == null || !mounted) return;
+    context.read<UserProvider>().setImage(file);
+  }
+
+  Future<void> _saveImage(BuildContext dialogContext) async {
+    final provider = context.read<UserProvider>();
+
+    if (provider.image == null) {
+      AppToast.showToast('Please select an image first');
+      return;
+    }
+
+    final result = await provider.updateUserImage();
+
+    if (!result) {
+      AppToast.showToast('Profile picture update failed');
+      return;
+    }
+
+    provider.clearImage();
+    provider.getUserDetails();
+    if (dialogContext.mounted) Navigator.pop(dialogContext);
+    if (mounted) _showSnack('Profile picture updated');
+  }
+
+  Widget _imageOption({
+    required IconData icon,
+    required String label,
+    required VoidCallback? onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Opacity(
+        opacity: onTap == null ? 0.5 : 1,
+        child: Container(
+          padding: EdgeInsets.symmetric(vertical: 14.h),
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey),
+            borderRadius: BorderRadius.circular(12.r),
+          ),
+          child: Column(
             children: [
-              const Text(
-                "Select Image",
-                style: TextStyle(fontWeight: FontWeight.w600),
-              ),
-              SizedBox(height: 16.h),
-
-              GestureDetector(
-                onTap: provider.pickImage,
-                child: Container(
-                  width: double.infinity,
-                  padding: EdgeInsets.all(16.w),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey),
-                    borderRadius: BorderRadius.circular(12.r),
-                  ),
-                  child: const Text("Pick a Picture"),
-                ),
-              ),
-
-              SizedBox(height: 16.h),
-
-              Consumer<UserProvider>(
-                builder: (_, p, __) {
-                  return SizedBox(
-                    width: double.infinity,
-                    child: p.isLoading
-                        ? const Center(child: CircularProgressIndicator(color: AppColors.primaryColor,))
-                        : PrimaryButton(
-                            text: 'Save Changes',
-                            onPressed: () async {
-                              final result = await p.updateUserImage();
-                              p.image = null;
-
-                              context.read<UserProvider>().getUserDetails();
-
-                              _showSnack(
-                                result
-                                    ? "Profile picture updated"
-                                    : "Profile picture update failed",
-                              );
-
-                              Navigator.pop(context);
-                            },
-                          ),
-                  );
-                },
-              ),
+              Icon(icon, color: AppColors.primaryColor),
+              SizedBox(height: 6.h),
+              Text(label, style: TextStyle(fontSize: 13.sp)),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showImagePicker() {
+    return showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return Consumer<UserProvider>(
+          builder: (_, p, __) {
+            return PopScope(
+              canPop: !p.isLoading,
+              child: AlertDialog(
+                backgroundColor: Colors.white,
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      "Select Image",
+                      style: TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    SizedBox(height: 16.h),
+
+                    if (p.image != null) ...[
+                      ClipOval(
+                        child: Image.file(
+                          p.image!,
+                          height: 90.w,
+                          width: 90.w,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      SizedBox(height: 16.h),
+                    ],
+
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _imageOption(
+                            icon: Icons.photo_camera_outlined,
+                            label: 'Take Picture',
+                            onTap: p.isLoading
+                                ? null
+                                : () => _pick(ImageSource.camera),
+                          ),
+                        ),
+                        SizedBox(width: 12.w),
+                        Expanded(
+                          child: _imageOption(
+                            icon: Icons.photo_library_outlined,
+                            label: 'Upload Image',
+                            onTap: p.isLoading
+                                ? null
+                                : () => _pick(ImageSource.gallery),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    SizedBox(height: 16.h),
+
+                    SizedBox(
+                      width: double.infinity,
+                      child: p.isLoading
+                          ? const Center(
+                        child: CircularProgressIndicator(
+                          color: AppColors.primaryColor,
+                        ),
+                      )
+                          : PrimaryButton(
+                        text: 'Save Changes',
+                        onPressed: () => _saveImage(dialogContext),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
         );
       },
-    );
+    ).whenComplete(() {
+      if (mounted) context.read<UserProvider>().clearImage();
+    });
   }
 
   @override
@@ -152,7 +227,7 @@ class _EditProfileState extends State<EditProfile> {
 
               // ================= PROFILE IMAGE =================
               GestureDetector(
-                onTap: () => _showImagePicker(userProvider),
+                onTap: _showImagePicker,
                 child: Stack(
                   children: [
                     ClipRRect(
@@ -161,7 +236,7 @@ class _EditProfileState extends State<EditProfile> {
                         height: 100.h,
                         width: 100.w,
                         decoration: BoxDecoration(shape: BoxShape.circle),
-                        child: userProvider.image != null ? Image.file(userProvider.image!) :
+                        child: userProvider.image != null ? Image.file(userProvider.image!, fit: BoxFit.cover,) :
                             Image.network(
                                 ApiEndPoints.imagePath(
                                   user?.avatar ?? '',

@@ -84,7 +84,7 @@ class AllItemListProvider extends ChangeNotifier {
   }
 
   void removeItems() {
-    _allItemListModel?.items?.clear();
+    _allItemListModel?.items.clear();
     notifyListeners();
   }
 }

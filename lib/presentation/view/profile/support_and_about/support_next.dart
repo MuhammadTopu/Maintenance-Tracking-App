@@ -27,6 +27,8 @@ class _SupportNextState extends State<SupportNext> {
             borderRadius: BorderRadius.circular(20.0),
           ),
           contentPadding: const EdgeInsets.all(12.0),
+          backgroundColor: Colors.white,
+          surfaceTintColor: Colors.white,
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [

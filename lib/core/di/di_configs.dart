@@ -1,14 +1,17 @@
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 import 'package:maintenance_genie/data/repository/item_and_task_list_repository_impl.dart';
+import 'package:maintenance_genie/data/repository/notification_repository_impl.dart';
 import 'package:maintenance_genie/data/repository/support_mail_repository_impl.dart';
 import 'package:maintenance_genie/domain/repository/add_items_repository.dart';
 import 'package:maintenance_genie/domain/repository/item_and_task_list_repository.dart';
+import 'package:maintenance_genie/domain/repository/notification_repository.dart';
 import 'package:maintenance_genie/domain/repository/support_mail_repository.dart';
 import 'package:maintenance_genie/presentation/view_models/add_item_provider.dart';
 import 'package:maintenance_genie/presentation/view_models/add_receipt_provider.dart';
 import 'package:maintenance_genie/presentation/view_models/forget_pass_provider.dart';
 import 'package:maintenance_genie/presentation/view_models/item_task_list_by_item_id_provider.dart';
+import 'package:maintenance_genie/presentation/view_models/notification_provider.dart';
 import 'package:maintenance_genie/presentation/view_models/parent_screen_provider.dart';
 import 'package:maintenance_genie/presentation/view_models/question_provider.dart';
 import 'package:maintenance_genie/presentation/view_models/sign_up_provider.dart';
@@ -35,6 +38,7 @@ Future<void> diConfig() async {
   getIt.registerLazySingleton<ItemAndTaskListRepository>(() => ItemAndTaskListRepositoryImpl(getIt<ApiService>()),);
   getIt.registerLazySingleton<AddItemRepository>(() => AddItemRepositoryImpl(getIt<ApiService>()),);
   getIt.registerLazySingleton<SupportMailRepository>(() => SupportMailRepositoryImpl(getIt<ApiService>()),);
+  getIt.registerLazySingleton<NotificationRepository>(() => NotificationRepositoryImpl(getIt<ApiService>()),);
 
 
   // ===== Providers =====
@@ -46,6 +50,7 @@ Future<void> diConfig() async {
   getIt.registerFactory<ItemTaskListByItemIdProvider>(() => ItemTaskListByItemIdProvider(getIt<ItemAndTaskListRepository>()),);
   getIt.registerFactory<AddItemProvider>(() => AddItemProvider(getIt<AddItemRepository>()),);
   getIt.registerFactory<SupportMailProvider>(() => SupportMailProvider(getIt<SupportMailRepository>()),);
+  getIt.registerFactory<NotificationProvider>(() => NotificationProvider(getIt<NotificationRepository>()),);
   getIt.registerFactory<UserProvider>(() => UserProvider(getIt<AuthRepository>()),);
   getIt.registerFactory<QuestionProvider>(() => QuestionProvider(getIt<AddItemRepository>()),);
 

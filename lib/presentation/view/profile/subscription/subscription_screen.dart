@@ -720,26 +720,6 @@ class _CountdownTimerState extends State<_CountdownTimer> {
             _TimeTile(value: seconds, label: 'SEC'),
           ],
         ),
-        if (progress != null) ...[
-          SizedBox(height: 16.h),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(99.r),
-            child: LinearProgressIndicator(
-              value: progress,
-              minHeight: 6.h,
-              backgroundColor: Colors.white.withValues(alpha: 0.18),
-              valueColor: const AlwaysStoppedAnimation<Color>(_gold),
-            ),
-          ),
-          SizedBox(height: 6.h),
-          Text(
-            '${(progress * 100).round()}% of this billing period left',
-            style: TextStyle(
-              fontSize: 11.sp,
-              color: Colors.white.withValues(alpha: 0.65),
-            ),
-          ),
-        ],
       ],
     );
   }

@@ -3,6 +3,7 @@ import 'package:maintenance_genie/presentation/view_models/add_receipt_provider.
 import 'package:maintenance_genie/presentation/view_models/all_item_list_provider.dart';
 import 'package:maintenance_genie/presentation/view_models/forget_pass_provider.dart';
 import 'package:maintenance_genie/presentation/view_models/login_provider.dart';
+import 'package:maintenance_genie/presentation/view_models/notification_provider.dart';
 import 'package:maintenance_genie/presentation/view_models/parent_screen_provider.dart';
 import 'package:maintenance_genie/presentation/view_models/question_provider.dart';
 import 'package:maintenance_genie/presentation/view_models/sign_up_provider.dart';
@@ -28,6 +29,7 @@ class AppViewModels {
     ChangeNotifierProvider<AddItemProvider>(create: (_) => getIt<AddItemProvider>(),),
     ChangeNotifierProvider<UserProvider>(create: (_) => getIt<UserProvider>(),),
     ChangeNotifierProvider<SupportMailProvider>(create: (_) => getIt<SupportMailProvider>(),),
+    ChangeNotifierProvider<NotificationProvider>(create: (_) => getIt<NotificationProvider>(),),
     ChangeNotifierProvider<QuestionProvider>(create: (_) => getIt<QuestionProvider>(),),
     ChangeNotifierProvider<AddReceiptProvider>(create: (_) => getIt<AddReceiptProvider>(),),
     ChangeNotifierProvider<SubscriptionProvider>(create: (_) => getIt<SubscriptionProvider>(),),

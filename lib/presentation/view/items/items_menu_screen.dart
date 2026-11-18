@@ -13,32 +13,13 @@ import '../../view_models/item_task_list_by_item_id_provider.dart';
 class _Palette {
   _Palette._();
 
-  static const Color background = Color(0xFFF4F9FC);
   static const Color headerRow = Color(0xFFE6F1F8);
   static const Color zebra = Color(0xFFF7FBFD);
   static const Color rowHighlight = Color(0xFFEAF4FA);
   static const Color border = Color(0xFFD3E5F0);
   static const Color divider = Color(0xFFE0ECF4);
-  static const Color title = Color(0xFF2C5F7D);
   static const Color headerText = Color(0xFF3F7FA5);
   static const Color buttonEnd = Color(0xFF4A8DB5);
-
-  // Category text: three depths of the primary blue.
-  static const Color vehicle = Color(0xFF245B80);
-  static const Color home = Color(0xFF3A83AD);
-  static const Color other = Color(0xFF5A93B5);
-
-  static Color forCategory(String category) {
-    switch (category.trim().toLowerCase()) {
-      case 'vehicle':
-        return vehicle;
-      case 'home':
-      case 'appliance':
-        return home;
-      default:
-        return other;
-    }
-  }
 }
 
 class ItemsMenuScreen extends StatefulWidget {

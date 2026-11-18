@@ -3,10 +3,11 @@ import 'package:maintenance_genie/app/routes/route_names.dart';
 import 'package:maintenance_genie/core/constants/app_colors.dart';
 import 'package:maintenance_genie/presentation/view_models/add_item_provider.dart';
 import 'package:maintenance_genie/presentation/view_models/all_item_list_provider.dart';
-import 'package:maintenance_genie/presentation/view_models/user_provider.dart';
 import 'package:maintenance_genie/shared/common_widgets.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../core/services/role/role_service.dart';
+import '../../../../core/services/role/user_role.dart';
 import '../widgets/show_item_added_dialog.dart';
 
 /// Submit flow shared by the Vehicle, Home and Other forms, so the three forms
@@ -31,9 +32,11 @@ mixin AddItemSubmissionMixin<T extends StatefulWidget> on State<T> {
     if (addItemProvider.isLoading) return;
 
     if (openQuestionFlowForPremium) {
-      final isPremium =
-          context.read<UserProvider>().userResponse?.data.isPremium == true;
-      if (isPremium) {
+      // The role comes from RevenueCat (RoleService), not from /get-me.
+      final canGenerateTasks = context.read<RoleService>().can(
+        AppFeature.taskGeneration,
+      );
+      if (canGenerateTasks) {
         // The question screen pops `true` once the item is saved, even if the
         // user then leaves without finishing the questions. Reset the form in
         // that case: the item exists, so submitting the same form again would

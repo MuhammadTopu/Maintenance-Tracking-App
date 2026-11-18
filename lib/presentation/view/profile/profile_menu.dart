@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:maintenance_genie/core/helper/logger.dart';
-import 'package:maintenance_genie/presentation/view_models/parent_screen_provider.dart';
 import 'package:maintenance_genie/presentation/view_models/user_provider.dart';
 import 'package:provider/provider.dart';
 
@@ -9,12 +7,9 @@ import '../../../app/routes/route_names.dart';
 import '../../../core/constants/api_end_points.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/di/di_configs.dart';
-import '../../../core/services/api/api_service.dart';
-import '../../../core/services/subscription/subscription_service.dart';
+import '../../../core/services/role/role_service.dart';
 import '../../../domain/repository/support_mail_repository.dart';
 import '../../../shared/custom_app_bar.dart';
-import '../../view_models/all_item_list_provider.dart';
-import '../../view_models/login_provider.dart';
 import 'dialog/account_dialogs.dart';
 import 'dialog/logout_dialog.dart';
 
@@ -29,6 +24,9 @@ class _ProfileMenuState extends State<ProfileMenu> {
   @override
   Widget build(BuildContext context) {
     final getMeProvider = context.watch<UserProvider>();
+    final isPremium = context.select<RoleService, bool>(
+          (role) => role.isPremium,
+    );
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -38,38 +36,59 @@ class _ProfileMenuState extends State<ProfileMenu> {
           child: SingleChildScrollView(
             child: Column(
               children: [
-                CustomAppBar(), // Assuming this is a custom widget
+                CustomAppBar(), 
                 SizedBox(height: 20),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(90.r),
-                  child: Container(
-                    height: 100.h,
-                    width: 100.w,
-                    decoration: BoxDecoration(shape: BoxShape.circle),
-                    child: Image.network(
-                      ApiEndPoints.imagePath(
-                        getMeProvider.userResponse?.data.avatar ?? '',
+                Stack(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(90.r),
+                      child: Container(
+                        height: 100.h,
+                        width: 100.w,
+                        decoration: BoxDecoration(shape: BoxShape.circle),
+                        child: Image.network(
+                          ApiEndPoints.imagePath(
+                            getMeProvider.userResponse?.data.avatar ?? '',
+                          ),
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              height: 100.h,
+                              width: 100.w,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Color(0xffF6F8FA),
+                                border: Border.all(color: Color(0xffE9E9EA)),
+                              ),
+                              child: Image.asset(
+                                'assets/icons/user.png',
+                                height: 60.w,
+                                width: 60.w,
+                                color: Colors.grey.shade800,
+                              ),
+                            );
+                          },
+                        ),
                       ),
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          height: 100.h,
-                          width: 100.w,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Color(0xffF6F8FA),
-                            border: Border.all(color: Color(0xffE9E9EA)),
-                          ),
-                          child: Image.asset(
-                            'assets/icons/user.png',
-                            height: 60.w,
-                            width: 60.w,
-                            color: Colors.grey.shade800,
-                          ),
-                        );
-                      },
                     ),
-                  ),
+                    if (isPremium)
+                      Positioned(
+                        right: 4.w,
+                        top: 4.w,
+                        child: SizedBox(
+                          height: 20.w,
+                          width: 20.w,
+                          child: CircleAvatar(
+                            backgroundColor: AppColors.primaryColor,
+                            child: Image.asset(
+                              'assets/icons/crown.png',
+                              height: 12.w,
+                              width: 12.w,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
                 SizedBox(height: 8.h),
                 FutureBuilder<String?>(

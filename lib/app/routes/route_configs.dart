@@ -8,6 +8,7 @@ import 'package:maintenance_genie/presentation/view/auth/sign_up/sign_up_screen.
 import 'package:maintenance_genie/presentation/view/auth/sign_up/verify_email_otp_screen.dart';
 import 'package:maintenance_genie/presentation/view/items/add_item_screen.dart';
 import 'package:maintenance_genie/presentation/view/items/item_details_screen.dart';
+import 'package:maintenance_genie/presentation/view/notification/notification_screen.dart';
 import 'package:maintenance_genie/presentation/view/parent/screen/parent_screen.dart';
 import 'package:maintenance_genie/presentation/view/profile/general/edit_profile.dart';
 import 'package:maintenance_genie/presentation/view/profile/general/security.dart';
@@ -94,6 +95,9 @@ class AppRoutes {
 
       case RouteName.subscriptionScreen:
         return _buildRoute(const SubscriptionScreen(), settings);
+
+      case RouteName.notifications:
+        return _buildRoute(const NotificationScreen(), settings);
 
       default:
         return _buildRoute(UnknownRouteScreen(routeName: settings.name), settings);

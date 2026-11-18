@@ -3,13 +3,14 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gpt_markdown/gpt_markdown.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/services/role/role_service.dart';
+import '../../../core/services/role/user_role.dart';
 import '../../../data/models/item.dart';
 import '../../../shared/custom_item_app_bar.dart';
 import '../../../shared/empty_state_widget.dart';
 import '../../../shared/item_display.dart';
 import '../../view_models/all_item_list_provider.dart';
 import '../../view_models/item_task_list_by_item_id_provider.dart';
-import '../../view_models/user_provider.dart';
 import 'widgets/forum_suggestion_card_widget.dart';
 import 'widgets/item_tasks_section.dart';
 
@@ -36,7 +37,9 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final userProvider = context.watch<UserProvider>();
+    final canSeeForumSuggestions = context.select<RoleService, bool>(
+          (role) => role.can(AppFeature.forumSuggestions),
+    );
     return Scaffold(
       backgroundColor: const Color(0xffFFFFFF),
       body: SafeArea(
@@ -129,8 +132,7 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                     _buildContainer(
                       child: ForumSuggestionsCard(
                         response: provider.oneItemModel!,
-                        isPremium:
-                        userProvider.userResponse?.data.isPremium ?? false,
+                        isPremium: canSeeForumSuggestions,
                       ),
                     ),
                   ],

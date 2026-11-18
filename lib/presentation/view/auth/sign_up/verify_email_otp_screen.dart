@@ -98,6 +98,13 @@ class _VerifyEmailOtpScreenState extends State<VerifyEmailOtpScreen> {
                             );
                             return;
                           }
+                          if (otp.length < 6) {
+                            AppToast.showToast(
+                              "Enter the 6-digit OTP",
+                              backgroundColor: Colors.red,
+                            );
+                            return;
+                          }
                           final result = await signUpProvider.register2(
                             otp: otp,
                           );

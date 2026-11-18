@@ -4,7 +4,6 @@ import 'package:gpt_markdown/gpt_markdown.dart';
 import 'package:maintenance_genie/data/models/one_item_model.dart';
 import 'package:maintenance_genie/shared/common_widgets.dart';
 
-import '../../../../core/constants/app_colors.dart';
 
 class ForumSuggestionsCard extends StatelessWidget {
   final OneItemModel response;

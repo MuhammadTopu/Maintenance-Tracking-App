@@ -1,4 +1,3 @@
-
 class UserResponse {
   final bool success;
   final String message;
@@ -14,7 +13,9 @@ class UserResponse {
     return UserResponse(
       success: json['success'] ?? false,
       message: json['message'] ?? '',
-      data: UserData.fromJson(json['data'] ?? {}),
+      data: UserData.fromJson(
+        json['data'] as Map<String, dynamic>? ?? {},
+      ),
     );
   }
 
@@ -39,7 +40,7 @@ class UserData {
   final String? subscriptionStatus;
   final String? imageUrl;
   final bool isPremium;
-  final dynamic subscription;
+  final SubscriptionData? subscription;
 
   UserData({
     required this.id,
@@ -65,16 +66,22 @@ class UserData {
       address: json['address'],
       provider: json['provider'],
       subscribedAt: json['subscribed_at'] != null
-          ? DateTime.tryParse(json['subscribed_at'])
+          ? DateTime.tryParse(json['subscribed_at'].toString())
           : null,
       subscriptionValidUntil:
       json['subscription_valid_until'] != null
-          ? DateTime.tryParse(json['subscription_valid_until'])
+          ? DateTime.tryParse(
+        json['subscription_valid_until'].toString(),
+      )
           : null,
       subscriptionStatus: json['subscription_status'],
       imageUrl: json['imageUrl'],
       isPremium: json['isPremium'] ?? false,
-      subscription: json['subscription'],
+      subscription: json['subscription'] != null
+          ? SubscriptionData.fromJson(
+        json['subscription'] as Map<String, dynamic>,
+      )
+          : null,
     );
   }
 
@@ -92,7 +99,53 @@ class UserData {
       'subscription_status': subscriptionStatus,
       'imageUrl': imageUrl,
       'isPremium': isPremium,
-      'subscription': subscription,
+      'subscription': subscription?.toJson(),
+    };
+  }
+}
+
+class SubscriptionData {
+  final String? plan;
+  final String? status;
+  final bool isLifetime;
+  final DateTime? expiresAt;
+  final bool? willRenew;
+  final bool? inGracePeriod;
+  final String? store;
+
+  SubscriptionData({
+    this.plan,
+    this.status,
+    this.isLifetime = false,
+    this.expiresAt,
+    this.willRenew,
+    this.inGracePeriod,
+    this.store,
+  });
+
+  factory SubscriptionData.fromJson(Map<String, dynamic> json) {
+    return SubscriptionData(
+      plan: json['plan'],
+      status: json['status'],
+      isLifetime: json['isLifetime'] ?? false,
+      expiresAt: json['expiresAt'] != null
+          ? DateTime.tryParse(json['expiresAt'].toString())
+          : null,
+      willRenew: json['willRenew'],
+      inGracePeriod: json['inGracePeriod'],
+      store: json['store'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'plan': plan,
+      'status': status,
+      'isLifetime': isLifetime,
+      'expiresAt': expiresAt?.toIso8601String(),
+      'willRenew': willRenew,
+      'inGracePeriod': inGracePeriod,
+      'store': store,
     };
   }
 }
